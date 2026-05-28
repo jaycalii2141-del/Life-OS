@@ -1,0 +1,237 @@
+// ─────────────────────────────────────────────────────────
+// Quick Capture — bottom sheet modal accessible from anywhere
+// ─────────────────────────────────────────────────────────
+
+const CAPTURE_TAGS = [
+  { id: 'idea',  label: 'IDEA',  color: '#00D4FF' },
+  { id: 'ona',   label: 'ONA',   color: '#FF0033' },
+  { id: 'dream', label: 'DREAM', color: '#B14CFF' },
+  { id: 'task',  label: 'TASK',  color: '#B6FF3C' },
+];
+
+function QuickCapture({ open, onClose, voiceMode = false }) {
+  const [text, setText] = useState('');
+  const [tag, setTag] = useState('idea');
+  const [recording, setRecording] = useState(voiceMode);
+  const [saved, setSaved] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (open) {
+      setText('');
+      setSaved(false);
+      setRecording(voiceMode);
+      setTimeout(() => inputRef.current?.focus(), 320);
+    }
+  }, [open, voiceMode]);
+
+  if (!open) return null;
+
+  const tagColor = CAPTURE_TAGS.find(t => t.id === tag)?.color;
+
+  const handleCapture = () => {
+    if (!text.trim() && !recording) return;
+    setSaved(true);
+    setTimeout(() => onClose?.(), 700);
+  };
+
+  return (
+    <>
+      <div className="scrim" onClick={onClose} />
+      <div className="sheet">
+        <div className="sheet-handle" />
+
+        {saved ? (
+          <div style={{
+            padding: '40px 0 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 999,
+              background: 'rgba(182, 255, 60, 0.15)',
+              border: '1px solid rgba(182, 255, 60, 0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 40px -10px rgba(182,255,60,0.6)',
+            }}>
+              <IconCheck size={28} color="#B6FF3C" stroke={2.5} />
+            </div>
+            <div className="display" style={{ fontSize: 24, color: 'var(--lime)' }}>CAPTURED</div>
+            <div className="eyebrow">routed to {tag}</div>
+          </div>
+        ) : (
+          <>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+            }}>
+              <div>
+                <div className="eyebrow">Quick Capture</div>
+                <div className="display" style={{ fontSize: 24, marginTop: 2 }}>
+                  WHAT'S ON YOUR MIND?
+                </div>
+              </div>
+              <div
+                className="pressable"
+                onClick={onClose}
+                style={{
+                  width: 32, height: 32, borderRadius: 999,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: 'var(--muted)',
+                }}
+              >
+                <IconClose size={16} />
+              </div>
+            </div>
+
+            {/* input row */}
+            <div style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'stretch',
+              marginBottom: 14,
+            }}>
+              <div style={{
+                flex: 1,
+                background: 'rgba(255,255,255,0.04)',
+                border: `1px solid ${tagColor}40`,
+                borderRadius: 14,
+                padding: '12px 14px',
+                position: 'relative',
+                boxShadow: `0 0 30px -10px ${tagColor}60`,
+              }}>
+                <input
+                  ref={inputRef}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Type or speak…"
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    color: 'var(--text)',
+                    fontSize: 16,
+                    fontFamily: 'var(--font-body)',
+                  }}
+                />
+              </div>
+              <div
+                className="pressable"
+                onClick={() => setRecording((r) => !r)}
+                style={{
+                  width: 48,
+                  borderRadius: 14,
+                  background: recording ? 'rgba(255,0,51,0.18)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${recording ? 'rgba(255,0,51,0.5)' : 'var(--line-strong)'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: recording ? 'var(--ona-red)' : 'var(--text)',
+                  boxShadow: recording ? '0 0 24px -6px rgba(255,0,51,0.6)' : 'none',
+                  transition: 'all 200ms',
+                }}
+              >
+                <IconMic size={20} className={recording ? 'blink' : ''} />
+              </div>
+            </div>
+
+            {/* recording strip */}
+            {recording && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                marginBottom: 12,
+                padding: '8px 12px',
+                borderRadius: 10,
+                background: 'rgba(255,0,51,0.08)',
+                border: '1px solid rgba(255,0,51,0.25)',
+              }}>
+                <span style={{
+                  width: 6, height: 6, borderRadius: 999,
+                  background: 'var(--ona-red)',
+                  boxShadow: '0 0 8px var(--ona-red)',
+                }} className="blink" />
+                <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)' }}>
+                  RECORDING · 0:03
+                </span>
+                <div style={{ flex: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <div key={i} style={{
+                      flex: 1,
+                      height: 4 + Math.abs(Math.sin(i * 0.7)) * 14,
+                      background: 'var(--ona-red)',
+                      borderRadius: 1,
+                      opacity: 0.8,
+                    }} className={i % 3 === 0 ? 'shimmer-cell' : ''} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* tag pills */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              {CAPTURE_TAGS.map((t) => {
+                const active = tag === t.id;
+                return (
+                  <div
+                    key={t.id}
+                    className="pressable"
+                    onClick={() => setTag(t.id)}
+                    style={{
+                      flex: 1,
+                      padding: '10px 0',
+                      borderRadius: 12,
+                      textAlign: 'center',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      letterSpacing: '0.18em',
+                      fontWeight: 700,
+                      background: active ? `${t.color}18` : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${active ? t.color + '80' : 'var(--line)'}`,
+                      color: active ? t.color : 'var(--muted)',
+                      boxShadow: active ? `0 0 18px -4px ${t.color}80` : 'none',
+                      transition: 'all 200ms',
+                    }}
+                  >{t.label}</div>
+                );
+              })}
+            </div>
+
+            {/* capture button */}
+            <div
+              className="pressable"
+              onClick={handleCapture}
+              style={{
+                height: 52,
+                borderRadius: 14,
+                background: `linear-gradient(135deg, ${tagColor} 0%, ${tagColor}80 100%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 8,
+                color: '#06060A',
+                fontWeight: 700,
+                fontSize: 15,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                boxShadow: `0 8px 30px -8px ${tagColor}`,
+              }}
+            >
+              <IconSend size={18} stroke={2.2} />
+              <span>Capture</span>
+            </div>
+
+            <div className="eyebrow" style={{ textAlign: 'center', marginTop: 12 }}>
+              ⌘K from any screen · long-press + for voice
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+Object.assign(window, { QuickCapture });
