@@ -3,6 +3,11 @@ dist
 *.local
 .DS_Store
 
+# Local environment secrets (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
 # Vite writes these transient files during build
 vite.config.js.timestamp-*.mjs
 vite.config.ts.timestamp-*.mjs

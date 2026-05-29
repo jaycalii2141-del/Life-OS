@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { HUDTicks, Pill, SectionHead } from '../components/atoms.jsx';
 import { IconSparkles, IconCalendar, IconCamera, IconActivity, IconFlame, IconUsers, IconTarget, IconMic } from '../components/icons.jsx';
+import { useAuth } from '../auth/AuthProvider.jsx';
 
 // ─────────────────────────────────────────────────────────
 // SCREEN 5 — AI Command Sheet
@@ -81,6 +82,7 @@ const RECENT = [
 
 function AIScreen({ captures = [] }) {
   const [input, setInput] = useState('');
+  const { configured, session, signOut } = useAuth();
 
   // Real captures (newest first) shown ahead of the seed history.
   const recent = [
@@ -105,9 +107,17 @@ function AIScreen({ captures = [] }) {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 14 }}>
           <Pill variant="violet" dot="#B14CFF">CLAUDE · 3.7</Pill>
-          <span className="mono" style={{ fontSize: 9, color: 'var(--lime)', letterSpacing: '0.18em' }}>
-            ● ONLINE
-          </span>
+          {configured && session ? (
+            <span
+              className="pressable mono"
+              onClick={signOut}
+              style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.16em' }}
+            >SIGN OUT</span>
+          ) : (
+            <span className="mono" style={{ fontSize: 9, color: 'var(--lime)', letterSpacing: '0.18em' }}>
+              ● ONLINE
+            </span>
+          )}
         </div>
 
         <AIOrb size={140} listening={listening} />

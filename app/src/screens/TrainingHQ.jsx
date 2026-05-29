@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill } from '../components/atoms.jsx';
 import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity } from '../components/icons.jsx';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
-import { usePersistentState } from '../usePersistentState.js';
+import { useSyncedState } from '../useSyncedState.js';
 
 // Sessions already logged before persistence existed (seed baseline)
 const BASE_SESSIONS = 38;
@@ -574,11 +574,11 @@ function LogSessionSheet({ open, onClose, onLog }) {
 function TrainingHQ() {
   const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
   const [logOpen, setLogOpen] = useState(false);
-  const [sessions, setSessions] = usePersistentState('lifeos:sessions', []);
+  const [sessions, setSessions] = useSyncedState('lifeos:sessions', []);
   const sessionCount = BASE_SESSIONS + sessions.length;
   const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
 
-  const [skills, setSkills] = usePersistentState('lifeos:skills', SKILLS);
+  const [skills, setSkills] = useSyncedState('lifeos:skills', SKILLS);
   const updateSkill = (disciplineId, idx, patch) =>
     setSkills((prev) => ({
       ...prev,

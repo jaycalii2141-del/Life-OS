@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────────────────
 // LIFE OS — App shell
-// Wraps everything in the iPhone bezel, manages tab state,
-// FAB → Quick Capture modal, AI sheet.
+// Auth gate → iPhone bezel, tab state, FAB → Quick Capture, AI sheet.
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
@@ -13,15 +12,48 @@ import { ContentStudio } from './screens/ContentStudio.jsx';
 import { ONAHQ } from './screens/ONAHQ.jsx';
 import { AIScreen } from './screens/AIScreen.jsx';
 import { TODAY, TIMELINE } from './data.js';
-import { usePersistentState, todayKey } from './usePersistentState.js';
+import { todayKey } from './usePersistentState.js';
+import { useSyncedState } from './useSyncedState.js';
+import { useAuth } from './auth/AuthProvider.jsx';
+import LoginScreen from './auth/LoginScreen.jsx';
 
+// ─────────────────────────────────────────────────────────
+// Auth gate — decides login vs app. When Supabase isn't
+// configured, the app runs as-is on localStorage (no login).
+// ─────────────────────────────────────────────────────────
 export default function App() {
+  const { configured, loading, session } = useAuth();
+
+  if (configured && loading) {
+    return (
+      <IOSDevice dark width={402} height={874}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--bg-0)',
+        }}>
+          <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.2em' }}>
+            LOADING…
+          </span>
+        </div>
+      </IOSDevice>
+    );
+  }
+
+  if (configured && !session) return <LoginScreen />;
+
+  return <MainApp />;
+}
+
+// ─────────────────────────────────────────────────────────
+// The actual app (all stateful hooks live here, below the gate)
+// ─────────────────────────────────────────────────────────
+function MainApp() {
   const [tab, setTab] = useState('home');
   const [capture, setCapture] = useState({ open: false, voice: false });
 
-  // Mission Control state — persisted per-day so it survives reloads but
-  // starts fresh each morning (matches the "open it at 6:30am" product intent).
-  const [missionState, setMissionState] = usePersistentState(`lifeos:daily:${todayKey()}`, {
+  // Mission Control state — per-day, synced to the cloud when signed in.
+  const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${todayKey()}`, {
     readiness: TODAY.readiness,
     energy: TODAY.energy,
     focus: TODAY.focus,
@@ -32,8 +64,8 @@ export default function App() {
     timeline: TIMELINE,
   });
 
-  // Captures — a persistent log across all days, newest first.
-  const [captures, setCaptures] = usePersistentState('lifeos:captures', []);
+  // Captures — a synced log across all days, newest first.
+  const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
   const addCapture = (entry) => setCaptures((list) => [entry, ...list].slice(0, 50));
 
   // Re-key the screen container on tab change so screenIn animation fires

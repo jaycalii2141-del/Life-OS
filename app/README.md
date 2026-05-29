@@ -50,8 +50,33 @@ https://app.netlify.com/drop for an instant live URL.
 
 Every push to the repo will then rebuild and redeploy automatically.
 
+## Cloud backend (Supabase + magic-link auth)
+
+The app works offline on `localStorage` out of the box. When Supabase env vars are
+present, it adds magic-link email login and syncs your data across devices (private
+per-user via Row Level Security). Without the env vars, it silently stays
+localStorage-only — no login screen.
+
+### One-time setup
+
+1. Create a free project at https://supabase.com.
+2. In the dashboard, open **SQL Editor → New query**, paste the contents of
+   `supabase/schema.sql`, and run it.
+3. In **Project Settings → API**, copy the **Project URL** and **anon public key**.
+4. Locally: copy `.env.example` to `.env` and fill in both values, then restart `npm run dev`.
+5. On Vercel: **Project → Settings → Environment Variables**, add
+   `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, then redeploy.
+6. In Supabase **Authentication → URL Configuration**, set the **Site URL** to your
+   Vercel URL and add `http://localhost:5173` to the allowed redirect URLs.
+
+### How sync works
+
+`src/useSyncedState.js` is local-first: `localStorage` is the instant source of truth,
+and when you're signed in it pulls your remote row on login and pushes every change up
+to the `app_state` table. Data model is one JSON row per `(user, key)`.
+
 ## Notes
 
-All data is currently hardcoded seed values in `src/data.js`. There is no backend,
-auth, or persistence yet — those are natural next steps (browser storage, then a
-real database like Supabase).
+Seed/reference data (brands, coaches, radar, momentum) still lives in `src/data.js`.
+Your editable, synced state is: daily logs (meters, One Thing, timeline), captures,
+training sessions, and skill progress.
