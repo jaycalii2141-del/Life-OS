@@ -1,11 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import { HUDTicks, TickCounter, Pill, ConfettiBurst, StateMeter, TimelineEvent } from '../components/atoms.jsx';
-import { IconCheck, IconCalendar } from '../components/icons.jsx';
+import { IconCheck, IconCalendar, IconClose, IconPlus } from '../components/icons.jsx';
 import { TODAY, TIMELINE, MOMENTUM } from '../data.js';
 
 // ─────────────────────────────────────────────────────────
 // SCREEN 1 — Mission Control
 // ─────────────────────────────────────────────────────────
+
+// Live date + time-of-day greeting
+function realDateLabel() {
+  const d = new Date();
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const mons = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${days[d.getDay()]} · ${mons[d.getMonth()]} ${d.getDate()}`;
+}
+function greetingLabel() {
+  const h = new Date().getHours();
+  const part = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+  return `Good ${part}, Jay`;
+}
+
+// Categories for timeline blocks (kind label + dot color)
+const TL_CATEGORIES = [
+  { kind: 'Body',   color: '#00D4FF' },
+  { kind: 'Create', color: '#FF3CC8' },
+  { kind: 'Train',  color: '#FF8A3C' },
+  { kind: 'ONA',    color: '#B6FF3C' },
+  { kind: 'Acro',   color: '#B14CFF' },
+  { kind: 'Focus',  color: '#FF0033' },
+];
 
 function ReadinessHero({ readiness, energy, focus, body, mood, onMeter }) {
   return (
@@ -22,7 +45,7 @@ function ReadinessHero({ readiness, energy, focus, body, mood, onMeter }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 4,
       }}>
-        <span className="eyebrow">{TODAY.date}</span>
+        <span className="eyebrow">{realDateLabel()}</span>
         <span className="mono" style={{
           fontSize: 9, color: 'var(--cyan)',
           padding: '3px 8px',
@@ -35,7 +58,7 @@ function ReadinessHero({ readiness, energy, focus, body, mood, onMeter }) {
       <div style={{
         fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em',
         marginTop: 2, marginBottom: 14,
-      }}>{TODAY.greeting}</div>
+      }}>{greetingLabel()}</div>
 
       {/* big readiness number + ring */}
       <div style={{
@@ -122,17 +145,27 @@ function ReadinessRing({ value }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// One Thing card
+// One Thing card — editable text
 // ─────────────────────────────────────────────────────────
-function OneThingCard({ done, onMark, onConfetti }) {
-  const confettiTrigger = useRef(0);
+function OneThingCard({ text, done, onMark, onEdit }) {
   const [trigger, setTrigger] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(text);
 
   const handle = () => {
     if (done) return;
     setTrigger((t) => t + 1);
-    onConfetti?.();
     setTimeout(() => onMark(), 80);
+  };
+
+  const startEdit = () => {
+    setDraft(text);
+    setEditing(true);
+  };
+  const saveEdit = () => {
+    const v = draft.trim();
+    if (v) onEdit(v);
+    setEditing(false);
   };
 
   return (
@@ -161,60 +194,125 @@ function OneThingCard({ done, onMark, onConfetti }) {
             One Thing
           </span>
         </div>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>
-          {done ? 'DONE · 06:42' : 'PRIORITY · P0'}
-        </span>
+        {!done && !editing && (
+          <span
+            className="pressable mono"
+            onClick={startEdit}
+            style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.14em', padding: '2px 6px' }}
+          >EDIT</span>
+        )}
+        {done && (
+          <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>DONE</span>
+        )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <div
-          className="pressable"
-          onClick={handle}
-          style={{
-            width: 28, height: 28,
-            flexShrink: 0,
-            borderRadius: 8,
-            border: `1.5px solid ${done ? 'var(--lime)' : 'rgba(255,0,51,0.6)'}`,
-            background: done ? 'var(--lime)' : 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: done ? '0 0 16px -2px rgba(182,255,60,0.5)' : '0 0 16px -2px rgba(255,0,51,0.5)',
-            marginTop: 2,
-          }}
-        >
-          {done && <IconCheck size={16} color="#06060A" stroke={3} />}
+      {editing ? (
+        <div>
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={2}
+            autoFocus
+            placeholder="What's the one thing that matters most today?"
+            style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,0,51,0.4)',
+              borderRadius: 12,
+              padding: '10px 12px',
+              color: 'var(--text)',
+              fontSize: 16, fontWeight: 600, lineHeight: 1.25,
+              fontFamily: 'var(--font-body)',
+              outline: 'none', resize: 'none',
+              boxShadow: '0 0 24px -10px rgba(255,0,51,0.6)',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <div
+              className="pressable"
+              onClick={saveEdit}
+              style={{
+                flex: 1, height: 40, borderRadius: 12,
+                background: 'linear-gradient(135deg, #FF0033 0%, #B14CFF 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                color: '#fff', fontWeight: 700, fontSize: 12,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+              }}
+            >
+              <IconCheck size={14} stroke={2.4} /> Save
+            </div>
+            <div
+              className="pressable"
+              onClick={() => setEditing(false)}
+              style={{
+                width: 48, height: 40, borderRadius: 12,
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--line-strong)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--muted)',
+              }}
+            >
+              <IconClose size={16} />
+            </div>
+          </div>
         </div>
-        <div style={{
-          flex: 1,
-          fontSize: 17, lineHeight: 1.25, fontWeight: 600,
-          color: 'var(--text)',
-          textDecoration: done ? 'line-through' : 'none',
-          opacity: done ? 0.55 : 1,
-          textWrap: 'pretty',
-        }}>{TODAY.oneThing}</div>
-      </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <div
+              className="pressable"
+              onClick={handle}
+              style={{
+                width: 28, height: 28,
+                flexShrink: 0,
+                borderRadius: 8,
+                border: `1.5px solid ${done ? 'var(--lime)' : 'rgba(255,0,51,0.6)'}`,
+                background: done ? 'var(--lime)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: done ? '0 0 16px -2px rgba(182,255,60,0.5)' : '0 0 16px -2px rgba(255,0,51,0.5)',
+                marginTop: 2,
+              }}
+            >
+              {done && <IconCheck size={16} color="#06060A" stroke={3} />}
+            </div>
+            <div
+              onClick={done ? undefined : startEdit}
+              style={{
+                flex: 1,
+                fontSize: 17, lineHeight: 1.25, fontWeight: 600,
+                color: 'var(--text)',
+                textDecoration: done ? 'line-through' : 'none',
+                opacity: done ? 0.55 : 1,
+                textWrap: 'pretty',
+                cursor: done ? 'default' : 'text',
+              }}
+            >{text}</div>
+          </div>
 
-      {!done && (
-        <div
-          className="pressable"
-          onClick={handle}
-          style={{
-            marginTop: 14,
-            height: 44,
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, #FF0033 0%, #B14CFF 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: 6,
-            fontWeight: 700,
-            fontSize: 13,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: '#fff',
-            boxShadow: '0 8px 24px -6px rgba(255,0,51,0.6)',
-          }}
-        >
-          <IconCheck size={16} stroke={2.4} />
-          Mark Done
-        </div>
+          {!done && (
+            <div
+              className="pressable"
+              onClick={handle}
+              style={{
+                marginTop: 14,
+                height: 44,
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #FF0033 0%, #B14CFF 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: 6,
+                fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#fff',
+                boxShadow: '0 8px 24px -6px rgba(255,0,51,0.6)',
+              }}
+            >
+              <IconCheck size={16} stroke={2.4} />
+              Mark Done
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -281,9 +379,26 @@ function MomentumStrip() {
 }
 
 // ─────────────────────────────────────────────────────────
-// Today's Timeline
+// Today's Timeline — add / delete blocks
 // ─────────────────────────────────────────────────────────
-function TodayTimeline() {
+function TodayTimeline({ events, onAdd, onDelete }) {
+  const [adding, setAdding] = useState(false);
+  const [time, setTime] = useState('');
+  const [label, setLabel] = useState('');
+  const [cat, setCat] = useState(0);
+
+  const submit = () => {
+    if (!label.trim()) return;
+    const c = TL_CATEGORIES[cat];
+    onAdd({
+      time: time.trim() || '12:00',
+      label: label.trim(),
+      kind: c.kind,
+      color: c.color,
+    });
+    setTime(''); setLabel(''); setCat(0); setAdding(false);
+  };
+
   return (
     <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
       <HUDTicks />
@@ -294,22 +409,124 @@ function TodayTimeline() {
         <div>
           <div className="eyebrow">Today · Timeline</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>
-            {TIMELINE.length} BLOCKS
+            {events.length} BLOCKS
           </div>
         </div>
-        <IconCalendar size={18} color="var(--muted)" />
+        <div
+          className="pressable"
+          onClick={() => setAdding((a) => !a)}
+          style={{
+            width: 30, height: 30, borderRadius: 9,
+            background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)',
+            border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: adding ? 'var(--muted)' : 'var(--cyan)',
+          }}
+        >
+          {adding ? <IconClose size={15} /> : <IconPlus size={16} />}
+        </div>
       </div>
 
+      {/* add form */}
+      {adding && (
+        <div style={{
+          marginBottom: 14, padding: 12, borderRadius: 12,
+          background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)',
+        }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              placeholder="06:30"
+              style={{
+                width: 70, background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--line)', borderRadius: 10,
+                padding: '8px 10px', color: 'var(--text)',
+                fontFamily: 'var(--font-mono)', fontSize: 13, outline: 'none',
+              }}
+            />
+            <input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="What's happening?"
+              style={{
+                flex: 1, background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--line)', borderRadius: 10,
+                padding: '8px 10px', color: 'var(--text)',
+                fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+            {TL_CATEGORIES.map((c, i) => {
+              const active = cat === i;
+              return (
+                <div
+                  key={c.kind}
+                  className="pressable"
+                  onClick={() => setCat(i)}
+                  style={{
+                    padding: '5px 9px', borderRadius: 999,
+                    fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    background: active ? `${c.color}20` : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${active ? c.color + '90' : 'var(--line)'}`,
+                    color: active ? c.color : 'var(--muted)',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: 999, background: c.color }} />
+                  {c.kind}
+                </div>
+              );
+            })}
+          </div>
+          <div
+            className="pressable"
+            onClick={submit}
+            style={{
+              height: 40, borderRadius: 12,
+              background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              color: '#06060A', fontWeight: 700, fontSize: 12,
+              letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}
+          >
+            <IconPlus size={15} stroke={2.4} /> Add Block
+          </div>
+        </div>
+      )}
+
       <div>
-        {TIMELINE.map((e, i) => (
-          <TimelineEvent
-            key={i}
-            time={e.time}
-            label={e.label}
-            color={e.color}
-            kind={e.kind}
-            last={i === TIMELINE.length - 1}
-          />
+        {events.length === 0 && (
+          <div className="eyebrow" style={{ color: 'var(--dim)', padding: '8px 0' }}>
+            No blocks yet — tap + to add one.
+          </div>
+        )}
+        {events.map((e, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <TimelineEvent
+                time={e.time}
+                label={e.label}
+                color={e.color}
+                kind={e.kind}
+                last={i === events.length - 1}
+              />
+            </div>
+            <div
+              className="pressable"
+              onClick={() => onDelete(i)}
+              style={{
+                width: 24, height: 24, borderRadius: 7, flexShrink: 0, marginTop: 2,
+                background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--dim)',
+              }}
+            >
+              <IconClose size={13} />
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -322,6 +539,22 @@ function TodayTimeline() {
 function MissionControl({ state, setState }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
+  const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
+
+  // Fall back to seed for daily states saved before these fields existed
+  const oneThingText = state.oneThing ?? TODAY.oneThing;
+  const events = state.timeline ?? TIMELINE;
+
+  const addEvent = (ev) =>
+    setState((s) => {
+      const list = [...(s.timeline ?? TIMELINE), ev].sort((a, b) => a.time.localeCompare(b.time));
+      return { ...s, timeline: list };
+    });
+  const deleteEvent = (idx) =>
+    setState((s) => {
+      const list = (s.timeline ?? TIMELINE).filter((_, i) => i !== idx);
+      return { ...s, timeline: list };
+    });
 
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -333,9 +566,9 @@ function MissionControl({ state, setState }) {
         mood={state.mood}
         onMeter={setMeter}
       />
-      <OneThingCard done={state.oneThingDone} onMark={markDone} />
+      <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
       <MomentumStrip />
-      <TodayTimeline />
+      <TodayTimeline events={events} onAdd={addEvent} onDelete={deleteEvent} />
     </div>
   );
 }

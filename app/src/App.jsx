@@ -12,7 +12,7 @@ import { TrainingHQ } from './screens/TrainingHQ.jsx';
 import { ContentStudio } from './screens/ContentStudio.jsx';
 import { ONAHQ } from './screens/ONAHQ.jsx';
 import { AIScreen } from './screens/AIScreen.jsx';
-import { TODAY } from './data.js';
+import { TODAY, TIMELINE } from './data.js';
 import { usePersistentState, todayKey } from './usePersistentState.js';
 
 export default function App() {
@@ -28,6 +28,8 @@ export default function App() {
     body: TODAY.body,
     mood: TODAY.mood,
     oneThingDone: false,
+    oneThing: TODAY.oneThing,
+    timeline: TIMELINE,
   });
 
   // Captures — a persistent log across all days, newest first.

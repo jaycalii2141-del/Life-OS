@@ -165,8 +165,10 @@ function BodyRadar({ size = 260 }) {
   );
 }
 
-// Skill node (3 states: done, active, locked)
-function SkillNode({ skill, color }) {
+// Skill node (3 states: done, active, locked) — tap to edit
+function SkillNode({ skill, color, onChange }) {
+  const [editing, setEditing] = useState(false);
+
   const stateMap = {
     done: {
       bg: `${color}20`,
@@ -195,48 +197,120 @@ function SkillNode({ skill, color }) {
   };
   const s = stateMap[skill.status];
 
+  const setStatus = (status) => {
+    let pct = skill.pct;
+    if (status === 'done') pct = 100;
+    else if (status === 'locked') pct = 0;
+    else if (status === 'active' && (skill.pct <= 0 || skill.pct >= 100)) pct = 50;
+    onChange?.({ status, pct });
+  };
+  const adjust = (delta) => {
+    const pct = Math.max(5, Math.min(95, skill.pct + delta));
+    onChange?.({ status: 'active', pct });
+  };
+
+  const STATUS_OPTS = [
+    { id: 'locked', label: 'Locked' },
+    { id: 'active', label: 'Active' },
+    { id: 'done',   label: 'Mastered' },
+  ];
+
   return (
     <div
-      className={`pressable ${skill.status === 'active' ? '' : ''}`}
       style={{
         padding: '10px 12px',
         borderRadius: 12,
         background: s.bg,
-        border: `1px solid ${s.border}`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
+        border: `1px solid ${editing ? color : s.border}`,
         position: 'relative',
-        opacity: skill.status === 'locked' ? 0.55 : 1,
+        opacity: skill.status === 'locked' && !editing ? 0.55 : 1,
+        transition: 'border-color 200ms',
       }}
     >
-      <div className={skill.status === 'active' ? 'pulse-node' : ''} style={{
-        width: 22, height: 22, borderRadius: 8,
-        background: s.iconBg,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>{s.icon}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 14, fontWeight: 600,
-          color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)',
-        }}>{skill.name}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-          <div style={{ flex: 1, height: 3 }}>
-            <ProgressBar value={skill.pct} color={s.pctColor} height={3} />
+      <div
+        className="pressable"
+        onClick={() => setEditing((e) => !e)}
+        style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+      >
+        <div className={skill.status === 'active' ? 'pulse-node' : ''} style={{
+          width: 22, height: 22, borderRadius: 8,
+          background: s.iconBg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>{s.icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 14, fontWeight: 600,
+            color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)',
+          }}>{skill.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <div style={{ flex: 1, height: 3 }}>
+              <ProgressBar value={skill.pct} color={s.pctColor} height={3} />
+            </div>
+            <span className="mono" style={{ fontSize: 10, color: s.pctColor, minWidth: 32, textAlign: 'right' }}>
+              {skill.pct}%
+            </span>
           </div>
-          <span className="mono" style={{ fontSize: 10, color: s.pctColor, minWidth: 32, textAlign: 'right' }}>
-            {skill.pct}%
-          </span>
         </div>
       </div>
+
+      {/* inline editor */}
+      {editing && (
+        <div style={{
+          marginTop: 10, paddingTop: 10,
+          borderTop: '1px solid var(--line)',
+          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+        }}>
+          {STATUS_OPTS.map((o) => {
+            const on = skill.status === o.id;
+            return (
+              <div
+                key={o.id}
+                className="pressable"
+                onClick={() => setStatus(o.id)}
+                style={{
+                  padding: '5px 9px', borderRadius: 999,
+                  fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700,
+                  letterSpacing: '0.08em', textTransform: 'uppercase',
+                  background: on ? `${color}20` : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${on ? color + '90' : 'var(--line)'}`,
+                  color: on ? color : 'var(--muted)',
+                }}
+              >{o.label}</div>
+            );
+          })}
+          {skill.status === 'active' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
+              <div
+                className="pressable"
+                onClick={() => adjust(-5)}
+                style={{
+                  width: 26, height: 26, borderRadius: 8,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--text)', fontSize: 16, fontWeight: 700,
+                }}
+              >−</div>
+              <div
+                className="pressable"
+                onClick={() => adjust(5)}
+                style={{
+                  width: 26, height: 26, borderRadius: 8,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--text)', fontSize: 16, fontWeight: 700,
+                }}
+              >+</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 // Collapsible skill tree section
-function SkillTree({ discipline, expanded, onToggle }) {
-  const skills = SKILLS[discipline.id];
+function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
   const done = skills.filter(s => s.status === 'done').length;
   const active = skills.filter(s => s.status === 'active').length;
 
@@ -295,8 +369,13 @@ function SkillTree({ discipline, expanded, onToggle }) {
           display: 'flex', flexDirection: 'column', gap: 8,
           animation: 'screenIn 320ms cubic-bezier(0.2,0.7,0.2,1)',
         }}>
-          {skills.map((skill) => (
-            <SkillNode key={skill.name} skill={skill} color={discipline.color} />
+          {skills.map((skill, i) => (
+            <SkillNode
+              key={skill.name}
+              skill={skill}
+              color={discipline.color}
+              onChange={(patch) => onUpdate(i, patch)}
+            />
           ))}
         </div>
       )}
@@ -499,6 +578,13 @@ function TrainingHQ() {
   const sessionCount = BASE_SESSIONS + sessions.length;
   const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
 
+  const [skills, setSkills] = usePersistentState('lifeos:skills', SKILLS);
+  const updateSkill = (disciplineId, idx, patch) =>
+    setSkills((prev) => ({
+      ...prev,
+      [disciplineId]: prev[disciplineId].map((sk, i) => (i === idx ? { ...sk, ...patch } : sk)),
+    }));
+
   return (
     <>
       <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -557,8 +643,10 @@ function TrainingHQ() {
               <SkillTree
                 key={d.id}
                 discipline={d}
+                skills={skills[d.id]}
                 expanded={!!expanded[d.id]}
                 onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))}
+                onUpdate={(idx, patch) => updateSkill(d.id, idx, patch)}
               />
             ))}
           </div>
