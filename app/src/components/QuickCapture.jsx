@@ -12,7 +12,7 @@ const CAPTURE_TAGS = [
   { id: 'task',  label: 'TASK',  color: '#B6FF3C' },
 ];
 
-function QuickCapture({ open, onClose, voiceMode = false }) {
+function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
   const [text, setText] = useState('');
   const [tag, setTag] = useState('idea');
   const [recording, setRecording] = useState(voiceMode);
@@ -34,6 +34,15 @@ function QuickCapture({ open, onClose, voiceMode = false }) {
 
   const handleCapture = () => {
     if (!text.trim() && !recording) return;
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    onSave?.({
+      id: now.getTime(),
+      text: text.trim() || '[Voice memo]',
+      tag,
+      color: tagColor,
+      time,
+    });
     setSaved(true);
     setTimeout(() => onClose?.(), 700);
   };

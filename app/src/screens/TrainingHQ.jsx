@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill } from '../components/atoms.jsx';
 import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity } from '../components/icons.jsx';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
+import { usePersistentState } from '../usePersistentState.js';
+
+// Sessions already logged before persistence existed (seed baseline)
+const BASE_SESSIONS = 38;
 
 // ─────────────────────────────────────────────────────────
 // SCREEN 2 — Training HQ
@@ -303,7 +307,7 @@ function SkillTree({ discipline, expanded, onToggle }) {
 // ─────────────────────────────────────────────────────────
 // Log Session sheet
 // ─────────────────────────────────────────────────────────
-function LogSessionSheet({ open, onClose }) {
+function LogSessionSheet({ open, onClose, onLog }) {
   const [discipline, setDiscipline] = useState('tricking');
   const [duration, setDuration] = useState(60);
   const [intensity, setIntensity] = useState(7);
@@ -322,6 +326,14 @@ function LogSessionSheet({ open, onClose }) {
   const d = DISCIPLINES.find(d => d.id === discipline);
 
   const submit = () => {
+    onLog?.({
+      id: Date.now(),
+      discipline: d.id,
+      disciplineName: d.name,
+      duration,
+      intensity,
+      date: new Date().toISOString(),
+    });
     setLogged(true);
     setTimeout(() => onClose(), 700);
   };
@@ -483,6 +495,9 @@ function LogSessionSheet({ open, onClose }) {
 function TrainingHQ() {
   const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
   const [logOpen, setLogOpen] = useState(false);
+  const [sessions, setSessions] = usePersistentState('lifeos:sessions', []);
+  const sessionCount = BASE_SESSIONS + sessions.length;
+  const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
 
   return (
     <>
@@ -499,7 +514,7 @@ function TrainingHQ() {
                 EXPLOSIVE POWER
               </div>
               <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
-                DAY 47/90 · 38 SESSIONS LOGGED
+                DAY 47/90 · {sessionCount} SESSIONS LOGGED
               </div>
             </div>
             <Pill variant="cyan" dot="#00D4FF">ACTIVE</Pill>
@@ -573,7 +588,7 @@ function TrainingHQ() {
         </div>
       </div>
 
-      <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} />
+      <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} onLog={logSession} />
     </>
   );
 }

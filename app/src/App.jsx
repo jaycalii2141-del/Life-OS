@@ -13,13 +13,15 @@ import { ContentStudio } from './screens/ContentStudio.jsx';
 import { ONAHQ } from './screens/ONAHQ.jsx';
 import { AIScreen } from './screens/AIScreen.jsx';
 import { TODAY } from './data.js';
+import { usePersistentState, todayKey } from './usePersistentState.js';
 
 export default function App() {
   const [tab, setTab] = useState('home');
   const [capture, setCapture] = useState({ open: false, voice: false });
 
-  // Mission Control mutable state (so meters + One Thing work across tab switches)
-  const [missionState, setMissionState] = useState({
+  // Mission Control state — persisted per-day so it survives reloads but
+  // starts fresh each morning (matches the "open it at 6:30am" product intent).
+  const [missionState, setMissionState] = usePersistentState(`lifeos:daily:${todayKey()}`, {
     readiness: TODAY.readiness,
     energy: TODAY.energy,
     focus: TODAY.focus,
@@ -27,6 +29,10 @@ export default function App() {
     mood: TODAY.mood,
     oneThingDone: false,
   });
+
+  // Captures — a persistent log across all days, newest first.
+  const [captures, setCaptures] = usePersistentState('lifeos:captures', []);
+  const addCapture = (entry) => setCaptures((list) => [entry, ...list].slice(0, 50));
 
   // Re-key the screen container on tab change so screenIn animation fires
   const screenKey = tab;
@@ -37,7 +43,7 @@ export default function App() {
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
-    case 'ai':     screen = <AIScreen />; break;
+    case 'ai':     screen = <AIScreen captures={captures} />; break;
     default:       screen = <MissionControl state={missionState} setState={setMissionState} />;
   }
 
@@ -58,6 +64,7 @@ export default function App() {
         <QuickCapture
           open={capture.open}
           voiceMode={capture.voice}
+          onSave={addCapture}
           onClose={() => setCapture({ open: false, voice: false })}
         />
       </div>

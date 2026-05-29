@@ -79,8 +79,14 @@ const RECENT = [
   { time: 'Y · 22:40', text: 'Re-scheduled Riley 1:1 to Thu 13:00.', tone: '#B6FF3C' },
 ];
 
-function AIScreen() {
+function AIScreen({ captures = [] }) {
   const [input, setInput] = useState('');
+
+  // Real captures (newest first) shown ahead of the seed history.
+  const recent = [
+    ...captures.map((c) => ({ time: c.time, text: `${c.text}  ·  routed to ${c.tag}`, tone: c.color })),
+    ...RECENT,
+  ];
   const [listening, setListening] = useState(false);
 
   return (
@@ -221,7 +227,7 @@ function AIScreen() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {RECENT.map((r, i) => (
+          {recent.map((r, i) => (
             <div key={i} style={{
               display: 'flex',
               gap: 10,

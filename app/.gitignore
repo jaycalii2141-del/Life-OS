@@ -2,3 +2,7 @@ node_modules
 dist
 *.local
 .DS_Store
+
+# Vite writes these transient files during build
+vite.config.js.timestamp-*.mjs
+vite.config.ts.timestamp-*.mjs
