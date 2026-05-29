@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Life OS — Jay Martinez</title>
+
+  <script src="node_modules/react/umd/react.development.js"></script>
+  <script src="node_modules/react-dom/umd/react-dom.development.js"></script>
+  <script src="node_modules/@babel/standalone/babel.min.js"></script>
+
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-0: #06060A;
+  --bg-1: #0B0B12;
+  --bg-2: #11111A;
+  --text: #F5F5F7;
+  --muted: #8A8A95;
+  --dim: #5A5A66;
+  --line: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --glass: rgba(255, 255, 255, 0.035);
+
+  --ona-red: #FF0033;
+  --ona-blue: #0055FF;
+  --cyan: #00D4FF;
+  --violet: #B14CFF;
+  --magenta: #FF3CC8;
+  --lime: #B6FF3C;
+  --gold: #FFD23C;
+  --orange: #FF8A3C;
+
+  --font-display: 'Bebas Neue', 'Helvetica Neue', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+*::-webkit-scrollbar { width: 0; height: 0; display: none; }
+* { scrollbar-width: none; -ms-overflow-style: none; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: var(--text);
+  font-family: var(--font-body);
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 800px 600px at 20% 10%, rgba(0, 85, 255, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 500px at 80% 90%, rgba(177, 76, 255, 0.05) 0%, transparent 60%),
+    #000;
+  position: relative;
+}
+
+#root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 30%, transparent 80%);
+}
+
+.screen-host {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-0);
+  overflow: hidden;
+}
+
+.screen-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 56px;
+  padding-bottom: 130px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen-content {
+  padding: 0 16px;
+  animation: screenIn 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.display { font-family: var(--font-display); letter-spacing: 0.02em; }
+.mono { font-family: var(--font-mono); }
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dim);
+  font-weight: 500;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  position: relative;
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  position: relative;
+}
+
+.hud { position: relative; }
+.hud-tick {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(255, 255, 255, 0.25);
+  border-style: solid;
+  border-width: 0;
+  pointer-events: none;
+}
+.hud-tick.tl { top: 7px; left: 7px; border-top-width: 1px; border-left-width: 1px; }
+.hud-tick.tr { top: 7px; right: 7px; border-top-width: 1px; border-right-width: 1px; }
+.hud-tick.bl { bottom: 7px; left: 7px; border-bottom-width: 1px; border-left-width: 1px; }
+.hud-tick.br { bottom: 7px; right: 7px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.mesh-readiness {
+  background:
+    radial-gradient(ellipse 70% 80% at 15% 20%, rgba(0, 212, 255, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 90% 10%, rgba(177, 76, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 70% at 50% 100%, rgba(255, 0, 51, 0.14) 0%, transparent 55%),
+    linear-gradient(140deg, #0B0B12 0%, #11111A 100%);
+}
+.mesh-train {
+  background:
+    radial-gradient(ellipse 65% 70% at 80% 20%, rgba(0, 212, 255, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 20% 90%, rgba(182, 255, 60, 0.10) 0%, transparent 55%),
+    linear-gradient(140deg, #0B0B12 0%, #11111A 100%);
+}
+.mesh-content {
+  background:
+    radial-gradient(ellipse 60% 70% at 20% 20%, rgba(255, 60, 200, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 70% at 90% 100%, rgba(255, 138, 60, 0.16) 0%, transparent 55%),
+    linear-gradient(140deg, #0B0B12 0%, #11111A 100%);
+}
+.mesh-ona {
+  background:
+    radial-gradient(ellipse 70% 70% at 10% 0%, rgba(255, 0, 51, 0.20) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 70% at 100% 100%, rgba(182, 255, 60, 0.10) 0%, transparent 55%),
+    linear-gradient(140deg, #0B0B12 0%, #11111A 100%);
+}
+.mesh-ai {
+  background:
+    radial-gradient(ellipse 70% 70% at 50% 0%, rgba(177, 76, 255, 0.30) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 70% at 50% 100%, rgba(0, 212, 255, 0.20) 0%, transparent 55%),
+    linear-gradient(140deg, #0B0B12 0%, #11111A 100%);
+}
+
+.glow-red    { box-shadow: 0 0 80px -16px rgba(255, 0, 51, 0.55), 0 0 0 1px rgba(255, 0, 51, 0.25) inset; }
+.glow-cyan   { box-shadow: 0 0 70px -16px rgba(0, 212, 255, 0.45); }
+.glow-violet { box-shadow: 0 0 70px -16px rgba(177, 76, 255, 0.45); }
+.glow-lime   { box-shadow: 0 0 70px -16px rgba(182, 255, 60, 0.35); }
+.glow-gold   { box-shadow: 0 0 60px -16px rgba(255, 210, 60, 0.40); }
+
+.brand-jaymuvs    { background: linear-gradient(145deg, #FF0033 0%, #8a001b 100%); }
+.brand-motionmob  { background: linear-gradient(145deg, #0055FF 0%, #002a8a 100%); }
+.brand-ona-elite  { background: linear-gradient(145deg, #B6FF3C 0%, #5a8a1e 100%); color: #0B0B12; }
+.brand-jk-acro    { background: linear-gradient(145deg, #B14CFF 0%, #5a2680 100%); }
+.brand-acro-wooks { background: linear-gradient(145deg, #FF8A3C 0%, #8a4520 100%); }
+.brand-ppp        { background: linear-gradient(145deg, #F5F5F7 0%, #8a8a95 100%); color: #0B0B12; }
+
+@keyframes shimmer-cell {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+.shimmer-cell { animation: shimmer-cell 3.5s ease-in-out infinite; }
+
+@keyframes pulse-node {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.6), 0 0 24px -4px rgba(0, 212, 255, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 212, 255, 0), 0 0 32px -4px rgba(0, 212, 255, 0.8);
+  }
+}
+.pulse-node { animation: pulse-node 2.2s ease-out infinite; }
+
+@keyframes orb-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.orb-spin { animation: orb-spin 12s linear infinite; }
+
+@keyframes orb-spin-fast { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+.orb-spin-fast { animation: orb-spin-fast 6s linear infinite; }
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.blink { animation: blink 1.6s ease-in-out infinite; }
+
+@keyframes glow-pulse-red {
+  0%, 100% { box-shadow: 0 0 60px -10px rgba(255,0,51,0.50), 0 0 0 1px rgba(255,0,51,0.25) inset; }
+  50% { box-shadow: 0 0 90px -10px rgba(255,0,51,0.75), 0 0 0 1px rgba(255,0,51,0.45) inset; }
+}
+.glow-pulse-red { animation: glow-pulse-red 3.4s ease-in-out infinite; }
+
+@keyframes fab-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4), 0 6px 24px rgba(0, 212, 255, 0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0), 0 6px 24px rgba(0, 212, 255, 0.5); }
+}
+.fab-glow { animation: fab-glow 2.6s ease-out infinite; }
+
+.pressable {
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              box-shadow 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              border-color 180ms;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.pressable:active { transform: scale(0.97); }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  white-space: nowrap;
+}
+.pill-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+
+.pill-red    { color: var(--ona-red);  border-color: rgba(255,0,51,0.35);   background: rgba(255,0,51,0.08); }
+.pill-cyan   { color: var(--cyan);     border-color: rgba(0,212,255,0.35);  background: rgba(0,212,255,0.08); }
+.pill-lime   { color: var(--lime);     border-color: rgba(182,255,60,0.35); background: rgba(182,255,60,0.08); }
+.pill-violet { color: var(--violet);   border-color: rgba(177,76,255,0.35); background: rgba(177,76,255,0.08); }
+.pill-gold   { color: var(--gold);     border-color: rgba(255,210,60,0.35); background: rgba(255,210,60,0.08); }
+.pill-orange { color: var(--orange);   border-color: rgba(255,138,60,0.35); background: rgba(255,138,60,0.08); }
+.pill-muted  { color: var(--muted); }
+
+.bar-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cyan);
+  position: relative;
+  transition: width 800ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: bar-shine 2.4s ease-in-out infinite;
+}
+@keyframes bar-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.confetti-host {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confetti-burst 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+@keyframes confetti-burst {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.6); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1);
+    opacity: 0;
+  }
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 150;
+  animation: scrimIn 240ms ease;
+}
+@keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 160;
+  background: var(--bg-1);
+  border-top: 1px solid var(--line-strong);
+  border-radius: 28px 28px 0 0;
+  padding: 14px 20px 32px;
+  animation: sheetIn 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.6);
+}
+@keyframes sheetIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 auto 12px;
+}
+
+.t-muted { color: var(--muted); }
+.t-dim { color: var(--dim); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- ios-frame -->
+  <script type="text/babel">
+function IOSStatusBar({ dark = false, time = '9:41' }) {
+  const c = dark ? '#fff' : '#000';
+  return (
+    <div style={{
+      display: 'flex', gap: 154, alignItems: 'center', justifyContent: 'center',
+      padding: '21px 24px 19px', boxSizing: 'border-box',
+      position: 'relative', zIndex: 20, width: '100%',
+    }}>
+      <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 1.5 }}>
+        <span style={{ fontFamily: '-apple-system, "SF Pro", system-ui', fontWeight: 590, fontSize: 17, lineHeight: '22px', color: c }}>{time}</span>
+      </div>
+      <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, paddingTop: 1, paddingRight: 1 }}>
+        <svg width="19" height="12" viewBox="0 0 19 12">
+          <rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill={c}/>
+          <rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill={c}/>
+          <rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill={c}/>
+          <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill={c}/>
+        </svg>
+        <svg width="17" height="12" viewBox="0 0 17 12">
+          <path d="M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z" fill={c}/>
+          <path d="M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z" fill={c}/>
+          <circle cx="8.5" cy="10.5" r="1.5" fill={c}/>
+        </svg>
+        <svg width="27" height="13" viewBox="0 0 27 13">
+          <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke={c} strokeOpacity="0.35" fill="none"/>
+          <rect x="2" y="2" width="20" height="9" rx="2" fill={c}/>
+          <path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill={c} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function IOSGlassPill({ children, dark = false, style = {} }) {
+  return (
+    <div style={{
+      height: 44, minWidth: 44, borderRadius: 9999,
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: dark
+        ? '0 2px 6px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.2)'
+        : '0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.06)',
+      ...style,
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.28)' : 'rgba(255,255,255,0.5)',
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15), inset -1px -1px 1px rgba(255,255,255,0.08)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+      }} />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', padding: '0 4px' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
+  const muted = dark ? 'rgba(255,255,255,0.6)' : '#404040';
+  const text = dark ? '#fff' : '#000';
+  const pillIcon = (content) => (
+    <IOSGlassPill dark={dark}>
+      <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {content}
+      </div>
+    </IOSGlassPill>
+  );
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 62, paddingBottom: 10, position: 'relative', zIndex: 5 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
+        {pillIcon(
+          <svg width="12" height="20" viewBox="0 0 12 20" fill="none" style={{ marginLeft: -1 }}>
+            <path d="M10 2L2 10l8 8" stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+        {trailingIcon && pillIcon(
+          <svg width="22" height="6" viewBox="0 0 22 6">
+            <circle cx="3" cy="3" r="2.5" fill={muted}/>
+            <circle cx="11" cy="3" r="2.5" fill={muted}/>
+            <circle cx="19" cy="3" r="2.5" fill={muted}/>
+          </svg>
+        )}
+      </div>
+      <div style={{ padding: '0 16px', fontFamily: '-apple-system, system-ui', fontSize: 34, fontWeight: 700, lineHeight: '41px', color: text, letterSpacing: 0.4 }}>{title}</div>
+    </div>
+  );
+}
+
+function IOSListRow({ title, detail, icon, chevron = true, isLast = false, dark = false }) {
+  const text = dark ? '#fff' : '#000';
+  const sec = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const ter = dark ? 'rgba(235,235,245,0.3)' : 'rgba(60,60,67,0.3)';
+  const sep = dark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.12)';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', minHeight: 52, padding: '0 16px', position: 'relative', fontFamily: '-apple-system, system-ui', fontSize: 17, letterSpacing: -0.43 }}>
+      {icon && <div style={{ width: 30, height: 30, borderRadius: 7, background: icon, marginRight: 12, flexShrink: 0 }} />}
+      <div style={{ flex: 1, color: text }}>{title}</div>
+      {detail && <span style={{ color: sec, marginRight: 6 }}>{detail}</span>}
+      {chevron && (
+        <svg width="8" height="14" viewBox="0 0 8 14" style={{ flexShrink: 0 }}>
+          <path d="M1 1l6 6-6 6" stroke={ter} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+      {!isLast && <div style={{ position: 'absolute', bottom: 0, right: 0, left: icon ? 58 : 16, height: 0.5, background: sep }} />}
+    </div>
+  );
+}
+
+function IOSList({ header, children, dark = false }) {
+  const hc = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const bg = dark ? '#1C1C1E' : '#fff';
+  return (
+    <div>
+      {header && <div style={{ fontFamily: '-apple-system, system-ui', fontSize: 13, color: hc, textTransform: 'uppercase', padding: '8px 36px 6px', letterSpacing: -0.08 }}>{header}</div>}
+      <div style={{ background: bg, borderRadius: 26, margin: '0 16px', overflow: 'hidden' }}>{children}</div>
+    </div>
+  );
+}
+
+function IOSKeyboard({ dark = false }) {
+  const glyph = dark ? 'rgba(255,255,255,0.7)' : '#595959';
+  const sugg = dark ? 'rgba(255,255,255,0.6)' : '#333';
+  const keyBg = dark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.85)';
+  const icons = {
+    shift: <svg width="19" height="17" viewBox="0 0 19 17"><path d="M9.5 1L1 9.5h4.5V16h8V9.5H18L9.5 1z" fill={glyph}/></svg>,
+    del: <svg width="23" height="17" viewBox="0 0 23 17"><path d="M7 1h13a2 2 0 012 2v11a2 2 0 01-2 2H7l-6-7.5L7 1z" fill="none" stroke={glyph} strokeWidth="1.6" strokeLinejoin="round"/><path d="M10 5l7 7M17 5l-7 7" stroke={glyph} strokeWidth="1.6" strokeLinecap="round"/></svg>,
+    ret: <svg width="20" height="14" viewBox="0 0 20 14"><path d="M18 1v6H4m0 0l4-4M4 7l4 4" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  };
+  const key = (content, { w, flex, ret, fs = 25, k } = {}) => (
+    <div key={k} style={{ height: 42, borderRadius: 8.5, flex: flex ? 1 : undefined, width: w, minWidth: 0, background: ret ? '#08f' : keyBg, boxShadow: '0 1px 0 rgba(0,0,0,0.075)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, "SF Compact", system-ui', fontSize: fs, fontWeight: 458, color: ret ? '#fff' : glyph }}>{content}</div>
+  );
+  const row = (keys, pad = 0) => (
+    <div style={{ display: 'flex', gap: 6.5, justifyContent: 'center', padding: `0 ${pad}px` }}>
+      {keys.map(l => key(l, { flex: true, k: l }))}
+    </div>
+  );
+  return (
+    <div style={{ position: 'relative', zIndex: 15, borderRadius: 27, overflow: 'hidden', padding: '11px 0 2px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: dark ? '0 -2px 20px rgba(0,0,0,0.09)' : '0 -1px 6px rgba(0,0,0,0.018), 0 -3px 20px rgba(0,0,0,0.012)' }}>
+      <div style={{ position: 'absolute', inset: 0, borderRadius: 27, backdropFilter: 'blur(12px) saturate(180%)', WebkitBackdropFilter: 'blur(12px) saturate(180%)', background: dark ? 'rgba(120,120,128,0.14)' : 'rgba(255,255,255,0.25)' }} />
+      <div style={{ position: 'absolute', inset: 0, borderRadius: 27, boxShadow: dark ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15)' : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)', border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)', pointerEvents: 'none' }} />
+      <div style={{ display: 'flex', gap: 20, alignItems: 'center', padding: '8px 22px 13px', width: '100%', boxSizing: 'border-box', position: 'relative' }}>
+        {['"The"', 'the', 'to'].map((w, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ width: 1, height: 25, background: '#ccc', opacity: 0.3 }} />}
+            <div style={{ flex: 1, textAlign: 'center', fontFamily: '-apple-system, system-ui', fontSize: 17, color: sugg, letterSpacing: -0.43, lineHeight: '22px' }}>{w}</div>
+          </React.Fragment>
+        ))}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 13, padding: '0 6.5px', width: '100%', boxSizing: 'border-box', position: 'relative' }}>
+        {row(['q','w','e','r','t','y','u','i','o','p'])}
+        {row(['a','s','d','f','g','h','j','k','l'], 20)}
+        <div style={{ display: 'flex', gap: 14.25, alignItems: 'center' }}>
+          {key(icons.shift, { w: 45, k: 'shift' })}
+          <div style={{ display: 'flex', gap: 6.5, flex: 1 }}>
+            {['z','x','c','v','b','n','m'].map(l => key(l, { flex: true, k: l }))}
+          </div>
+          {key(icons.del, { w: 45, k: 'del' })}
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {key('ABC', { w: 92.25, fs: 18, k: 'abc' })}
+          {key('', { flex: true, k: 'space' })}
+          {key(icons.ret, { w: 92.25, ret: true, k: 'ret' })}
+        </div>
+      </div>
+      <div style={{ height: 56, width: '100%', position: 'relative' }} />
+    </div>
+  );
+}
+
+function IOSDevice({ children, width = 402, height = 874, dark = false, title, keyboard = false }) {
+  return (
+    <div style={{ width, height, borderRadius: 48, overflow: 'hidden', position: 'relative', background: dark ? '#000' : '#F2F2F7', boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)', fontFamily: '-apple-system, system-ui, sans-serif', WebkitFontSmoothing: 'antialiased' }}>
+      <div style={{ position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)', width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50 }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+        <IOSStatusBar dark={dark} />
+      </div>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {title !== undefined && <IOSNavBar title={title} dark={dark} />}
+        <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
+        {keyboard && <IOSKeyboard dark={dark} />}
+      </div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60, height: 34, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: 8, pointerEvents: 'none' }}>
+        <div style={{ width: 139, height: 5, borderRadius: 100, background: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.25)' }} />
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard });
+  </script>
+
+  <!-- icons -->
+  <script type="text/babel">
+const Ico = ({ size = 20, color = 'currentColor', stroke = 1.6, style, children }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, ...style }}>{children}</svg>
+);
+
+const IconHome      = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="1" fill="currentColor" /></Ico>;
+const IconBolt      = (p) => <Ico {...p}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" /></Ico>;
+const IconPlay      = (p) => <Ico {...p}><path d="M6 4l14 8-14 8V4z" /></Ico>;
+const IconNinja     = (p) => <Ico {...p}><path d="M3 11h18" /><path d="M5 11c0-5 3-8 7-8s7 3 7 8" /><path d="M7 11v3a5 5 0 0010 0v-3" /><circle cx="9" cy="13" r="0.7" fill="currentColor" /><circle cx="15" cy="13" r="0.7" fill="currentColor" /></Ico>;
+const IconSparkles  = (p) => <Ico {...p}><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" /><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" /></Ico>;
+const IconPlus      = (p) => <Ico {...p}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></Ico>;
+const IconCheck     = (p) => <Ico {...p}><polyline points="4 12 10 18 20 6" /></Ico>;
+const IconMic       = (p) => <Ico {...p}><rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5 11a7 7 0 0014 0" /><line x1="12" y1="18" x2="12" y2="22" /></Ico>;
+const IconChevronRight = (p) => <Ico {...p}><polyline points="9 6 15 12 9 18" /></Ico>;
+const IconChevronDown  = (p) => <Ico {...p}><polyline points="6 9 12 15 18 9" /></Ico>;
+const IconClose     = (p) => <Ico {...p}><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></Ico>;
+const IconLock      = (p) => <Ico {...p}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 018 0v4" /></Ico>;
+const IconCircle    = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /></Ico>;
+const IconFlame     = (p) => <Ico {...p}><path d="M12 2c0 5-5 6-5 11a5 5 0 0010 0c0-2.5-2-3.5-3-5 2-1 4-3 4-6-3 0-6 0-6 0z" /></Ico>;
+const IconCamera    = (p) => <Ico {...p}><rect x="3" y="7" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="4" /><path d="M8 7l1.5-3h5L16 7" /></Ico>;
+const IconCopy      = (p) => <Ico {...p}><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3" /></Ico>;
+const IconUsers     = (p) => <Ico {...p}><circle cx="9" cy="8" r="3.5" /><path d="M3 20c0-3.5 3-6 6-6s6 2.5 6 6" /><circle cx="17" cy="9" r="2.5" /><path d="M15 20c0-2.5 1.5-4.5 4-4.5" /></Ico>;
+const IconTrendUp   = (p) => <Ico {...p}><polyline points="3 17 9 11 13 15 21 7" /><polyline points="14 7 21 7 21 14" /></Ico>;
+const IconTarget    = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /></Ico>;
+const IconWarn      = (p) => <Ico {...p}><path d="M12 3l10 18H2L12 3z" /><line x1="12" y1="10" x2="12" y2="14" /><circle cx="12" cy="17.5" r="0.6" fill="currentColor" /></Ico>;
+const IconCalendar  = (p) => <Ico {...p}><rect x="3" y="5" width="18" height="16" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="8" y1="3" x2="8" y2="7" /><line x1="16" y1="3" x2="16" y2="7" /></Ico>;
+const IconClock     = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></Ico>;
+const IconArrowRight= (p) => <Ico {...p}><line x1="4" y1="12" x2="20" y2="12" /><polyline points="14 6 20 12 14 18" /></Ico>;
+const IconSend      = (p) => <Ico {...p}><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></Ico>;
+const IconActivity  = (p) => <Ico {...p}><polyline points="3 12 7 12 10 4 14 20 17 12 21 12" /></Ico>;
+
+Object.assign(window, {
+  Ico, IconHome, IconBolt, IconPlay, IconNinja, IconSparkles, IconPlus, IconCheck,
+  IconMic, IconChevronRight, IconChevronDown, IconClose, IconLock, IconCircle,
+  IconFlame, IconCamera, IconCopy, IconUsers, IconTrendUp, IconTarget, IconWarn,
+  IconCalendar, IconClock, IconArrowRight, IconSend, IconActivity,
+});
+  </script>
+
+  <!-- atoms -->
+  <script type="text/babel">
+const { useState, useEffect, useRef, useMemo } = React;
+
+function HUDTicks() {
+  return (
+    <>
+      <span className="hud-tick tl" />
+      <span className="hud-tick tr" />
+      <span className="hud-tick bl" />
+      <span className="hud-tick br" />
+    </>
+  );
+}
+
+function TickCounter({ value, duration = 1100, format = (v) => v, style, className }) {
+  const [display, setDisplay] = useState(0);
+  const startRef = useRef(null);
+  const rafRef = useRef(null);
+  const targetRef = useRef(value);
+  useEffect(() => {
+    targetRef.current = value;
+    startRef.current = null;
+    const tick = (t) => {
+      if (!startRef.current) startRef.current = t;
+      const p = Math.min(1, (t - startRef.current) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(targetRef.current * eased);
+      if (p < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value, duration]);
+  return <span className={className} style={style}>{format(display)}</span>;
+}
+
+function SectionHead({ eyebrow, title, trailing, style }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12, ...style }}>
+      <div>
+        {eyebrow && <div className="eyebrow" style={{ marginBottom: 6 }}>{eyebrow}</div>}
+        {title && <div className="section-title">{title}</div>}
+      </div>
+      {trailing}
+    </div>
+  );
+}
+
+function ProgressBar({ value, color = 'var(--cyan)', height = 4, animated = true }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW(value), 50); return () => clearTimeout(t); }, [value]);
+  return (
+    <div className="bar-track" style={{ height }}>
+      <div className="bar-fill" style={{ width: `${animated ? w : value}%`, background: color, boxShadow: `0 0 12px ${color}` }} />
+    </div>
+  );
+}
+
+function Pill({ children, variant = 'default', style, dot }) {
+  const cls = ({ default: 'pill', red: 'pill pill-red', cyan: 'pill pill-cyan', lime: 'pill pill-lime', violet: 'pill pill-violet', gold: 'pill pill-gold', orange: 'pill pill-orange', muted: 'pill pill-muted' })[variant] || 'pill';
+  return (
+    <span className={cls} style={style}>
+      {dot && <span className="pill-dot" style={{ background: dot }} />}
+      {children}
+    </span>
+  );
+}
+
+function HUDCard({ children, style, className = '', glow, mesh, padding = 16, onClick }) {
+  const classes = ['glass', 'hud'];
+  if (glow) classes.push(`glow-${glow}`);
+  if (mesh) classes.push(`mesh-${mesh}`);
+  if (onClick) classes.push('pressable');
+  if (className) classes.push(className);
+  return (
+    <div className={classes.join(' ')} style={{ padding, ...style }} onClick={onClick}>
+      <HUDTicks />
+      {children}
+    </div>
+  );
+}
+
+function ConfettiBurst({ trigger, colors = ['#FF0033', '#00D4FF', '#B14CFF', '#B6FF3C', '#FFD23C', '#FF8A3C'] }) {
+  const [tokens, setTokens] = useState([]);
+  useEffect(() => {
+    if (!trigger) return;
+    const pieces = Array.from({ length: 50 }).map((_, i) => {
+      const angle = (Math.PI * 2 * i) / 50 + (Math.random() - 0.5) * 0.4;
+      const dist = 120 + Math.random() * 140;
+      return { id: `${trigger}-${i}`, dx: Math.cos(angle) * dist + 'px', dy: Math.sin(angle) * dist + 'px', rot: Math.floor(Math.random() * 720 - 360) + 'deg', color: colors[i % colors.length], delay: Math.random() * 80 };
+    });
+    setTokens(pieces);
+    const t = setTimeout(() => setTokens([]), 1300);
+    return () => clearTimeout(t);
+  }, [trigger]);
+  return (
+    <div className="confetti-host">
+      {tokens.map((p) => (
+        <span key={p.id} className="confetti-piece" style={{ background: p.color, '--dx': p.dx, '--dy': p.dy, '--rot': p.rot, animationDelay: `${p.delay}ms` }} />
+      ))}
+    </div>
+  );
+}
+
+function StateMeter({ label, value, max = 10, color, onChange }) {
+  const bars = Array.from({ length: max });
+  const barRefs = useRef([]);
+  const setFromX = (clientX) => {
+    if (!barRefs.current[0]) return;
+    const first = barRefs.current[0].getBoundingClientRect();
+    const last = barRefs.current[max - 1].getBoundingClientRect();
+    const total = last.right - first.left;
+    const ratio = Math.max(0, Math.min(1, (clientX - first.left) / total));
+    const next = Math.max(1, Math.round(ratio * max));
+    if (next !== value) onChange?.(next);
+  };
+  const handleDown = (e) => {
+    const move = (ev) => { const x = ev.touches ? ev.touches[0].clientX : ev.clientX; setFromX(x); };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); window.removeEventListener('touchmove', move); window.removeEventListener('touchend', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    window.addEventListener('touchmove', move);
+    window.addEventListener('touchend', up);
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    setFromX(x);
+  };
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <span className="eyebrow" style={{ color: 'var(--muted)' }}>{label}</span>
+        <span className="mono" style={{ fontSize: 11, color: color, fontWeight: 600 }}>{value}</span>
+      </div>
+      <div onMouseDown={handleDown} onTouchStart={handleDown} style={{ display: 'flex', gap: 3, cursor: 'pointer', touchAction: 'none' }}>
+        {bars.map((_, i) => {
+          const filled = i < value;
+          return <div key={i} ref={(el) => (barRefs.current[i] = el)} style={{ flex: 1, height: 14, borderRadius: 2, background: filled ? color : 'rgba(255,255,255,0.06)', boxShadow: filled ? `0 0 8px ${color}80` : 'none', transition: 'background 200ms, box-shadow 200ms' }} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TimelineEvent({ time, label, color, kind, last }) {
+  return (
+    <div style={{ display: 'flex', gap: 12, position: 'relative' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 2 }}>
+        <div style={{ width: 10, height: 10, borderRadius: 999, background: color, boxShadow: `0 0 10px ${color}` }} />
+        {!last && <div style={{ flex: 1, width: 1, marginTop: 4, background: 'linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.03))' }} />}
+      </div>
+      <div style={{ flex: 1, paddingBottom: last ? 0 : 14 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span className="mono" style={{ fontSize: 11, color: 'var(--muted)' }}>{time}</span>
+          {kind && <Pill variant="muted" style={{ fontSize: 8 }}>{kind}</Pill>}
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500, marginTop: 2 }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+
+function StatTile({ label, value, suffix, color = 'var(--text)', format = (v) => Math.round(v), style }) {
+  return (
+    <div style={{ ...style }}>
+      <div className="eyebrow" style={{ marginBottom: 4 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+        <span className="display" style={{ fontSize: 36, color, lineHeight: 0.9 }}>
+          <TickCounter value={value} format={format} />
+        </span>
+        {suffix && <span className="mono" style={{ fontSize: 11, color: 'var(--muted)' }}>{suffix}</span>}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { HUDTicks, TickCounter, SectionHead, ProgressBar, Pill, HUDCard, ConfettiBurst, StateMeter, TimelineEvent, StatTile });
+  </script>
+
+  <!-- data -->
+  <script type="text/babel">
+const BRANDS = [
+  { id: 'jaymuvs',   name: 'JAYMUVS',    bgCls: 'brand-jaymuvs',    color: '#FF0033', status: 'On Track', weeklyGoal: '7 posts', pct: 71, posted: 5 },
+  { id: 'motionmob', name: 'MOTION MOB', bgCls: 'brand-motionmob',  color: '#0055FF', status: 'Hot',      weeklyGoal: '5 reels', pct: 60, posted: 3 },
+  { id: 'ona',       name: 'ONA ELITE',  bgCls: 'brand-ona-elite',  color: '#B6FF3C', status: 'Steady',   weeklyGoal: '6 posts', pct: 83, posted: 5 },
+  { id: 'jk',        name: 'JK ACRO',    bgCls: 'brand-jk-acro',    color: '#B14CFF', status: 'Cold',     weeklyGoal: '3 posts', pct: 33, posted: 1 },
+  { id: 'wooks',     name: 'ACRO WOOKS', bgCls: 'brand-acro-wooks', color: '#FF8A3C', status: 'Building', weeklyGoal: '4 posts', pct: 50, posted: 2 },
+  { id: 'ppp',       name: 'PPP',        bgCls: 'brand-ppp',        color: '#F5F5F7', status: 'Paused',   weeklyGoal: '2 posts', pct: 50, posted: 1 },
+];
+
+const PIPELINE_STAGES = [
+  { id: 'idea',     label: 'Idea',     count: 14, color: '#8A8A95' },
+  { id: 'plan',     label: 'Plan',     count: 7,  color: '#00D4FF' },
+  { id: 'shoot',    label: 'Shoot',    count: 4,  color: '#FFD23C' },
+  { id: 'edit',     label: 'Edit',     count: 3,  color: '#FF8A3C' },
+  { id: 'schedule', label: 'Schedule', count: 5,  color: '#B14CFF' },
+  { id: 'posted',   label: 'Posted',   count: 23, color: '#B6FF3C' },
+];
+
+const HOOKS = [
+  "I trained 6 disciplines for 10 years — here's what actually transferred.",
+  "You don't need flexibility for this. You need patience.",
+  "The reason your B-twist won't land (it's not your legs).",
+  "I tested every parkour shoe in 2026. Only one survived.",
+  "Stop training like a gymnast if you want to look like an athlete.",
+  "Most people quit on day 17. Here's what day 18 looks like.",
+];
+
+const DISCIPLINES = [
+  { id: 'gymnastics',   name: 'Gymnastics',   color: '#FFD23C', icon: '◐' },
+  { id: 'tricking',     name: 'Tricking',     color: '#FF0033', icon: '↻' },
+  { id: 'calisthenics', name: 'Calisthenics', color: '#B6FF3C', icon: '⊞' },
+  { id: 'acro',         name: 'Acro',         color: '#B14CFF', icon: '∞' },
+  { id: 'parkour',      name: 'Parkour',      color: '#00D4FF', icon: '▲' },
+  { id: 'ninja',        name: 'Ninja',        color: '#FF8A3C', icon: '◆' },
+];
+
+const SKILLS = {
+  gymnastics:   [{ name: 'Round-off', status: 'done', pct: 100 }, { name: 'Layout', status: 'done', pct: 100 }, { name: 'Full Twist', status: 'active', pct: 68 }, { name: 'Double Full', status: 'locked', pct: 0 }],
+  tricking:     [{ name: 'Aerial', status: 'done', pct: 100 }, { name: 'B-twist', status: 'active', pct: 82 }, { name: 'Cheat 720', status: 'locked', pct: 0 }, { name: 'Jackknife', status: 'locked', pct: 0 }],
+  calisthenics: [{ name: 'Muscle-up', status: 'done', pct: 100 }, { name: 'Front Lever', status: 'active', pct: 72 }, { name: 'Planche', status: 'locked', pct: 0 }],
+  acro:         [{ name: 'H2H', status: 'done', pct: 100 }, { name: 'Icarian', status: 'done', pct: 100 }, { name: 'Dynamic throws', status: 'active', pct: 55 }],
+  parkour:      [{ name: 'Precision', status: 'done', pct: 100 }, { name: 'Kong', status: 'done', pct: 100 }, { name: 'Wallrun', status: 'active', pct: 60 }, { name: 'Palm flip', status: 'locked', pct: 0 }],
+  ninja:        [{ name: 'Salmon ladder', status: 'done', pct: 100 }, { name: 'Cliffhanger', status: 'active', pct: 45 }, { name: 'Warped wall', status: 'locked', pct: 0 }],
+};
+
+const RADAR_AXES    = ['Strength', 'Power', 'Skill', 'Mobility', 'Endurance', 'Recovery'];
+const RADAR_CURRENT = [82, 78, 88, 65, 72, 58];
+const RADAR_GOAL    = [90, 90, 95, 85, 85, 80];
+
+const TIMELINE = [
+  { time: '06:30', label: 'Mobility flow + cold plunge',        color: '#00D4FF', kind: 'Body'   },
+  { time: '08:00', label: 'Deep work — JayMuvs B-twist edit',   color: '#FF0033', kind: 'Create' },
+  { time: '10:30', label: 'Ninja session @ ONA',                color: '#FF8A3C', kind: 'Train'  },
+  { time: '13:00', label: 'Coach review w/ Riley',              color: '#B6FF3C', kind: 'ONA'    },
+  { time: '16:00', label: 'Content shoot — B-twist tutorial',   color: '#FF3CC8', kind: 'Create' },
+  { time: '19:00', label: 'Acro practice w/ Chelsea',           color: '#B14CFF', kind: 'Acro'   },
+];
+
+const MOMENTUM = [3, 4, 2, 4, 3, 0, 4, 4, 3, 4, 4, 2, 4, 4];
+
+const ONA_STATS = { members: 248, mrr: 38450, nps: 72 };
+
+const SALES_STAGES = [
+  { id: 'leads',   label: 'Leads',       count: 27, color: '#00D4FF', stale: 5 },
+  { id: 'trials',  label: 'Trials',      count: 11, color: '#FFD23C', stale: 0 },
+  { id: 'closing', label: 'Closing',     count: 6,  color: '#FF8A3C', stale: 2 },
+  { id: 'new',     label: 'New Members', count: 9,  color: '#B6FF3C', stale: 0 },
+];
+
+const COACHES = [
+  { id: 'riley',  name: 'Riley',     plPrice: 110, grade: 'A',  role: 'Head Coach',  active: true, initial: 'R', color: '#FF0033' },
+  { id: 'luke',   name: 'Luke',      plPrice: 95,  grade: 'A',  role: 'Ninja Lead',  active: true, initial: 'L', color: '#FF8A3C' },
+  { id: 'jay-l',  name: 'Jay Lache', plPrice: 90,  grade: 'A-', role: 'Tricking',    active: true, initial: 'J', color: '#00D4FF' },
+  { id: 'avery',  name: 'Avery',     plPrice: 80,  grade: 'B+', role: 'Gymnastics',  active: true, initial: 'A', color: '#B14CFF' },
+  { id: 'eric',   name: 'Eric',      plPrice: 75,  grade: 'B',  role: 'Strength',    active: true, initial: 'E', color: '#B6FF3C' },
+];
+
+const BENCH = [
+  { id: 'myra',   name: 'Myra',   initial: 'M', color: '#FF3CC8' },
+  { id: 'ava',    name: 'Ava',    initial: 'A', color: '#FFD23C' },
+  { id: 'jordan', name: 'Jordan', initial: 'J', color: '#00D4FF' },
+  { id: 'billy',  name: 'Billy',  initial: 'B', color: '#FF8A3C' },
+];
+
+const INITIATIVES = [
+  { id: 1, title: 'Launch Adult Ninja League — 8 wk pilot',  priority: 'P0', pct: 68, due: 'Jun 14' },
+  { id: 2, title: 'Refit obstacle wall — Lane 3',            priority: 'P0', pct: 40, due: 'Jun 02' },
+  { id: 3, title: 'Migrate billing to Stripe Connect',       priority: 'P1', pct: 85, due: 'Jun 09' },
+  { id: 4, title: 'Re-shoot coach intro videos',            priority: 'P1', pct: 22, due: 'Jun 28' },
+  { id: 5, title: 'Audit member retention curve',           priority: 'P2', pct: 10, due: 'Jul 12' },
+];
+
+const TODAY = {
+  date: 'Wed · May 27',
+  greeting: 'Good morning, Jay',
+  readiness: 84,
+  energy: 8,
+  focus: 7,
+  body: 9,
+  mood: 8,
+  oneThing: 'Film the B-twist tutorial — full breakdown for JayMuvs',
+  streak: 12,
+};
+
+Object.assign(window, { BRANDS, PIPELINE_STAGES, HOOKS, DISCIPLINES, SKILLS, RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, TIMELINE, MOMENTUM, ONA_STATS, SALES_STAGES, COACHES, BENCH, INITIATIVES, TODAY });
+  </script>
+
+  <!-- screen: mission control -->
+  <script type="text/babel">
+function ReadinessRing({ value }) {
+  const size = 88, stroke = 5;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const [progress, setProgress] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setProgress(value), 50); return () => clearTimeout(t); }, [value]);
+  const dash = (c * progress) / 100;
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <defs>
+          <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#00D4FF" />
+            <stop offset="100%" stopColor="#B14CFF" />
+          </linearGradient>
+        </defs>
+        <circle cx={size/2} cy={size/2} r={r} stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} fill="none" />
+        <circle cx={size/2} cy={size/2} r={r} stroke="url(#ring-grad)" strokeWidth={stroke} fill="none" strokeLinecap="round" strokeDasharray={`${dash} ${c - dash}`} style={{ transition: 'stroke-dasharray 1100ms cubic-bezier(0.2, 0.7, 0.2, 1)', filter: 'drop-shadow(0 0 6px rgba(0, 212, 255, 0.5))' }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.18em' }}>READY</span>
+        <span className="display" style={{ fontSize: 14, color: 'var(--text)', marginTop: -2 }}>OPTIMAL</span>
+      </div>
+    </div>
+  );
+}
+
+function ReadinessHero({ readiness, energy, focus, body, mood, onMeter }) {
+  return (
+    <div className="hud glass-strong mesh-readiness" style={{ padding: '18px 18px 16px', borderRadius: 22, position: 'relative', overflow: 'hidden' }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span className="eyebrow">{TODAY.date}</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)', padding: '3px 8px', border: '1px solid rgba(0,212,255,0.3)', borderRadius: 999, letterSpacing: '0.18em' }}>SYS · ONLINE</span>
+      </div>
+      <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 2, marginBottom: 14 }}>{TODAY.greeting}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
+        <ReadinessRing value={readiness} />
+        <div style={{ flex: 1 }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>Readiness · 0–100</div>
+          <div className="display" style={{ fontSize: 64, lineHeight: 0.85, color: 'var(--text)', textShadow: '0 0 30px rgba(0,212,255,0.25)' }}>
+            <TickCounter value={readiness} format={(v) => Math.round(v)} />
+          </div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--lime)', marginTop: 6, letterSpacing: '0.1em' }}>▲ +6 vs 7-day avg</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <StateMeter label="Energy" value={energy} color="#00D4FF" onChange={(v) => onMeter('energy', v)} />
+        <StateMeter label="Focus"  value={focus}  color="#B14CFF" onChange={(v) => onMeter('focus', v)} />
+        <StateMeter label="Body"   value={body}   color="#B6FF3C" onChange={(v) => onMeter('body', v)} />
+        <StateMeter label="Mood"   value={mood}   color="#FFD23C" onChange={(v) => onMeter('mood', v)} />
+      </div>
+      <div className="eyebrow" style={{ marginTop: 8, color: 'var(--dim)' }}>swipe across bars to adjust →</div>
+    </div>
+  );
+}
+
+function OneThingCard({ done, onMark }) {
+  const [trigger, setTrigger] = useState(0);
+  const handle = () => {
+    if (done) return;
+    setTrigger((t) => t + 1);
+    setTimeout(() => onMark(), 80);
+  };
+  return (
+    <div className={`hud glass-strong ${done ? '' : 'glow-pulse-red'}`} style={{ padding: 16, borderRadius: 20, position: 'relative', overflow: 'visible', borderColor: done ? 'rgba(182,255,60,0.35)' : 'rgba(255,0,51,0.35)', background: done ? 'linear-gradient(135deg, rgba(182,255,60,0.04), rgba(11,11,18,0.4))' : 'linear-gradient(135deg, rgba(255,0,51,0.06), rgba(11,11,18,0.4))' }}>
+      <HUDTicks />
+      <ConfettiBurst trigger={trigger} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Pill variant={done ? 'lime' : 'red'} dot={done ? '#B6FF3C' : '#FF0033'}>{done ? 'COMPLETE' : 'TODAY'}</Pill>
+          <span className="eyebrow" style={{ color: done ? 'var(--lime)' : 'var(--ona-red)' }}>One Thing</span>
+        </div>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{done ? 'DONE · 06:42' : 'PRIORITY · P0'}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div className="pressable" onClick={handle} style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, border: `1.5px solid ${done ? 'var(--lime)' : 'rgba(255,0,51,0.6)'}`, background: done ? 'var(--lime)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: done ? '0 0 16px -2px rgba(182,255,60,0.5)' : '0 0 16px -2px rgba(255,0,51,0.5)', marginTop: 2 }}>
+          {done && <IconCheck size={16} color="#06060A" stroke={3} />}
+        </div>
+        <div style={{ flex: 1, fontSize: 17, lineHeight: 1.25, fontWeight: 600, color: 'var(--text)', textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.55 : 1 }}>{TODAY.oneThing}</div>
+      </div>
+      {!done && (
+        <div className="pressable" onClick={handle} style={{ marginTop: 14, height: 44, borderRadius: 12, background: 'linear-gradient(135deg, #FF0033 0%, #B14CFF 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 700, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', boxShadow: '0 8px 24px -6px rgba(255,0,51,0.6)' }}>
+          <IconCheck size={16} stroke={2.4} /> Mark Done
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MomentumStrip() {
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div>
+          <div className="eyebrow">Momentum</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
+            <span className="display" style={{ fontSize: 26, color: 'var(--gold)' }}>{TODAY.streak}</span>
+            <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>DAY STREAK</span>
+          </div>
+        </div>
+        <div className="mono" style={{ fontSize: 10, color: 'var(--dim)' }}>14d</div>
+      </div>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {MOMENTUM.map((v, i) => {
+          const isToday = i === MOMENTUM.length - 1;
+          const opacity = v === 0 ? 0.08 : 0.25 + (v / 4) * 0.75;
+          const color = v === 0 ? '#5A5A66' : v === 1 ? '#0055FF' : v === 2 ? '#00D4FF' : v === 3 ? '#FFD23C' : '#FF0033';
+          return <div key={i} className={v > 1 ? 'shimmer-cell' : ''} style={{ flex: 1, height: 32, borderRadius: 5, background: color, opacity, boxShadow: v >= 3 ? `0 0 10px ${color}` : 'none', border: isToday ? '1.5px solid #fff' : 'none', animationDelay: `${i * 100}ms` }} />;
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14 DAYS AGO</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)' }}>TODAY</span>
+      </div>
+    </div>
+  );
+}
+
+function TodayTimeline() {
+  return (
+    <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div>
+          <div className="eyebrow">Today · Timeline</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>{TIMELINE.length} BLOCKS</div>
+        </div>
+        <IconCalendar size={18} color="var(--muted)" />
+      </div>
+      <div>
+        {TIMELINE.map((e, i) => (
+          <TimelineEvent key={i} time={e.time} label={e.label} color={e.color} kind={e.kind} last={i === TIMELINE.length - 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MissionControl({ state, setState }) {
+  const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
+  const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
+  return (
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <ReadinessHero readiness={state.readiness} energy={state.energy} focus={state.focus} body={state.body} mood={state.mood} onMeter={setMeter} />
+      <OneThingCard done={state.oneThingDone} onMark={markDone} />
+      <MomentumStrip />
+      <TodayTimeline />
+    </div>
+  );
+}
+
+Object.assign(window, { MissionControl });
+  </script>
+
+  <!-- screen: training hq -->
+  <script type="text/babel">
+function BodyRadar({ size = 260 }) {
+  const cx = size / 2, cy = size / 2, max = 100, radius = size / 2 - 36;
+  const axes = RADAR_AXES.length;
+  const pointAt = (i, v) => {
+    const angle = -Math.PI / 2 + (i / axes) * Math.PI * 2;
+    const r = (v / max) * radius;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  };
+  const polyPoints = (vals) => vals.map((v, i) => pointAt(i, v).join(',')).join(' ');
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setDrawn(true), 100); return () => clearTimeout(t); }, []);
+  const currentPts = drawn ? polyPoints(RADAR_CURRENT) : polyPoints(RADAR_CURRENT.map(() => 0));
+  const goalPts    = drawn ? polyPoints(RADAR_GOAL)    : polyPoints(RADAR_GOAL.map(() => 0));
+  const rings = [0.25, 0.5, 0.75, 1];
+  return (
+    <div style={{ position: 'relative', width: size, height: size, margin: '0 auto' }}>
+      <svg width={size} height={size} style={{ overflow: 'visible' }}>
+        <defs>
+          <radialGradient id="radar-glow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%" stopColor="#00D4FF" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#00D4FF" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {rings.map((rPct, idx) => {
+          const pts = Array.from({ length: axes }).map((_, i) => {
+            const angle = -Math.PI / 2 + (i / axes) * Math.PI * 2;
+            const r = rPct * radius;
+            return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+          }).join(' ');
+          return <polygon key={idx} points={pts} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" strokeDasharray={idx === rings.length - 1 ? '0' : '2 4'} />;
+        })}
+        {Array.from({ length: axes }).map((_, i) => {
+          const angle = -Math.PI / 2 + (i / axes) * Math.PI * 2;
+          return <line key={i} x1={cx} y1={cy} x2={cx + radius * Math.cos(angle)} y2={cy + radius * Math.sin(angle)} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />;
+        })}
+        <polygon points={goalPts} fill="rgba(177, 76, 255, 0.04)" stroke="#B14CFF" strokeWidth="1.2" strokeDasharray="3 4" style={{ transition: 'all 1100ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+        <polygon points={currentPts} fill="rgba(0, 212, 255, 0.18)" stroke="#00D4FF" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.6))', transition: 'all 1100ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+        {RADAR_CURRENT.map((v, i) => {
+          const [x, y] = drawn ? pointAt(i, v) : pointAt(i, 0);
+          return <circle key={i} cx={x} cy={y} r="3" fill="#00D4FF" style={{ filter: 'drop-shadow(0 0 6px rgba(0, 212, 255, 0.8))', transition: 'all 1100ms cubic-bezier(0.2,0.7,0.2,1)' }} />;
+        })}
+      </svg>
+      {RADAR_AXES.map((label, i) => {
+        const angle = -Math.PI / 2 + (i / axes) * Math.PI * 2;
+        const labelR = radius + 18;
+        const x = cx + labelR * Math.cos(angle);
+        const y = cy + labelR * Math.sin(angle);
+        return (
+          <div key={label} style={{ position: 'absolute', left: x, top: y, transform: 'translate(-50%, -50%)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+            <div style={{ textAlign: 'center' }}>{label}</div>
+            <div style={{ color: 'var(--cyan)', fontWeight: 700, fontSize: 10, marginTop: 1 }}>{RADAR_CURRENT[i]}</div>
+          </div>
+        );
+      })}
+      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
+        <div className="eyebrow" style={{ color: 'var(--dim)' }}>OVERALL</div>
+        <div className="display" style={{ fontSize: 28, color: 'var(--cyan)', lineHeight: 1 }}><TickCounter value={74} /></div>
+      </div>
+    </div>
+  );
+}
+
+function SkillNode({ skill, color }) {
+  const stateMap = {
+    done:   { bg: `${color}20`, border: `${color}80`, iconBg: color, icon: <IconCheck size={11} color="#06060A" stroke={3} />, pctColor: color },
+    active: { bg: 'rgba(0, 212, 255, 0.10)', border: 'rgba(0, 212, 255, 0.5)', iconBg: '#00D4FF', icon: <span style={{ width: 6, height: 6, borderRadius: 99, background: '#06060A' }} />, pctColor: '#00D4FF' },
+    locked: { bg: 'rgba(255,255,255,0.025)', border: 'var(--line)', iconBg: 'rgba(255,255,255,0.08)', icon: <IconLock size={11} color="var(--dim)" />, pctColor: 'var(--dim)' },
+  };
+  const s = stateMap[skill.status];
+  return (
+    <div className="pressable" style={{ padding: '10px 12px', borderRadius: 12, background: s.bg, border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', gap: 12, position: 'relative', opacity: skill.status === 'locked' ? 0.55 : 1 }}>
+      <div className={skill.status === 'active' ? 'pulse-node' : ''} style={{ width: 22, height: 22, borderRadius: 8, background: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)' }}>{skill.name}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+          <div style={{ flex: 1, height: 3 }}><ProgressBar value={skill.pct} color={s.pctColor} height={3} /></div>
+          <span className="mono" style={{ fontSize: 10, color: s.pctColor, minWidth: 32, textAlign: 'right' }}>{skill.pct}%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SkillTree({ discipline, expanded, onToggle }) {
+  const skills = SKILLS[discipline.id];
+  const done = skills.filter(s => s.status === 'done').length;
+  const active = skills.filter(s => s.status === 'active').length;
+  return (
+    <div className="glass" style={{ borderRadius: 14, overflow: 'hidden' }}>
+      <div className="pressable" onClick={onToggle} style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: `${discipline.color}18`, border: `1px solid ${discipline.color}50`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: discipline.color, fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 16, flexShrink: 0, boxShadow: `0 0 14px -4px ${discipline.color}` }}>{discipline.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, letterSpacing: '0.04em', color: 'var(--text)' }}>{discipline.name.toUpperCase()}</span>
+            <span style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 240ms', color: 'var(--muted)' }}><IconChevronDown size={16} /></span>
+          </div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{done}/{skills.length} MASTERED · {active} ACTIVE</div>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8, animation: 'screenIn 320ms cubic-bezier(0.2,0.7,0.2,1)' }}>
+          {skills.map((skill) => <SkillNode key={skill.name} skill={skill} color={discipline.color} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LogSessionSheet({ open, onClose }) {
+  const [discipline, setDiscipline] = useState('tricking');
+  const [duration, setDuration] = useState(60);
+  const [intensity, setIntensity] = useState(7);
+  const [logged, setLogged] = useState(false);
+  useEffect(() => { if (open) { setLogged(false); setDiscipline('tricking'); setDuration(60); setIntensity(7); } }, [open]);
+  if (!open) return null;
+  const d = DISCIPLINES.find(d => d.id === discipline);
+  const submit = () => { setLogged(true); setTimeout(() => onClose(), 700); };
+  return (
+    <>
+      <div className="scrim" onClick={onClose} />
+      <div className="sheet" style={{ maxHeight: '76%', overflowY: 'auto' }}>
+        <div className="sheet-handle" />
+        {logged ? (
+          <div style={{ padding: '32px 0 16px', textAlign: 'center' }}>
+            <div className="display" style={{ fontSize: 28, color: 'var(--lime)' }}>SESSION LOGGED</div>
+            <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6 }}>{duration} MIN · {d.name.toUpperCase()} · INTENSITY {intensity}/10</div>
+          </div>
+        ) : (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <div className="eyebrow">Log Session</div>
+              <div className="display" style={{ fontSize: 24, marginTop: 2 }}>WHAT DID YOU TRAIN?</div>
+            </div>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Discipline</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 14 }}>
+              {DISCIPLINES.map((dd) => {
+                const active = discipline === dd.id;
+                return (
+                  <div key={dd.id} className="pressable" onClick={() => setDiscipline(dd.id)} style={{ padding: '10px 0', textAlign: 'center', borderRadius: 10, background: active ? `${dd.color}18` : 'rgba(255,255,255,0.04)', border: `1px solid ${active ? dd.color + '80' : 'var(--line)'}`, color: active ? dd.color : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase', boxShadow: active ? `0 0 14px -4px ${dd.color}` : 'none' }}>
+                    <span style={{ marginRight: 4 }}>{dd.icon}</span>{dd.name}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Duration · min</div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              {[30, 45, 60, 90, 120].map((m) => (
+                <div key={m} className="pressable" onClick={() => setDuration(m)} style={{ flex: 1, padding: '10px 0', textAlign: 'center', borderRadius: 10, background: duration === m ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${duration === m ? 'rgba(0,212,255,0.6)' : 'var(--line)'}`, color: duration === m ? 'var(--cyan)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}>{m}</div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span className="eyebrow">Intensity</span>
+              <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', fontWeight: 700 }}>{intensity}/10</span>
+            </div>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={i} className="pressable" onClick={() => setIntensity(i + 1)} style={{ flex: 1, height: 24, borderRadius: 4, background: i < intensity ? `hsl(${20 - i * 2}, 90%, ${55 - i * 1.5}%)` : 'rgba(255,255,255,0.06)', boxShadow: i < intensity ? `0 0 8px hsla(${20 - i * 2}, 90%, 55%, 0.6)` : 'none' }} />
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px' }}>
+                <div className="eyebrow" style={{ marginBottom: 4 }}>Notes</div>
+                <div style={{ color: 'var(--muted)', fontSize: 13 }}>How did it feel?</div>
+              </div>
+              <div className="pressable" style={{ width: 60, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
+                <IconCamera size={20} />
+              </div>
+            </div>
+            <div className="pressable" onClick={submit} style={{ height: 52, borderRadius: 14, background: `linear-gradient(135deg, ${d.color}, ${d.color}80)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 700, fontSize: 14, letterSpacing: '0.12em', textTransform: 'uppercase', boxShadow: `0 8px 24px -8px ${d.color}` }}>
+              <IconCheck size={18} stroke={2.4} /> Log Session
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+function TrainingHQ() {
+  const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
+  const [logOpen, setLogOpen] = useState(false);
+  return (
+    <>
+      <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="hud glass-strong mesh-train" style={{ padding: 16, borderRadius: 20 }}>
+          <HUDTicks />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div className="eyebrow">Phase 03 · Cycle 2</div>
+              <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>EXPLOSIVE POWER</div>
+              <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>DAY 47/90 · 38 SESSIONS LOGGED</div>
+            </div>
+            <Pill variant="cyan" dot="#00D4FF">ACTIVE</Pill>
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <ProgressBar value={52} color="var(--cyan)" height={5} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+              <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>DAY 1</span>
+              <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)' }}>52% · 43 DAYS LEFT</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
+          <HUDTicks />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+            <div>
+              <div className="eyebrow">Body Radar</div>
+              <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>CURRENT vs GOAL</div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, fontSize: 9 }}>
+              <div className="mono" style={{ color: 'var(--cyan)', display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 2, background: '#00D4FF' }} /> NOW</div>
+              <div className="mono" style={{ color: 'var(--violet)', display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 2, background: '#B14CFF', borderTop: '1px dashed #B14CFF' }} /> GOAL</div>
+            </div>
+          </div>
+          <BodyRadar size={260} />
+        </div>
+
+        <div>
+          <SectionHead eyebrow="6 disciplines · 23 skills" title="SKILL TREES" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {DISCIPLINES.map((d) => (
+              <SkillTree key={d.id} discipline={d} expanded={!!expanded[d.id]} onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))} />
+            ))}
+          </div>
+        </div>
+
+        <div className="pressable" onClick={() => setLogOpen(true)} style={{ height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 800, fontSize: 14, letterSpacing: '0.16em', textTransform: 'uppercase', boxShadow: '0 12px 36px -8px rgba(0,212,255,0.5)', marginTop: 4 }}>
+          <IconActivity size={20} stroke={2.4} /> Log Session
+        </div>
+      </div>
+      <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} />
+    </>
+  );
+}
+
+Object.assign(window, { TrainingHQ });
+  </script>
+
+  <!-- screen: content studio -->
+  <script type="text/babel">
+function BrandTile({ brand }) {
+  const isLight = brand.id === 'ppp' || brand.id === 'ona';
+  const fg = isLight ? '#06060A' : '#fff';
+  const sub = isLight ? 'rgba(6,6,10,0.6)' : 'rgba(255,255,255,0.7)';
+  const statusColors = {
+    'Hot':      { bg: 'rgba(255,0,51,0.85)',    fg: '#fff' },
+    'On Track': { bg: 'rgba(0, 212, 255, 0.85)', fg: '#06060A' },
+    'Steady':   { bg: 'rgba(182, 255, 60, 0.85)',fg: '#06060A' },
+    'Cold':     { bg: 'rgba(0, 85, 255, 0.6)',  fg: '#fff' },
+    'Building': { bg: 'rgba(255, 210, 60, 0.85)',fg: '#06060A' },
+    'Paused':   { bg: 'rgba(138, 138, 149, 0.85)',fg: '#06060A' },
+  };
+  const s = statusColors[brand.status];
+  return (
+    <div className={`pressable ${brand.bgCls}`} style={{ borderRadius: 18, padding: 14, aspectRatio: '1 / 1.05', position: 'relative', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: `0 14px 36px -14px ${brand.color}, inset 0 1px 0 rgba(255,255,255,0.15)`, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      {['tl','tr','bl','br'].map((k) => <span key={k} className={`hud-tick ${k}`} style={{ borderColor: isLight ? 'rgba(6,6,10,0.3)' : 'rgba(255,255,255,0.3)' }} />)}
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 20% 0%, rgba(255,255,255,0.18) 0%, transparent 60%)', pointerEvents: 'none' }} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'relative' }}>
+        <span style={{ padding: '3px 8px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.14em', background: s.bg, color: s.fg, backdropFilter: 'blur(6px)' }}>{brand.status.toUpperCase()}</span>
+      </div>
+      <div style={{ position: 'relative' }}>
+        <div className="display" style={{ fontSize: 26, lineHeight: 0.95, color: fg, letterSpacing: '0.04em' }}>{brand.name}</div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: sub, marginTop: 6 }}>{brand.weeklyGoal} · {brand.posted} POSTED</div>
+        <div style={{ marginTop: 8, height: 3, borderRadius: 999, background: isLight ? 'rgba(6,6,10,0.15)' : 'rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+          <div style={{ width: `${brand.pct}%`, height: '100%', background: isLight ? '#06060A' : '#fff', boxShadow: isLight ? 'none' : '0 0 6px rgba(255,255,255,0.5)', transition: 'width 900ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PipelineStrip() {
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">Pipeline</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>IDEA → POSTED</div>
+        </div>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{PIPELINE_STAGES.reduce((s, x) => s + x.count, 0)} ITEMS</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
+        {PIPELINE_STAGES.map((stage, i) => (
+          <React.Fragment key={stage.id}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: `${stage.color}18`, border: `1px solid ${stage.color}50`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: stage.color, fontFamily: 'var(--font-display)', fontSize: 18, boxShadow: `0 0 12px -3px ${stage.color}` }}>
+                <TickCounter value={stage.count} />
+              </div>
+              <span className="mono" style={{ fontSize: 8, letterSpacing: '0.16em', color: 'var(--muted)', textTransform: 'uppercase' }}>{stage.label}</span>
+            </div>
+            {i < PIPELINE_STAGES.length - 1 && <div style={{ width: 8, paddingTop: 17, color: 'var(--dim)', display: 'flex', justifyContent: 'center' }}><IconChevronRight size={10} color="var(--dim)" /></div>}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HookBank() {
+  const [copied, setCopied] = useState(null);
+  const handle = (i) => { setCopied(i); setTimeout(() => setCopied((c) => (c === i ? null : c)), 1400); };
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">Hook Bank · tap to copy</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>VIRAL OPENERS</div>
+        </div>
+        <Pill variant="violet">{HOOKS.length}</Pill>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {HOOKS.map((hook, i) => {
+          const isCopied = copied === i;
+          return (
+            <div key={i} className="pressable" onClick={() => handle(i)} style={{ padding: '10px 12px', background: isCopied ? 'rgba(182,255,60,0.10)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isCopied ? 'rgba(182,255,60,0.5)' : 'var(--line)'}`, borderRadius: 10, display: 'flex', alignItems: 'flex-start', gap: 10, transition: 'all 240ms' }}>
+              <span className="mono" style={{ fontSize: 10, color: isCopied ? 'var(--lime)' : 'var(--dim)', flexShrink: 0, fontWeight: 700, marginTop: 2 }}>{String(i + 1).padStart(2, '0')}</span>
+              <span style={{ flex: 1, fontSize: 13, lineHeight: 1.35, color: 'var(--text)' }}>{hook}</span>
+              <span style={{ color: isCopied ? 'var(--lime)' : 'var(--dim)', flexShrink: 0, marginTop: 1 }}>{isCopied ? <IconCheck size={14} stroke={2.4} /> : <IconCopy size={14} />}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PostingCalendar() {
+  const days = [
+    { d: 'WED', n: 27, posts: [{ c: '#FF0033' }, { c: '#B6FF3C' }], today: true },
+    { d: 'THU', n: 28, posts: [{ c: '#0055FF' }] },
+    { d: 'FRI', n: 29, posts: [{ c: '#FF8A3C' }, { c: '#FF0033' }] },
+    { d: 'SAT', n: 30, posts: [] },
+    { d: 'SUN', n: 31, posts: [{ c: '#B14CFF' }] },
+    { d: 'MON', n: 1,  posts: [{ c: '#FF0033' }, { c: '#0055FF' }, { c: '#B6FF3C' }] },
+    { d: 'TUE', n: 2,  posts: [{ c: '#FF3CC8' }] },
+  ];
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">7-day calendar</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>POSTING</div>
+        </div>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{days.reduce((s, d) => s + d.posts.length, 0)} SCHEDULED</span>
+      </div>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {days.map((day, i) => (
+          <div key={i} className="pressable" style={{ flex: 1, minHeight: 88, borderRadius: 10, padding: '8px 4px', background: day.today ? 'rgba(0, 212, 255, 0.08)' : 'rgba(255,255,255,0.03)', border: `1px solid ${day.today ? 'rgba(0, 212, 255, 0.5)' : 'var(--line)'}`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, boxShadow: day.today ? '0 0 18px -6px rgba(0,212,255,0.6)' : 'none' }}>
+            <span className="mono" style={{ fontSize: 8, letterSpacing: '0.12em', color: day.today ? 'var(--cyan)' : 'var(--dim)', fontWeight: 700 }}>{day.d}</span>
+            <span className="display" style={{ fontSize: 18, color: day.today ? 'var(--cyan)' : 'var(--text)', lineHeight: 1 }}>{day.n}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center', marginTop: 'auto' }}>
+              {day.posts.map((p, j) => <div key={j} style={{ width: 16, height: 3, borderRadius: 999, background: p.c, boxShadow: `0 0 4px ${p.c}` }} />)}
+              {day.posts.length === 0 && <span className="mono" style={{ fontSize: 8, color: 'var(--dim)' }}>—</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContentStudio() {
+  return (
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="hud glass-strong mesh-content" style={{ padding: 16, borderRadius: 20 }}>
+        <HUDTicks />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div className="eyebrow">Studio · Week 21</div>
+            <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>SIX BRANDS · ONE FEED</div>
+            <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>17/27 WEEKLY POSTS · 4.2M REACH MTD</div>
+          </div>
+          <Pill variant="violet" dot="#B14CFF">LIVE</Pill>
+        </div>
+      </div>
+      <div>
+        <SectionHead eyebrow="6 brands · tap to enter" title="BRAND OS" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          {BRANDS.map((b) => <BrandTile key={b.id} brand={b} />)}
+        </div>
+      </div>
+      <PipelineStrip />
+      <HookBank />
+      <PostingCalendar />
+    </div>
+  );
+}
+
+Object.assign(window, { ContentStudio });
+  </script>
+
+  <!-- screen: ona hq -->
+  <script type="text/babel">
+function ONAStat({ label, value, prefix, suffix, color, trend }) {
+  const fmt = (v) => { if (typeof v !== 'number') return v; if (v >= 1000) return Math.round(v).toLocaleString(); return Math.round(v); };
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="eyebrow" style={{ marginBottom: 4 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+        {prefix && <span className="display" style={{ fontSize: 16, color, opacity: 0.7 }}>{prefix}</span>}
+        <span className="display" style={{ fontSize: 30, color, lineHeight: 0.9 }}><TickCounter value={value} format={fmt} /></span>
+        {suffix && <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginLeft: 2 }}>{suffix}</span>}
+      </div>
+      {trend && <div className="mono" style={{ fontSize: 9, color: 'var(--lime)', marginTop: 4, letterSpacing: '0.1em' }}>{trend}</div>}
+    </div>
+  );
+}
+
+function SalesPipeline() {
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">Sales Pipeline</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>FUNNEL</div>
+        </div>
+        <Pill variant="red">⚠ 7 STALE</Pill>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {SALES_STAGES.map((stage) => (
+          <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ minWidth: 50, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase' }}>{stage.label}</div>
+            <div style={{ flex: 1, height: 28, background: 'rgba(255,255,255,0.04)', borderRadius: 8, border: '1px solid var(--line)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (stage.count / 30) * 100)}%`, background: `linear-gradient(90deg, ${stage.color}30, ${stage.color}10)`, borderRight: `2px solid ${stage.color}`, boxShadow: `inset 0 0 12px ${stage.color}40`, transition: 'width 1000ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 6 }}>
+                <span className="display" style={{ fontSize: 16, color: stage.color, lineHeight: 1 }}><TickCounter value={stage.count} /></span>
+                {stage.stale > 0 && <span className="mono blink" style={{ fontSize: 9, color: 'var(--ona-red)', fontWeight: 700, marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3 }}><IconWarn size={11} />{stage.stale} STALE</span>}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="eyebrow" style={{ marginTop: 10, color: 'var(--dim)' }}>⚠ stale = lead untouched 48h+</div>
+    </div>
+  );
+}
+
+function CoachAvatar({ coach, size = 36 }) {
+  return (
+    <div style={{ width: size, height: size, borderRadius: size, background: `linear-gradient(135deg, ${coach.color}, ${coach.color}50)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A', fontWeight: 800, fontSize: size * 0.42, flexShrink: 0, border: '1px solid rgba(255,255,255,0.15)', boxShadow: `0 0 14px -4px ${coach.color}` }}>{coach.initial}</div>
+  );
+}
+
+function CoachRoster() {
+  const gradeColor = (g) => { if (g.startsWith('A')) return '#B6FF3C'; if (g.startsWith('B')) return '#FFD23C'; return '#FF8A3C'; };
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">Roster · {COACHES.length} active · {BENCH.length} bench</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>COACHES</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {COACHES.map((c) => (
+          <div key={c.id} className="pressable" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
+            <CoachAvatar coach={c} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)', letterSpacing: '-0.01em' }}>{c.name}</div>
+              <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{c.role.toUpperCase()}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div className="mono" style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>${c.plPrice}/hr</div>
+              <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 1 }}>PRIVATE LESSON</div>
+            </div>
+            <div style={{ width: 30, height: 30, borderRadius: 8, border: `1.5px solid ${gradeColor(c.grade)}`, background: `${gradeColor(c.grade)}18`, color: gradeColor(c.grade), display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, boxShadow: `0 0 10px -3px ${gradeColor(c.grade)}` }}>{c.grade}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 12, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
+        <div className="eyebrow" style={{ marginBottom: 8, color: 'var(--dim)' }}>Bench · backup</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {BENCH.map((b) => (
+            <div key={b.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 1 }}>
+              <CoachAvatar coach={b} size={32} />
+              <span className="mono" style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.08em' }}>{b.name.toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InitiativeList() {
+  const priColor = { P0: '#FF0033', P1: '#FFD23C', P2: '#00D4FF' };
+  const priBg    = { P0: 'rgba(255,0,51,0.12)', P1: 'rgba(255,210,60,0.12)', P2: 'rgba(0,212,255,0.12)' };
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">Initiatives · Q2 active</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>WHAT MOVES</div>
+        </div>
+        <Pill variant="red">2 · P0</Pill>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {INITIATIVES.map((it) => (
+          <div key={it.id} className="pressable" style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <span style={{ padding: '3px 7px', borderRadius: 6, background: priBg[it.priority], color: priColor[it.priority], border: `1px solid ${priColor[it.priority]}50`, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 800, letterSpacing: '0.06em', boxShadow: `0 0 8px -3px ${priColor[it.priority]}`, flexShrink: 0, marginTop: 1 }}>{it.priority}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{it.title}</div>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1 }}><ProgressBar value={it.pct} color={priColor[it.priority]} height={3} /></div>
+                <span className="mono" style={{ fontSize: 9, color: 'var(--muted)' }}>{it.pct}%</span>
+              </div>
+              <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 6 }}>DUE {it.due.toUpperCase()}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ONAHQ() {
+  return (
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="hud glass-strong mesh-ona" style={{ padding: 18, borderRadius: 20 }}>
+        <HUDTicks />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+          <div>
+            <div className="eyebrow">Obstacle Ninja Academy · Orlando</div>
+            <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1, color: 'var(--ona-red)' }}>ONA · HQ</div>
+          </div>
+          <Pill variant="red" dot="#FF0033">LIVE</Pill>
+        </div>
+        <div style={{ display: 'flex', gap: 14 }}>
+          <ONAStat label="Members" value={ONA_STATS.members} color="var(--text)" trend="▲ +12 MTD" />
+          <ONAStat label="MRR" value={ONA_STATS.mrr} prefix="$" color="var(--lime)" trend="▲ +8.4%" />
+          <ONAStat label="NPS" value={ONA_STATS.nps} color="var(--cyan)" trend="▲ +4 pts" />
+        </div>
+      </div>
+      <SalesPipeline />
+      <CoachRoster />
+      <InitiativeList />
+    </div>
+  );
+}
+
+Object.assign(window, { ONAHQ });
+  </script>
+
+  <!-- screen: ai -->
+  <script type="text/babel">
+function AIOrb({ size = 140, listening = false }) {
+  return (
+    <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ position: 'absolute', inset: -20, background: 'radial-gradient(circle, rgba(177,76,255,0.35) 0%, transparent 60%)', filter: 'blur(8px)' }} className={listening ? 'glow-pulse-red' : ''} />
+      <div className="orb-spin" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'conic-gradient(from 0deg, #00D4FF, #B14CFF, #FF3CC8, #FFD23C, #00D4FF)', WebkitMask: 'radial-gradient(circle, transparent 60%, #000 62%, #000 75%, transparent 76%)', mask: 'radial-gradient(circle, transparent 60%, #000 62%, #000 75%, transparent 76%)' }} />
+      <div className="orb-spin-fast" style={{ position: 'absolute', inset: '15%', borderRadius: '50%', background: 'conic-gradient(from 90deg, transparent 0deg, #00D4FF 30deg, transparent 60deg, transparent 180deg, #B14CFF 210deg, transparent 240deg)', WebkitMask: 'radial-gradient(circle, transparent 50%, #000 52%, #000 90%, transparent 92%)', mask: 'radial-gradient(circle, transparent 50%, #000 52%, #000 90%, transparent 92%)' }} />
+      <div style={{ position: 'absolute', inset: '30%', borderRadius: '50%', background: 'radial-gradient(circle at 30% 30%, #fff 0%, #00D4FF 30%, #B14CFF 70%, #06060A 100%)', boxShadow: '0 0 30px rgba(0, 212, 255, 0.6), inset 0 0 14px rgba(255,255,255,0.4)' }} />
+      <IconSparkles size={size * 0.18} color="#fff" stroke={1.8} style={{ position: 'relative', zIndex: 2, filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' }} />
+    </div>
+  );
+}
+
+const AI_COMMANDS = [
+  { id: 'plan',   label: 'Plan my day',         icon: IconCalendar, color: '#00D4FF' },
+  { id: 'shoot',  label: 'Generate shot list',  icon: IconCamera,   color: '#FF3CC8' },
+  { id: 'recov',  label: 'Am I recovered?',     icon: IconActivity, color: '#B6FF3C' },
+  { id: 'hook',   label: 'Write me a hook',     icon: IconFlame,    color: '#FF8A3C' },
+  { id: 'review', label: 'Coach review (Riley)',icon: IconUsers,    color: '#FFD23C' },
+  { id: 'pulse',  label: 'ONA pulse check',     icon: IconTarget,   color: '#FF0033' },
+];
+
+const RECENT = [
+  { time: '06:14', text: 'Drafted 3 hooks for B-twist breakdown.', tone: '#FF3CC8' },
+  { time: '05:58', text: 'Logged 7h sleep · readiness +6.',        tone: '#00D4FF' },
+  { time: 'Y · 22:40', text: 'Re-scheduled Riley 1:1 to Thu 13:00.', tone: '#B6FF3C' },
+];
+
+function AIScreen() {
+  const [input, setInput] = useState('');
+  const [listening, setListening] = useState(false);
+  return (
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="hud glass-strong mesh-ai" style={{ padding: '22px 18px', borderRadius: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+        <HUDTicks />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 14 }}>
+          <Pill variant="violet" dot="#B14CFF">CLAUDE · 3.7</Pill>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--lime)', letterSpacing: '0.18em' }}>● ONLINE</span>
+        </div>
+        <AIOrb size={140} listening={listening} />
+        <div className="display" style={{ fontSize: 28, marginTop: 16, background: 'linear-gradient(90deg, #00D4FF, #B14CFF, #FF3CC8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+          HOW CAN I MOVE YOU?
+        </div>
+        <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: '0.16em' }}>ASK · DECIDE · ROUTE</div>
+        <div style={{ width: '100%', marginTop: 18, display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(177,76,255,0.35)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 30px -8px rgba(177,76,255,0.4)' }}>
+            <IconSparkles size={16} color="var(--violet)" />
+            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask Claude anything…" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 14, fontFamily: 'var(--font-body)' }} />
+          </div>
+          <div className="pressable" onClick={() => setListening((l) => !l)} style={{ width: 48, borderRadius: 14, background: listening ? 'rgba(255,0,51,0.18)' : 'rgba(255,255,255,0.04)', border: `1px solid ${listening ? 'rgba(255,0,51,0.5)' : 'var(--line-strong)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: listening ? 'var(--ona-red)' : 'var(--text)' }}>
+            <IconMic size={20} className={listening ? 'blink' : ''} />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <SectionHead eyebrow="Tap a command" title="QUICK ACTIONS" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          {AI_COMMANDS.map((cmd) => (
+            <div key={cmd.id} className="pressable hud" style={{ padding: '12px 12px', borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: `1px solid ${cmd.color}30`, display: 'flex', alignItems: 'center', gap: 10, position: 'relative', boxShadow: `0 0 16px -8px ${cmd.color}` }}>
+              <HUDTicks />
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: `${cmd.color}18`, border: `1px solid ${cmd.color}50`, color: cmd.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <cmd.icon size={16} />
+              </div>
+              <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 600, lineHeight: 1.2 }}>{cmd.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+        <HUDTicks />
+        <div style={{ marginBottom: 12 }}>
+          <div className="eyebrow">Recent · auto-routed</div>
+          <div className="section-title" style={{ fontSize: 20, marginTop: 2 }}>HISTORY</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {RECENT.map((r, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: r.tone, boxShadow: `0 0 8px ${r.tone}`, marginTop: 6, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.3 }}>{r.text}</div>
+                <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.1em' }}>{r.time}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="eyebrow" style={{ textAlign: 'center', color: 'var(--dim)' }}>
+        Claude routes captures, scores readiness, generates hooks, runs ONA pulse checks.
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { AIScreen });
+  </script>
+
+  <!-- tab-bar + quick-capture + app -->
+  <script type="text/babel">
+const TABS = [
+  { id: 'home',   label: 'Home',   Icon: IconHome,     color: '#00D4FF' },
+  { id: 'train',  label: 'Train',  Icon: IconBolt,     color: '#B6FF3C' },
+  { id: 'create', label: 'Create', Icon: IconPlay,     color: '#FF3CC8' },
+  { id: 'ona',    label: 'ONA',    Icon: IconNinja,    color: '#FF0033' },
+  { id: 'ai',     label: 'AI',     Icon: IconSparkles, color: '#B14CFF' },
+];
+
+function TabBar({ active, onChange, onFab, onFabLong }) {
+  const longPressTimer = useRef(null);
+  const longPressed = useRef(false);
+  const fabDown = () => { longPressed.current = false; longPressTimer.current = setTimeout(() => { longPressed.current = true; onFabLong?.(); }, 450); };
+  const fabUp = () => { clearTimeout(longPressTimer.current); if (!longPressed.current) onFab?.(); };
+  const fabCancel = () => clearTimeout(longPressTimer.current);
+  return (
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 96, zIndex: 40, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 0%, rgba(6,6,10,0.7) 38%, #06060A 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', left: 12, right: 12, bottom: 28, height: 60, background: 'rgba(11, 11, 18, 0.78)', backdropFilter: 'blur(28px) saturate(180%)', WebkitBackdropFilter: 'blur(28px) saturate(180%)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 22, display: 'flex', alignItems: 'center', padding: '0 4px', pointerEvents: 'auto', boxShadow: '0 18px 50px rgba(0,0,0,0.55)' }}>
+        <HUDTicks />
+        {TABS.map((t) => {
+          const isActive = active === t.id;
+          return (
+            <div key={t.id} className="pressable" onClick={() => onChange(t.id)} style={{ flex: 1, height: 52, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, position: 'relative', color: isActive ? t.color : 'var(--muted)', transition: 'color 220ms' }}>
+              {isActive && <span style={{ position: 'absolute', top: 6, width: 22, height: 2, borderRadius: 999, background: t.color, boxShadow: `0 0 8px ${t.color}` }} />}
+              <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: isActive ? 700 : 500 }}>{t.label}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="pressable fab-glow" onMouseDown={fabDown} onMouseUp={fabUp} onMouseLeave={fabCancel} onTouchStart={fabDown} onTouchEnd={fabUp} style={{ position: 'absolute', right: 18, bottom: 100, width: 54, height: 54, borderRadius: 18, background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A', pointerEvents: 'auto', border: '1px solid rgba(255,255,255,0.2)' }}>
+        <IconPlus size={26} stroke={2.4} color="#06060A" />
+      </div>
+    </div>
+  );
+}
+
+const CAPTURE_TAGS = [
+  { id: 'idea',  label: 'IDEA',  color: '#00D4FF' },
+  { id: 'ona',   label: 'ONA',   color: '#FF0033' },
+  { id: 'dream', label: 'DREAM', color: '#B14CFF' },
+  { id: 'task',  label: 'TASK',  color: '#B6FF3C' },
+];
+
+function QuickCapture({ open, onClose, voiceMode = false }) {
+  const [text, setText] = useState('');
+  const [tag, setTag] = useState('idea');
+  const [recording, setRecording] = useState(voiceMode);
+  const [saved, setSaved] = useState(false);
+  const inputRef = useRef(null);
+  useEffect(() => { if (open) { setText(''); setSaved(false); setRecording(voiceMode); setTimeout(() => inputRef.current?.focus(), 320); } }, [open, voiceMode]);
+  if (!open) return null;
+  const tagColor = CAPTURE_TAGS.find(t => t.id === tag)?.color;
+  const handleCapture = () => { if (!text.trim() && !recording) return; setSaved(true); setTimeout(() => onClose?.(), 700); };
+  return (
+    <>
+      <div className="scrim" onClick={onClose} />
+      <div className="sheet">
+        <div className="sheet-handle" />
+        {saved ? (
+          <div style={{ padding: '40px 0 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 999, background: 'rgba(182, 255, 60, 0.15)', border: '1px solid rgba(182, 255, 60, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px -10px rgba(182,255,60,0.6)' }}>
+              <IconCheck size={28} color="#B6FF3C" stroke={2.5} />
+            </div>
+            <div className="display" style={{ fontSize: 24, color: 'var(--lime)' }}>CAPTURED</div>
+            <div className="eyebrow">routed to {tag}</div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div>
+                <div className="eyebrow">Quick Capture</div>
+                <div className="display" style={{ fontSize: 24, marginTop: 2 }}>WHAT'S ON YOUR MIND?</div>
+              </div>
+              <div className="pressable" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', color: 'var(--muted)' }}>
+                <IconClose size={16} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'stretch', marginBottom: 14 }}>
+              <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: `1px solid ${tagColor}40`, borderRadius: 14, padding: '12px 14px', position: 'relative', boxShadow: `0 0 30px -10px ${tagColor}60` }}>
+                <input ref={inputRef} value={text} onChange={(e) => setText(e.target.value)} placeholder="Type or speak…" style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 16, fontFamily: 'var(--font-body)' }} />
+              </div>
+              <div className="pressable" onClick={() => setRecording((r) => !r)} style={{ width: 48, borderRadius: 14, background: recording ? 'rgba(255,0,51,0.18)' : 'rgba(255,255,255,0.04)', border: `1px solid ${recording ? 'rgba(255,0,51,0.5)' : 'var(--line-strong)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: recording ? 'var(--ona-red)' : 'var(--text)', boxShadow: recording ? '0 0 24px -6px rgba(255,0,51,0.6)' : 'none', transition: 'all 200ms' }}>
+                <IconMic size={20} className={recording ? 'blink' : ''} />
+              </div>
+            </div>
+            {recording && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.08)', border: '1px solid rgba(255,0,51,0.25)' }}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--ona-red)', boxShadow: '0 0 8px var(--ona-red)' }} className="blink" />
+                <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)' }}>RECORDING · 0:03</span>
+                <div style={{ flex: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <div key={i} style={{ flex: 1, height: 4 + Math.abs(Math.sin(i * 0.7)) * 14, background: 'var(--ona-red)', borderRadius: 1, opacity: 0.8 }} className={i % 3 === 0 ? 'shimmer-cell' : ''} />
+                  ))}
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              {CAPTURE_TAGS.map((t) => {
+                const active = tag === t.id;
+                return (
+                  <div key={t.id} className="pressable" onClick={() => setTag(t.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 12, textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.18em', fontWeight: 700, background: active ? `${t.color}18` : 'rgba(255,255,255,0.04)', border: `1px solid ${active ? t.color + '80' : 'var(--line)'}`, color: active ? t.color : 'var(--muted)', boxShadow: active ? `0 0 18px -4px ${t.color}80` : 'none', transition: 'all 200ms' }}>{t.label}</div>
+                );
+              })}
+            </div>
+            <div className="pressable" onClick={handleCapture} style={{ height: 52, borderRadius: 14, background: `linear-gradient(135deg, ${tagColor} 0%, ${tagColor}80 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 700, fontSize: 15, letterSpacing: '0.08em', textTransform: 'uppercase', boxShadow: `0 8px 30px -8px ${tagColor}` }}>
+              <IconSend size={18} stroke={2.2} />
+              <span>Capture</span>
+            </div>
+            <div className="eyebrow" style={{ textAlign: 'center', marginTop: 12 }}>⌘K from any screen · long-press + for voice</div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+function App() {
+  const [tab, setTab] = useState('home');
+  const [capture, setCapture] = useState({ open: false, voice: false });
+  const [missionState, setMissionState] = useState({
+    readiness: TODAY.readiness,
+    energy: TODAY.energy,
+    focus: TODAY.focus,
+    body: TODAY.body,
+    mood: TODAY.mood,
+    oneThingDone: false,
+  });
+
+  let screen;
+  switch (tab) {
+    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} />; break;
+    case 'train':  screen = <TrainingHQ />; break;
+    case 'create': screen = <ContentStudio />; break;
+    case 'ona':    screen = <ONAHQ />; break;
+    case 'ai':     screen = <AIScreen />; break;
+    default:       screen = <MissionControl state={missionState} setState={setMissionState} />;
+  }
+
+  return (
+    <IOSDevice dark width={402} height={874}>
+      <div className="screen-host">
+        <div className="screen-scroll" key={tab}>
+          {screen}
+        </div>
+        <TabBar active={tab} onChange={setTab} onFab={() => setCapture({ open: true, voice: false })} onFabLong={() => setCapture({ open: true, voice: true })} />
+        <QuickCapture open={capture.open} voiceMode={capture.voice} onClose={() => setCapture({ open: false, voice: false })} />
+      </div>
+    </IOSDevice>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+
+</body>
+</html>
