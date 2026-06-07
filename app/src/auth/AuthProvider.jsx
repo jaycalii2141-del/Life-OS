@@ -34,17 +34,19 @@ export function AuthProvider({ children }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Sends a magic link to the given email; user clicks it to sign in.
-  const signIn = (email) =>
-    supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin },
-    });
+  const signInWithPassword = (email, password) =>
+    supabase.auth.signInWithPassword({ email, password });
+
+  const signUp = (email, password) =>
+    supabase.auth.signUp({ email, password });
 
   const signOut = () => supabase.auth.signOut();
 
   return (
-    <AuthContext.Provider value={{ session, loading, configured: isSupabaseConfigured, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      session, loading, configured: isSupabaseConfigured,
+      signInWithPassword, signUp, signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );

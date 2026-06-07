@@ -1,30 +1,47 @@
 // ─────────────────────────────────────────────────────────
-// Magic-link login — single screen, matches the dark HUD aesthetic.
+// Email + password login — sign in or create an account.
+// Matches the dark HUD aesthetic.
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { IOSDevice } from '../components/IOSDevice.jsx';
 import { HUDTicks } from '../components/atoms.jsx';
-import { IconSparkles, IconSend, IconCheck } from '../components/icons.jsx';
+import { IconSparkles, IconArrowRight } from '../components/icons.jsx';
 import { useAuth } from './AuthProvider.jsx';
 
 export default function LoginScreen() {
-  const { signIn } = useAuth();
+  const { signInWithPassword, signUp } = useAuth();
+  const [mode, setMode] = useState('signin'); // signin | signup
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  const isSignup = mode === 'signup';
 
   const submit = async () => {
-    const value = email.trim();
-    if (!value || status === 'sending') return;
-    setStatus('sending');
+    const e = email.trim();
+    const p = password;
+    if (!e || !p || busy) return;
+    setBusy(true);
     setError('');
-    const { error: err } = await signIn(value);
+    setNotice('');
+
+    const fn = isSignup ? signUp : signInWithPassword;
+    const { data, error: err } = await fn(e, p);
+
     if (err) {
-      setStatus('error');
       setError(err.message || 'Something went wrong. Try again.');
-    } else {
-      setStatus('sent');
+      setBusy(false);
+      return;
     }
+    // If sign-up returns a user but no session, email confirmation is still on.
+    if (isSignup && data?.user && !data?.session) {
+      setNotice('Account created. Confirm email is still ON in Supabase — turn it off, or check your inbox to confirm.');
+      setBusy(false);
+      return;
+    }
+    // Success: onAuthStateChange will swap to the app. Leave busy=true.
   };
 
   return (
@@ -50,85 +67,86 @@ export default function LoginScreen() {
             <IconSparkles size={30} color="#fff" stroke={1.8} />
           </div>
 
-          <div className="display" style={{
-            fontSize: 34, letterSpacing: '0.04em', lineHeight: 1, textAlign: 'center',
-          }}>LIFE OS</div>
-          <div className="mono" style={{
-            fontSize: 10, color: 'var(--muted)', letterSpacing: '0.2em', marginTop: 8, textAlign: 'center',
-          }}>MOVE WITH PURPOSE</div>
+          <div className="display" style={{ fontSize: 34, letterSpacing: '0.04em', lineHeight: 1, textAlign: 'center' }}>
+            LIFE OS
+          </div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.2em', marginTop: 8 }}>
+            {isSignup ? 'CREATE YOUR ACCOUNT' : 'WELCOME BACK'}
+          </div>
 
-          {status === 'sent' ? (
-            <div style={{
-              marginTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
-            }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: 999,
-                background: 'rgba(182,255,60,0.15)', border: '1px solid rgba(182,255,60,0.4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 0 40px -10px rgba(182,255,60,0.6)',
-              }}>
-                <IconCheck size={28} color="#B6FF3C" stroke={2.5} />
+          <div style={{ width: '100%', marginTop: 24 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Email</div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoFocus
+              style={inputStyle}
+            />
+
+            <div className="eyebrow" style={{ marginTop: 14, marginBottom: 8 }}>Password</div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && submit()}
+              placeholder={isSignup ? 'At least 6 characters' : 'Your password'}
+              style={inputStyle}
+            />
+
+            {error && (
+              <div className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', marginTop: 10, lineHeight: 1.4 }}>
+                {error}
               </div>
-              <div className="display" style={{ fontSize: 22, color: 'var(--lime)' }}>CHECK YOUR EMAIL</div>
-              <div style={{ fontSize: 13, color: 'var(--muted)', textAlign: 'center', lineHeight: 1.4 }}>
-                We sent a magic link to<br /><span style={{ color: 'var(--text)' }}>{email.trim()}</span>.
-                Tap it to sign in.
+            )}
+            {notice && (
+              <div className="mono" style={{ fontSize: 11, color: 'var(--gold)', marginTop: 10, lineHeight: 1.4 }}>
+                {notice}
               </div>
+            )}
+
+            <div
+              className="pressable"
+              onClick={submit}
+              style={{
+                marginTop: 16, height: 50, borderRadius: 14,
+                background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                color: '#06060A', fontWeight: 700, fontSize: 14,
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                opacity: busy ? 0.6 : 1,
+                boxShadow: '0 10px 30px -8px rgba(0,212,255,0.5)',
+              }}
+            >
+              {busy ? 'Working…' : (isSignup ? 'Create Account' : 'Sign In')}
+              {!busy && <IconArrowRight size={17} stroke={2.2} />}
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <span className="mono" style={{ fontSize: 11, color: 'var(--muted)' }}>
+                {isSignup ? 'Already have an account? ' : 'New here? '}
+              </span>
               <span
                 className="pressable mono"
-                onClick={() => setStatus('idle')}
-                style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.14em', marginTop: 4 }}
-              >USE A DIFFERENT EMAIL</span>
-            </div>
-          ) : (
-            <div style={{ width: '100%', marginTop: 28 }}>
-              <div className="eyebrow" style={{ marginBottom: 8 }}>Your email</div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && submit()}
-                placeholder="you@example.com"
-                autoFocus
-                style={{
-                  width: '100%', background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(0,212,255,0.35)', borderRadius: 14,
-                  padding: '13px 14px', color: 'var(--text)', fontSize: 16,
-                  fontFamily: 'var(--font-body)', outline: 'none',
-                  boxShadow: '0 0 30px -10px rgba(0,212,255,0.4)',
-                }}
-              />
-
-              {status === 'error' && (
-                <div className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', marginTop: 8 }}>
-                  {error}
-                </div>
-              )}
-
-              <div
-                className="pressable"
-                onClick={submit}
-                style={{
-                  marginTop: 14, height: 50, borderRadius: 14,
-                  background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  color: '#06060A', fontWeight: 700, fontSize: 14,
-                  letterSpacing: '0.1em', textTransform: 'uppercase',
-                  opacity: status === 'sending' ? 0.6 : 1,
-                  boxShadow: '0 10px 30px -8px rgba(0,212,255,0.5)',
-                }}
+                onClick={() => { setMode(isSignup ? 'signin' : 'signup'); setError(''); setNotice(''); }}
+                style={{ fontSize: 11, color: 'var(--cyan)', letterSpacing: '0.08em' }}
               >
-                <IconSend size={17} stroke={2.2} />
-                {status === 'sending' ? 'Sending…' : 'Send Magic Link'}
-              </div>
-
-              <div className="eyebrow" style={{ textAlign: 'center', marginTop: 14, color: 'var(--dim)' }}>
-                No password. We email you a one-tap sign-in link.
-              </div>
+                {isSignup ? 'SIGN IN' : 'CREATE ONE'}
+              </span>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </IOSDevice>
   );
 }
+
+const inputStyle = {
+  width: '100%', background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(0,212,255,0.35)', borderRadius: 14,
+  padding: '13px 14px', color: 'var(--text)', fontSize: 16,
+  fontFamily: 'var(--font-body)', outline: 'none',
+  boxShadow: '0 0 30px -10px rgba(0,212,255,0.4)',
+  boxSizing: 'border-box',
+};
