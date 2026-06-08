@@ -618,13 +618,18 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
 // Folders / Spaces — one per brand or life area
 // ─────────────────────────────────────────────────────────
 const FOLDER_COLORS = ['#FF0033', '#FFD23C', '#B6FF3C', '#00D4FF', '#FF3CC8', '#FF8A3C', '#B14CFF'];
+const FOLDER_EMOJIS = ['🥷', '💪', '🤸', '🏆', '🎬', '🎥', '📱', '📈', '🔥', '⚡', '🎯', '❤️', '🏋️', '🧗', '🌀', '✨', '💡', '📁'];
 const SEED_FOLDERS = [
-  { id: 1, name: 'ONA', color: '#FF0033', notes: [], projects: [] },
-  { id: 2, name: 'Podium', color: '#FFD23C', notes: [], projects: [] },
-  { id: 3, name: 'Movement', color: '#B6FF3C', notes: [], projects: [] },
-  { id: 4, name: '@jayy_martinez', color: '#00D4FF', notes: [], projects: [] },
-  { id: 5, name: 'Wife & I', color: '#FF3CC8', notes: [], projects: [] },
+  { id: 1, name: 'ONA', color: '#FF0033', emoji: '🥷', pinned: true, notes: [], projects: [] },
+  { id: 2, name: 'Podium', color: '#FFD23C', emoji: '🏆', pinned: false, notes: [], projects: [] },
+  { id: 3, name: 'Movement', color: '#B6FF3C', emoji: '🤸', pinned: false, notes: [], projects: [] },
+  { id: 4, name: '@jayy_martinez', color: '#00D4FF', emoji: '📱', pinned: false, notes: [], projects: [] },
+  { id: 5, name: 'Wife & I', color: '#FF3CC8', emoji: '❤️', pinned: false, notes: [], projects: [] },
 ];
+
+function getCaptures() {
+  try { return JSON.parse(localStorage.getItem('lifeos:captures') || '[]'); } catch { return []; }
+}
 
 function NoteCard({ note, onUpdate, onDelete }) {
   const [open, setOpen] = useState(false);
@@ -649,14 +654,16 @@ function NoteCard({ note, onUpdate, onDelete }) {
 }
 
 function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
-  const [addingNote, setAddingNote] = useState(false);
+  const [showCaptures, setShowCaptures] = useState(false);
   if (!folder) return null;
   const notes = folder.notes || [];
   const projects = folder.projects || [];
+  const captures = getCaptures();
 
   const addNote = () => onUpdate({ notes: [{ id: Date.now(), title: '', body: '' }, ...notes] });
   const updNote = (id, patch) => onUpdate({ notes: notes.map((n) => (n.id === id ? { ...n, ...patch } : n)) });
   const delNote = (id) => onUpdate({ notes: notes.filter((n) => n.id !== id) });
+  const importCapture = (c) => { onUpdate({ notes: [{ id: Date.now(), title: c.text, body: '' }, ...notes] }); setShowCaptures(false); };
 
   const addProj = (p) => onUpdate({ projects: [p, ...projects] });
   const updProj = (id, patch) => onUpdate({ projects: projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
@@ -670,15 +677,15 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-            <span style={{ width: 12, height: 12, borderRadius: 999, background: folder.color, boxShadow: `0 0 10px ${folder.color}`, flexShrink: 0 }} />
+            <span style={{ fontSize: 26, flexShrink: 0, lineHeight: 1 }}>{folder.emoji || '📁'}</span>
             <input value={folder.name} onChange={(e) => onUpdate({ name: e.target.value })}
-              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: 26, letterSpacing: '0.02em' }} />
+              style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: 26, letterSpacing: '0.02em' }} />
           </div>
           <div className="pressable" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', color: 'var(--muted)', flexShrink: 0 }}><IconClose size={16} /></div>
         </div>
 
-        {/* color picker */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+        {/* color + emoji + pin */}
+        <div style={{ display: 'flex', gap: 7, marginBottom: 10, flexWrap: 'wrap' }}>
           {FOLDER_COLORS.map((c) => (
             <div key={c} className="pressable" onClick={() => onUpdate({ color: c })} style={{
               width: 24, height: 24, borderRadius: 999, background: c,
@@ -686,12 +693,48 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
             }} />
           ))}
         </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+          {FOLDER_EMOJIS.map((e) => (
+            <div key={e} className="pressable" onClick={() => onUpdate({ emoji: e })} style={{
+              width: 30, height: 30, borderRadius: 8, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: folder.emoji === e ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${folder.emoji === e ? 'var(--cyan)' : 'var(--line)'}`,
+            }}>{e}</div>
+          ))}
+        </div>
+        <div className="pressable" onClick={() => onUpdate({ pinned: !folder.pinned })} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, marginBottom: 18,
+          background: folder.pinned ? 'rgba(255,210,60,0.14)' : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${folder.pinned ? 'rgba(255,210,60,0.5)' : 'var(--line)'}`,
+          color: folder.pinned ? 'var(--gold)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', fontWeight: 700,
+        }}>{folder.pinned ? '★ PINNED' : '☆ PIN TO TOP'}</div>
 
         {/* Notes */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 10 }}>
           <div className="section-title" style={{ fontSize: 18 }}>NOTES</div>
-          <div className="pressable" onClick={() => { addNote(); }} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}><IconPlus size={16} /></div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {captures.length > 0 && (
+              <div className="pressable mono" onClick={() => setShowCaptures((s) => !s)} style={{ display: 'flex', alignItems: 'center', padding: '0 10px', height: 30, borderRadius: 9, background: showCaptures ? 'rgba(255,255,255,0.06)' : 'rgba(177,76,255,0.14)', border: `1px solid ${showCaptures ? 'var(--line-strong)' : 'rgba(177,76,255,0.4)'}`, color: showCaptures ? 'var(--muted)' : 'var(--violet)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>CAPTURES</div>
+            )}
+            <div className="pressable" onClick={addNote} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}><IconPlus size={16} /></div>
+          </div>
         </div>
+
+        {showCaptures && (
+          <div style={{ marginBottom: 12, padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
+            <div className="eyebrow" style={{ marginBottom: 8, color: 'var(--violet)' }}>Tap a capture to pull it in as a note</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
+              {captures.slice(0, 20).map((c) => (
+                <div key={c.id} className="pressable" onClick={() => importCapture(c)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 999, background: c.color || '#00D4FF', flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: 13, color: 'var(--text)', lineHeight: 1.3 }}>{c.text}</span>
+                  <IconPlus size={14} color="var(--cyan)" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
           {notes.length === 0 && <div className="eyebrow" style={{ color: 'var(--dim)' }}>No notes yet — tap + to jot something down.</div>}
           {notes.map((n) => (
@@ -718,9 +761,11 @@ function FoldersSection({ folders, onAdd, onOpen }) {
   const [name, setName] = useState('');
   const submit = () => {
     if (!name.trim()) return;
-    onAdd({ id: Date.now(), name: name.trim(), color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length], notes: [], projects: [] });
+    onAdd({ id: Date.now(), name: name.trim(), color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length], emoji: '📁', pinned: false, notes: [], projects: [] });
     setName(''); setAdding(false);
   };
+
+  const ordered = [...folders].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
 
   return (
     <div>
@@ -736,18 +781,21 @@ function FoldersSection({ folders, onAdd, onOpen }) {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-        {folders.map((f) => {
+        {ordered.map((f) => {
           const noteN = (f.notes || []).length;
           const projN = (f.projects || []).length;
           return (
             <div key={f.id} className="pressable hud" onClick={() => onOpen(f.id)} style={{
-              position: 'relative', padding: 14, borderRadius: 16, minHeight: 92,
+              position: 'relative', padding: 14, borderRadius: 16, minHeight: 96,
               background: `linear-gradient(135deg, ${f.color}14, rgba(11,11,18,0.5))`,
               border: `1px solid ${f.color}50`, boxShadow: `0 10px 30px -16px ${f.color}`,
               display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
             }}>
               <HUDTicks />
-              <span style={{ width: 10, height: 10, borderRadius: 999, background: f.color, boxShadow: `0 0 10px ${f.color}` }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{f.emoji || '📁'}</span>
+                {f.pinned && <span style={{ color: 'var(--gold)', fontSize: 12 }}>★</span>}
+              </div>
               <div>
                 <div className="display" style={{ fontSize: 19, color: 'var(--text)', letterSpacing: '0.02em', lineHeight: 1, textWrap: 'balance' }}>{f.name}</div>
                 <div className="mono" style={{ fontSize: 8, color: 'var(--muted)', marginTop: 6, letterSpacing: '0.12em' }}>{noteN} NOTES · {projN} PROJECTS</div>
