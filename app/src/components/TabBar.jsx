@@ -50,7 +50,7 @@ function TabBar({ active, onChange, onFab, onFabLong }) {
       {/* bar */}
       <div style={{
         position: 'absolute',
-        left: 12, right: 12, bottom: 28,
+        left: 12, right: 12, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
         height: 60,
         background: 'rgba(11, 11, 18, 0.78)',
         backdropFilter: 'blur(28px) saturate(180%)',
@@ -117,7 +117,7 @@ function TabBar({ active, onChange, onFab, onFabLong }) {
         onTouchEnd={fabUp}
         style={{
           position: 'absolute',
-          right: 18, bottom: 100,
+          right: 18, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
           width: 54, height: 54,
           borderRadius: 18,
           background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)',

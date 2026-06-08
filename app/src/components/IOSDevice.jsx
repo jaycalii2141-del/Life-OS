@@ -1,4 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+// True when running on an actual phone or as an installed PWA — in that case
+// we drop the fake iPhone bezel/status bar and use the real device chrome.
+function useIsPhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const check = () =>
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      window.matchMedia('(max-width: 540px)').matches;
+    setPhone(check());
+    const mq = window.matchMedia('(max-width: 540px)');
+    const onChange = () => setPhone(check());
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, []);
+  return phone;
+}
+
+function liveTime() {
+  const d = new Date();
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  h = h % 12 || 12;
+  return `${h}:${m}`;
+}
 
 /* BEGIN USAGE */
 // iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
@@ -17,8 +43,14 @@ import React from 'react';
 // ─────────────────────────────────────────────────────────────
 // Status bar
 // ─────────────────────────────────────────────────────────────
-function IOSStatusBar({ dark = false, time = '9:41' }) {
+function IOSStatusBar({ dark = false, time }) {
   const c = dark ? '#fff' : '#000';
+  const [now, setNow] = useState(liveTime());
+  useEffect(() => {
+    const id = setInterval(() => setNow(liveTime()), 15000);
+    return () => clearInterval(id);
+  }, []);
+  const shown = time || now;
   return (
     <div style={{
       display: 'flex', gap: 154, alignItems: 'center', justifyContent: 'center',
@@ -29,7 +61,7 @@ function IOSStatusBar({ dark = false, time = '9:41' }) {
         <span style={{
           fontFamily: '-apple-system, "SF Pro", system-ui', fontWeight: 590,
           fontSize: 17, lineHeight: '22px', color: c,
-        }}>{time}</span>
+        }}>{shown}</span>
       </div>
       <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, paddingTop: 1, paddingRight: 1 }}>
         <svg width="19" height="12" viewBox="0 0 19 12">
@@ -202,6 +234,29 @@ function IOSDevice({
   children, width = 402, height = 874, dark = false,
   title, keyboard = false,
 }) {
+  const isPhone = useIsPhone();
+
+  // On a real phone / installed PWA: full-screen, no fake bezel or status bar.
+  // The device's real status bar (with the real time) shows through.
+  if (isPhone) {
+    return (
+      <div
+        className="ios-fullbleed"
+        style={{
+          position: 'relative',
+          width: '100vw',
+          height: '100dvh',
+          overflow: 'hidden',
+          background: dark ? '#06060A' : '#F2F2F7',
+          fontFamily: '-apple-system, system-ui, sans-serif',
+          WebkitFontSmoothing: 'antialiased',
+        }}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div style={{
       width, height, borderRadius: 48, overflow: 'hidden',
