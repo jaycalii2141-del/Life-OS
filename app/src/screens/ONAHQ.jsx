@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { HUDTicks, TickCounter, Pill, ProgressBar } from '../components/atoms.jsx';
-import { IconWarn, IconPlus, IconClose, IconCheck } from '../components/icons.jsx';
+import { IconWarn, IconPlus, IconClose, IconCheck, IconActivity } from '../components/icons.jsx';
 import { ONA_STATS, SALES_STAGES, COACHES, BENCH, INITIATIVES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 
@@ -300,6 +300,56 @@ function InitiativeList({ items, onAdd, onUpdate, onDelete }) {
 // ─────────────────────────────────────────────────────────
 // ONA HQ screen
 // ─────────────────────────────────────────────────────────
+// Live GymDesk metrics (fed via Zapier webhook). Hidden until data arrives.
+const LIVE_FIELDS = [
+  { k: 'members', label: 'Members', color: 'var(--text)' },
+  { k: 'active_members', label: 'Active', color: 'var(--lime)' },
+  { k: 'mrr', label: 'MRR', prefix: '$', color: 'var(--lime)' },
+  { k: 'visits_today', label: 'Today', color: 'var(--cyan)' },
+  { k: 'attendance_week', label: 'Visits/wk', color: 'var(--cyan)' },
+  { k: 'new_members_month', label: 'New (mo)', color: 'var(--gold)' },
+  { k: 'churn_month', label: 'Churn (mo)', color: 'var(--ona-red)' },
+  { k: 'nps', label: 'NPS', color: 'var(--violet)' },
+];
+
+function relTime(iso) {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.round(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h / 24)}d ago`;
+}
+
+function LiveOnaCard({ live }) {
+  if (!live) return null;
+  const present = LIVE_FIELDS.filter((f) => live[f.k] != null && live[f.k] !== '');
+  if (!present.length) return null;
+  const fmt = (v, f) => `${f.prefix || ''}${typeof v === 'number' ? v.toLocaleString() : v}`;
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(182,255,60,0.25)', position: 'relative' }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--lime)', boxShadow: '0 0 8px var(--lime)' }} className="blink" />
+          <span className="eyebrow" style={{ color: 'var(--lime)' }}>Live · GymDesk</span>
+        </div>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.08em' }}>{relTime(live.updated_at)}</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        {present.map((f) => (
+          <div key={f.k} style={{ textAlign: 'center' }}>
+            <div className="display" style={{ fontSize: 19, color: f.color, lineHeight: 1.1 }}>{fmt(live[f.k], f)}</div>
+            <div className="eyebrow" style={{ marginTop: 3, fontSize: 8 }}>{f.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ONAHQ() {
   const [ona, setOna] = useSyncedState('lifeos:ona', {
     stats: { members: ONA_STATS.members, mrr: ONA_STATS.mrr, nps: ONA_STATS.nps },
@@ -307,6 +357,9 @@ function ONAHQ() {
     sales: SALES_STAGES,
     coaches: COACHES,
   });
+
+  // Live stats pushed in from GymDesk via Zapier → /api/ona-webhook.
+  const [live] = useSyncedState('lifeos:ona:live', null);
 
   const stats = ona.stats ?? ONA_STATS;
   const initiatives = ona.initiatives ?? INITIATIVES;
@@ -339,6 +392,8 @@ function ONAHQ() {
           <ONAStat label="NPS" value={stats.nps} color="var(--cyan)" trend="tap to edit" onChange={(v) => setStat('nps', v)} />
         </div>
       </div>
+
+      <LiveOnaCard live={live} />
 
       <SalesPipeline stages={sales} onUpdate={updateSale} />
       <CoachRoster coaches={coaches} onAdd={addCoach} onUpdate={updateCoach} onDelete={deleteCoach} />

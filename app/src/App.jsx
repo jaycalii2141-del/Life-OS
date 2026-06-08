@@ -2,18 +2,22 @@
 // LIFE OS — App shell
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture, AI sheet.
 // ─────────────────────────────────────────────────────────
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
+// Home is the default tab → load it eagerly for an instant first paint.
 import { MissionControl } from './screens/MissionControl.jsx';
-import { TrainingHQ } from './screens/TrainingHQ.jsx';
-import { ContentStudio } from './screens/ContentStudio.jsx';
-import { ONAHQ } from './screens/ONAHQ.jsx';
-import { AIScreen } from './screens/AIScreen.jsx';
-import { MindScreen } from './screens/MindScreen.jsx';
-import { WeeklyReview } from './WeeklyReview.jsx';
-import { MonthlyUpgrade } from './MonthlyUpgrade.jsx';
+// Everything else is split into its own chunk, loaded on demand.
+const TrainingHQ = lazy(() => import('./screens/TrainingHQ.jsx').then((m) => ({ default: m.TrainingHQ })));
+const ContentStudio = lazy(() => import('./screens/ContentStudio.jsx').then((m) => ({ default: m.ContentStudio })));
+const ONAHQ = lazy(() => import('./screens/ONAHQ.jsx').then((m) => ({ default: m.ONAHQ })));
+const AIScreen = lazy(() => import('./screens/AIScreen.jsx').then((m) => ({ default: m.AIScreen })));
+const MindScreen = lazy(() => import('./screens/MindScreen.jsx').then((m) => ({ default: m.MindScreen })));
+const WeeklyReview = lazy(() => import('./WeeklyReview.jsx').then((m) => ({ default: m.WeeklyReview })));
+const MonthlyUpgrade = lazy(() => import('./MonthlyUpgrade.jsx').then((m) => ({ default: m.MonthlyUpgrade })));
+const Settings = lazy(() => import('./Settings.jsx').then((m) => ({ default: m.Settings })));
+const CalendarSheet = lazy(() => import('./CalendarSheet.jsx').then((m) => ({ default: m.CalendarSheet })));
 import { logEvent } from './lib/telemetry.js';
 import { TODAY, TIMELINE } from './data.js';
 import { todayKey } from './usePersistentState.js';
@@ -21,8 +25,6 @@ import { useSyncedState } from './useSyncedState.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
-import { Settings } from './Settings.jsx';
-import { CalendarSheet } from './CalendarSheet.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -134,7 +136,9 @@ function MainApp() {
       <div className="screen-host">
         <SyncBadge />
         <div className="screen-scroll" key={screenKey}>
-          {screen}
+          <Suspense fallback={<ScreenLoading />}>
+            {screen}
+          </Suspense>
         </div>
 
         <TabBar
@@ -151,30 +155,42 @@ function MainApp() {
           onClose={() => setCapture({ open: false, voice: false })}
         />
 
-        <Settings
-          open={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-          icalUrl={settings.icalUrl}
-          onSetIcal={(url) => setSettings((s) => ({ ...s, icalUrl: url }))}
-        />
-
-        <CalendarSheet
-          open={calendarOpen}
-          onClose={() => setCalendarOpen(false)}
-          icalUrl={settings.icalUrl}
-        />
-
-        <WeeklyReview
-          open={reviewOpen}
-          onClose={() => setReviewOpen(false)}
-        />
-
-        <MonthlyUpgrade
-          open={upgradeOpen}
-          onClose={() => setUpgradeOpen(false)}
-        />
+        {/* Modals mount only when opened, so their code loads on first use. */}
+        <Suspense fallback={null}>
+          {settingsOpen && (
+            <Settings
+              open={settingsOpen}
+              onClose={() => setSettingsOpen(false)}
+              icalUrl={settings.icalUrl}
+              onSetIcal={(url) => setSettings((s) => ({ ...s, icalUrl: url }))}
+            />
+          )}
+          {calendarOpen && (
+            <CalendarSheet open={calendarOpen} onClose={() => setCalendarOpen(false)} icalUrl={settings.icalUrl} />
+          )}
+          {reviewOpen && (
+            <WeeklyReview open={reviewOpen} onClose={() => setReviewOpen(false)} />
+          )}
+          {upgradeOpen && (
+            <MonthlyUpgrade open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
+          )}
+        </Suspense>
       </div>
     </IOSDevice>
+  );
+}
+
+// Minimal, on-brand fallback while a screen chunk loads.
+function ScreenLoading() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="orb-spin" style={{
+        width: 40, height: 40, borderRadius: '50%',
+        background: 'conic-gradient(from 0deg, #00D4FF, #B14CFF, #00D4FF)',
+        WebkitMask: 'radial-gradient(circle, transparent 58%, #000 60%)',
+        mask: 'radial-gradient(circle, transparent 58%, #000 60%)',
+      }} />
+    </div>
   );
 }
 
