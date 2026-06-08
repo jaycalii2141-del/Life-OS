@@ -399,7 +399,7 @@ function MomentumStrip({ momentum = MOMENTUM, streak = 0 }) {
 // ─────────────────────────────────────────────────────────
 // Today's Timeline — add / delete blocks
 // ─────────────────────────────────────────────────────────
-function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete }) {
+function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete, onOpenCalendar }) {
   const [adding, setAdding] = useState(false);
   const [time, setTime] = useState('');
   const [label, setLabel] = useState('');
@@ -436,18 +436,33 @@ function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete }) {
             {combined.length} BLOCKS
           </div>
         </div>
-        <div
-          className="pressable"
-          onClick={() => setAdding((a) => !a)}
-          style={{
-            width: 30, height: 30, borderRadius: 9,
-            background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)',
-            border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: adding ? 'var(--muted)' : 'var(--cyan)',
-          }}
-        >
-          {adding ? <IconClose size={15} /> : <IconPlus size={16} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {onOpenCalendar && (
+            <div
+              className="pressable"
+              onClick={onOpenCalendar}
+              style={{
+                width: 30, height: 30, borderRadius: 9,
+                background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)',
+              }}
+            >
+              <IconCalendar size={16} />
+            </div>
+          )}
+          <div
+            className="pressable"
+            onClick={() => setAdding((a) => !a)}
+            style={{
+              width: 30, height: 30, borderRadius: 9,
+              background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)',
+              border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: adding ? 'var(--muted)' : 'var(--cyan)',
+            }}
+          >
+            {adding ? <IconClose size={15} /> : <IconPlus size={16} />}
+          </div>
         </div>
       </div>
 
@@ -566,7 +581,7 @@ function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete }) {
 // ─────────────────────────────────────────────────────────
 // Mission Control screen
 // ─────────────────────────────────────────────────────────
-function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onOpenSettings }) {
+function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onOpenSettings, onOpenCalendar }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
   const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
@@ -618,7 +633,7 @@ function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onO
       />
       <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
       <MomentumStrip momentum={momentum} streak={streak} />
-      <TodayTimeline events={events} calendarEvents={calendarEvents} onAdd={addEvent} onDelete={deleteEvent} />
+      <TodayTimeline events={events} calendarEvents={calendarEvents} onAdd={addEvent} onDelete={deleteEvent} onOpenCalendar={onOpenCalendar} />
     </div>
   );
 }

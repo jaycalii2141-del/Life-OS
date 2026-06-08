@@ -109,10 +109,10 @@ function occursOn(start, rule, exSet, todayUTC, startUTC) {
   return diffDays === 0;
 }
 
-function buildToday(text, todayStr, tz) {
+function buildEvents(text, startStr, days, tz) {
   const events = parseEvents(text);
-  const [ty, tmo, td] = todayStr.split('-').map(Number);
-  const todayUTC = Date.UTC(ty, tmo - 1, td);
+  const [sy, smo, sd] = startStr.split('-').map(Number);
+  const startMidnightUTC = Date.UTC(sy, smo - 1, sd);
   const out = [];
 
   for (const ev of events) {
@@ -122,38 +122,46 @@ function buildToday(text, todayStr, tz) {
     const rule = ev.RRULE ? parseRRule(ev.RRULE.val) : null;
     const exSet = new Set(ev._ex.map((e) => e.replace(/[^0-9]/g, '').slice(0, 8)));
 
-    // Determine the event's display date/time.
-    let displayDate, displayTime;
+    // Base display date/time of the (first) occurrence.
+    let baseDate, displayTime;
     if (start.allDay) {
-      displayDate = `${start.y}-${pad(start.mo)}-${pad(start.d)}`;
+      baseDate = `${start.y}-${pad(start.mo)}-${pad(start.d)}`;
       displayTime = 'all-day';
     } else if (start.utc) {
       const u = toUserTz(start.y, start.mo, start.d, start.hh, start.mm, tz);
-      displayDate = u.date;
+      baseDate = u.date;
       displayTime = u.time;
     } else {
-      displayDate = `${start.y}-${pad(start.mo)}-${pad(start.d)}`;
+      baseDate = `${start.y}-${pad(start.mo)}-${pad(start.d)}`;
       displayTime = `${pad(start.hh)}:${pad(start.mm)}`;
     }
+    const baseUTC = Date.UTC(...baseDate.split('-').map((n, i) => (i === 1 ? +n - 1 : +n)));
 
-    const startUTC = Date.UTC(...displayDate.split('-').map((n, i) => (i === 1 ? +n - 1 : +n)));
-    if (exSet.has(todayStr.replace(/-/g, ''))) continue;
-    if (!occursOn(start, rule, exSet, todayUTC, startUTC)) continue;
-
-    out.push({ time: displayTime, label: summary, allDay: start.allDay });
+    // Check each day in the range for an occurrence.
+    for (let i = 0; i < days; i++) {
+      const dUTC = startMidnightUTC + i * 86400000;
+      const dObj = new Date(dUTC);
+      const dStr = `${dObj.getUTCFullYear()}-${pad(dObj.getUTCMonth() + 1)}-${pad(dObj.getUTCDate())}`;
+      if (exSet.has(dStr.replace(/-/g, ''))) continue;
+      if (occursOn(start, rule, exSet, dUTC, baseUTC)) {
+        out.push({ date: dStr, time: displayTime, label: summary, allDay: start.allDay });
+      }
+    }
   }
 
   out.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
     if (a.allDay && !b.allDay) return -1;
     if (!a.allDay && b.allDay) return 1;
     return a.time.localeCompare(b.time);
   });
-  return out.slice(0, 40);
+  return out.slice(0, 200);
 }
 
 export default async function handler(req, res) {
-  const { url, tz = 'UTC', date } = req.query;
+  const { url, tz = 'UTC', date, days = '1' } = req.query;
   if (!url || !date) { res.status(400).json({ error: 'Missing url or date' }); return; }
+  const nDays = Math.max(1, Math.min(31, parseInt(days, 10) || 1));
 
   let parsed;
   try { parsed = new URL(url); } catch { res.status(400).json({ error: 'Bad url' }); return; }
@@ -166,7 +174,7 @@ export default async function handler(req, res) {
     const r = await fetch(url);
     if (!r.ok) { res.status(502).json({ error: 'Could not read calendar (check the link)' }); return; }
     const text = await r.text();
-    res.status(200).json({ events: buildToday(text, date, tz) });
+    res.status(200).json({ events: buildEvents(text, date, nDays, tz) });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

@@ -18,6 +18,7 @@ import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
 import { Settings } from './Settings.jsx';
+import { CalendarSheet } from './CalendarSheet.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -71,6 +72,7 @@ function MainApp() {
   const [tab, setTab] = useState('home');
   const [capture, setCapture] = useState({ open: false, voice: false });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Mission Control state — per-day, synced to the cloud when signed in.
   // Each new day starts fresh: blank One Thing, neutral meters to re-assess,
@@ -108,12 +110,12 @@ function MainApp() {
 
   let screen;
   switch (tab) {
-    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} />; break;
+    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} />; break;
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
     case 'ai':     screen = <AIScreen captures={captures} />; break;
-    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} />;
+    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} />;
   }
 
   return (
@@ -143,6 +145,12 @@ function MainApp() {
           onClose={() => setSettingsOpen(false)}
           icalUrl={settings.icalUrl}
           onSetIcal={(url) => setSettings((s) => ({ ...s, icalUrl: url }))}
+        />
+
+        <CalendarSheet
+          open={calendarOpen}
+          onClose={() => setCalendarOpen(false)}
+          icalUrl={settings.icalUrl}
         />
       </div>
     </IOSDevice>
