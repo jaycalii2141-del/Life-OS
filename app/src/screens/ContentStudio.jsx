@@ -279,50 +279,63 @@ const hkInp = {
   fontFamily: 'var(--font-body)', boxSizing: 'border-box',
 };
 
-// 7-day calendar strip (display only)
-function PostingCalendar() {
-  const days = [
-    { d: 'WED', n: 27, posts: [{ c: '#FF0033' }, { c: '#B6FF3C' }], today: true },
-    { d: 'THU', n: 28, posts: [{ c: '#0055FF' }] },
-    { d: 'FRI', n: 29, posts: [{ c: '#FF8A3C' }, { c: '#FF0033' }] },
-    { d: 'SAT', n: 30, posts: [] },
-    { d: 'SUN', n: 31, posts: [{ c: '#B14CFF' }] },
-    { d: 'MON', n: 1, posts: [{ c: '#FF0033' }, { c: '#0055FF' }, { c: '#B6FF3C' }] },
-    { d: 'TUE', n: 2, posts: [{ c: '#FF3CC8' }] },
-  ];
+// 7-day calendar strip — real current week, tap a day to schedule posts
+const POST_PALETTE = ['#FF0033', '#0055FF', '#B6FF3C', '#FF8A3C', '#B14CFF', '#FF3CC8'];
+
+function ckey(d) {
+  const p = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+function weekDays() {
+  const names = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const base = new Date();
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    out.push({ key: ckey(d), d: names[d.getDay()], n: d.getDate(), today: i === 0 });
+  }
+  return out;
+}
+
+function PostingCalendar({ calendar = {}, onCycle }) {
+  const days = weekDays();
+  const total = days.reduce((s, day) => s + (calendar[day.key] || 0), 0);
 
   return (
     <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
-          <div className="eyebrow">7-day calendar</div>
+          <div className="eyebrow">This week · tap a day</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>POSTING</div>
         </div>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>
-          {days.reduce((s, d) => s + d.posts.length, 0)} SCHEDULED
-        </span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{total} SCHEDULED</span>
       </div>
 
       <div style={{ display: 'flex', gap: 4 }}>
-        {days.map((day, i) => (
-          <div key={i} className="pressable" style={{
-            flex: 1, minHeight: 88, borderRadius: 10, padding: '8px 4px',
-            background: day.today ? 'rgba(0, 212, 255, 0.08)' : 'rgba(255,255,255,0.03)',
-            border: `1px solid ${day.today ? 'rgba(0, 212, 255, 0.5)' : 'var(--line)'}`,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-            boxShadow: day.today ? '0 0 18px -6px rgba(0,212,255,0.6)' : 'none',
-          }}>
-            <span className="mono" style={{ fontSize: 8, letterSpacing: '0.12em', color: day.today ? 'var(--cyan)' : 'var(--dim)', fontWeight: 700 }}>{day.d}</span>
-            <span className="display" style={{ fontSize: 18, color: day.today ? 'var(--cyan)' : 'var(--text)', lineHeight: 1 }}>{day.n}</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center', marginTop: 'auto' }}>
-              {day.posts.map((p, j) => (
-                <div key={j} style={{ width: 16, height: 3, borderRadius: 999, background: p.c, boxShadow: `0 0 4px ${p.c}` }} />
-              ))}
-              {day.posts.length === 0 && <span className="mono" style={{ fontSize: 8, color: 'var(--dim)' }}>—</span>}
+        {days.map((day) => {
+          const posts = calendar[day.key] || 0;
+          return (
+            <div key={day.key} className="pressable" onClick={() => onCycle(day.key)} style={{
+              flex: 1, minHeight: 88, borderRadius: 10, padding: '8px 4px',
+              background: day.today ? 'rgba(0, 212, 255, 0.08)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${day.today ? 'rgba(0, 212, 255, 0.5)' : 'var(--line)'}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+              boxShadow: day.today ? '0 0 18px -6px rgba(0,212,255,0.6)' : 'none',
+            }}>
+              <span className="mono" style={{ fontSize: 8, letterSpacing: '0.12em', color: day.today ? 'var(--cyan)' : 'var(--dim)', fontWeight: 700 }}>{day.d}</span>
+              <span className="display" style={{ fontSize: 18, color: day.today ? 'var(--cyan)' : 'var(--text)', lineHeight: 1 }}>{day.n}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center', marginTop: 'auto' }}>
+                {Array.from({ length: posts }).map((_, j) => {
+                  const c = POST_PALETTE[j % POST_PALETTE.length];
+                  return <div key={j} style={{ width: 16, height: 3, borderRadius: 999, background: c, boxShadow: `0 0 4px ${c}` }} />;
+                })}
+                {posts === 0 && <span className="mono" style={{ fontSize: 8, color: 'var(--dim)' }}>—</span>}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -340,6 +353,7 @@ function ContentStudio() {
 
   const brands = content.brands ?? BRANDS;
   const hooks = content.hooks ?? [];
+  const calendar = content.calendar ?? {};
 
   const updateBrand = (id, patch) =>
     setContent((c) => ({ ...c, brands: (c.brands ?? BRANDS).map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
@@ -347,6 +361,11 @@ function ContentStudio() {
   const updateHook = (id, patch) =>
     setContent((c) => ({ ...c, hooks: (c.hooks ?? []).map((h) => (h.id === id ? { ...h, ...patch } : h)) }));
   const deleteHook = (id) => setContent((c) => ({ ...c, hooks: (c.hooks ?? []).filter((h) => h.id !== id) }));
+  const cycleDay = (key) =>
+    setContent((c) => {
+      const cur = (c.calendar?.[key]) || 0;
+      return { ...c, calendar: { ...(c.calendar || {}), [key]: (cur + 1) % 5 } };
+    });
 
   const selectedBrand = brands.find((b) => b.id === selected);
 
@@ -380,7 +399,7 @@ function ContentStudio() {
 
       <PipelineStrip />
       <HookBank hooks={hooks} onAdd={addHook} onUpdate={updateHook} onDelete={deleteHook} />
-      <PostingCalendar />
+      <PostingCalendar calendar={calendar} onCycle={cycleDay} />
     </div>
   );
 }

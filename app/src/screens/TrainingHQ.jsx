@@ -11,8 +11,17 @@ const BASE_SESSIONS = 38;
 // SCREEN 2 — Training HQ
 // ─────────────────────────────────────────────────────────
 
+function Stepper({ children, onClick }) {
+  return (
+    <div className="pressable" onClick={onClick} style={{
+      width: 26, height: 26, borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontSize: 16, fontWeight: 700,
+    }}>{children}</div>
+  );
+}
+
 // Body radar chart (6 axes, current vs goal)
-function BodyRadar({ size = 260 }) {
+function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
   const cx = size / 2;
   const cy = size / 2;
   const max = 100;
@@ -34,7 +43,7 @@ function BodyRadar({ size = 260 }) {
     return () => clearTimeout(t);
   }, []);
 
-  const currentPts = drawn ? polyPoints(RADAR_CURRENT) : polyPoints(RADAR_CURRENT.map(() => 0));
+  const currentPts = drawn ? polyPoints(values) : polyPoints(values.map(() => 0));
   const goalPts = drawn ? polyPoints(RADAR_GOAL) : polyPoints(RADAR_GOAL.map(() => 0));
 
   const rings = [0.25, 0.5, 0.75, 1];
@@ -106,7 +115,7 @@ function BodyRadar({ size = 260 }) {
         />
 
         {/* current points (dots) */}
-        {RADAR_CURRENT.map((v, i) => {
+        {values.map((v, i) => {
           const [x, y] = drawn ? pointAt(i, v) : pointAt(i, 0);
           return (
             <circle
@@ -142,7 +151,7 @@ function BodyRadar({ size = 260 }) {
           }}>
             <div style={{ textAlign: 'center' }}>{label}</div>
             <div style={{ color: 'var(--cyan)', fontWeight: 700, fontSize: 10, marginTop: 1 }}>
-              {RADAR_CURRENT[i]}
+              {values[i]}
             </div>
           </div>
         );
@@ -158,7 +167,7 @@ function BodyRadar({ size = 260 }) {
       }}>
         <div className="eyebrow" style={{ color: 'var(--dim)' }}>OVERALL</div>
         <div className="display" style={{ fontSize: 28, color: 'var(--cyan)', lineHeight: 1 }}>
-          <TickCounter value={74} />
+          <TickCounter value={Math.round(values.reduce((s, v) => s + v, 0) / values.length)} />
         </div>
       </div>
     </div>
@@ -585,6 +594,25 @@ function TrainingHQ() {
       [disciplineId]: prev[disciplineId].map((sk, i) => (i === idx ? { ...sk, ...patch } : sk)),
     }));
 
+  const [training, setTraining] = useSyncedState('lifeos:training', {
+    phaseLabel: 'Phase 03 · Cycle 2',
+    phaseName: 'EXPLOSIVE POWER',
+    day: 47,
+    radar: RADAR_CURRENT,
+  });
+  const radar = training.radar ?? RADAR_CURRENT;
+  const day = training.day ?? 47;
+  const phasePct = Math.round((day / 90) * 100);
+  const setTr = (patch) => setTraining((t) => ({ ...t, ...patch }));
+  const setRadarAxis = (i, v) => setTraining((t) => ({ ...t, radar: (t.radar ?? RADAR_CURRENT).map((x, idx) => (idx === i ? Math.max(0, Math.min(100, v)) : x)) }));
+  const [editHeader, setEditHeader] = useState(false);
+  const [editRadar, setEditRadar] = useState(false);
+
+  const tInp = {
+    width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line)',
+    borderRadius: 8, padding: '6px 8px', color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
+  };
+
   return (
     <>
       <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -594,23 +622,38 @@ function TrainingHQ() {
         }}>
           <HUDTicks />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div className="eyebrow">Phase 03 · Cycle 2</div>
-              <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>
-                EXPLOSIVE POWER
-              </div>
-              <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
-                DAY 47/90 · {sessionCount} SESSIONS LOGGED
-              </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {editHeader ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input value={training.phaseLabel ?? ''} onChange={(e) => setTr({ phaseLabel: e.target.value })} placeholder="Phase 03 · Cycle 2" style={{ ...tInp, fontFamily: 'var(--font-mono)', fontSize: 11 }} />
+                  <input value={training.phaseName ?? ''} onChange={(e) => setTr({ phaseName: e.target.value })} placeholder="Phase name" style={{ ...tInp, fontFamily: 'var(--font-display)', fontSize: 22 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="eyebrow">Day</span>
+                    <Stepper onClick={() => setTr({ day: Math.max(1, day - 1) })}>−</Stepper>
+                    <span className="mono" style={{ fontSize: 12, color: 'var(--text)', minWidth: 44, textAlign: 'center' }}>{day}/90</span>
+                    <Stepper onClick={() => setTr({ day: Math.min(90, day + 1) })}>+</Stepper>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="eyebrow">{training.phaseLabel}</div>
+                  <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>{training.phaseName}</div>
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+                    DAY {day}/90 · {sessionCount} SESSIONS LOGGED
+                  </div>
+                </>
+              )}
             </div>
-            <Pill variant="cyan" dot="#00D4FF">ACTIVE</Pill>
+            <span className="pressable mono" onClick={() => setEditHeader((e) => !e)} style={{ fontSize: 9, color: editHeader ? 'var(--lime)' : 'var(--muted)', letterSpacing: '0.14em', padding: '2px 6px', flexShrink: 0 }}>
+              {editHeader ? 'DONE' : 'EDIT'}
+            </span>
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <ProgressBar value={52} color="var(--cyan)" height={5} />
+            <ProgressBar value={phasePct} color="var(--cyan)" height={5} />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
               <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>DAY 1</span>
-              <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)' }}>52% · 43 DAYS LEFT</span>
+              <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)' }}>{phasePct}% · {Math.max(0, 90 - day)} DAYS LEFT</span>
             </div>
           </div>
         </div>
@@ -623,16 +666,32 @@ function TrainingHQ() {
               <div className="eyebrow">Body Radar</div>
               <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>CURRENT vs GOAL</div>
             </div>
-            <div style={{ display: 'flex', gap: 10, fontSize: 9 }}>
+            <div style={{ display: 'flex', gap: 10, fontSize: 9, alignItems: 'center' }}>
               <div className="mono" style={{ color: 'var(--cyan)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ width: 8, height: 2, background: '#00D4FF' }} /> NOW
               </div>
               <div className="mono" style={{ color: 'var(--violet)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ width: 8, height: 2, background: '#B14CFF', borderTop: '1px dashed #B14CFF' }} /> GOAL
               </div>
+              <span className="pressable mono" onClick={() => setEditRadar((e) => !e)} style={{ color: editRadar ? 'var(--lime)' : 'var(--muted)', letterSpacing: '0.12em', padding: '2px 4px' }}>
+                {editRadar ? 'DONE' : 'EDIT'}
+              </span>
             </div>
           </div>
-          <BodyRadar size={260} />
+          <BodyRadar size={260} values={radar} />
+          {editRadar && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {RADAR_AXES.map((label, i) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.1em', minWidth: 78, textTransform: 'uppercase' }}>{label}</span>
+                  <div style={{ flex: 1 }}><ProgressBar value={radar[i]} color="var(--cyan)" height={4} /></div>
+                  <Stepper onClick={() => setRadarAxis(i, radar[i] - 5)}>−</Stepper>
+                  <span className="mono" style={{ fontSize: 11, color: 'var(--cyan)', minWidth: 30, textAlign: 'center' }}>{radar[i]}</span>
+                  <Stepper onClick={() => setRadarAxis(i, radar[i] + 5)}>+</Stepper>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* skill trees */}
