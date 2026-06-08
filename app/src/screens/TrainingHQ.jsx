@@ -20,6 +20,13 @@ function Stepper({ children, onClick }) {
   );
 }
 
+const TIER_COLORS = {
+  Foundation: '#B6FF3C',
+  Developing: '#00D4FF',
+  Advanced: '#FFD23C',
+  Elite: '#FF0033',
+};
+
 // Body radar chart (6 axes, current vs goal)
 function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
   const cx = size / 2;
@@ -248,11 +255,17 @@ function SkillNode({ skill, color, onChange }) {
           flexShrink: 0,
         }}>{s.icon}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 14, fontWeight: 600,
-            color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)',
-          }}>{skill.name}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)' }}>{skill.name}</span>
+            {skill.tier && (() => {
+              const tc = TIER_COLORS[skill.tier] || 'var(--muted)';
+              return <span className="mono" style={{ fontSize: 7, letterSpacing: '0.1em', color: tc, border: `1px solid ${tc}66`, borderRadius: 999, padding: '1px 5px', textTransform: 'uppercase', flexShrink: 0 }}>{skill.tier}</span>;
+            })()}
+          </div>
+          {skill.cue && (
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, lineHeight: 1.3, textWrap: 'pretty' }}>{skill.cue}</div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
             <div style={{ flex: 1, height: 3 }}>
               <ProgressBar value={skill.pct} color={s.pctColor} height={3} />
             </div>
@@ -587,7 +600,7 @@ function TrainingHQ() {
   const sessionCount = BASE_SESSIONS + sessions.length;
   const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
 
-  const [skills, setSkills] = useSyncedState('lifeos:skills', SKILLS);
+  const [skills, setSkills] = useSyncedState('lifeos:skills:v2', SKILLS);
   const updateSkill = (disciplineId, idx, patch) =>
     setSkills((prev) => ({
       ...prev,
@@ -696,7 +709,7 @@ function TrainingHQ() {
 
         {/* skill trees */}
         <div>
-          <SectionHead eyebrow="6 disciplines · 23 skills" title="SKILL TREES" />
+          <SectionHead eyebrow={`${DISCIPLINES.length} disciplines · ${DISCIPLINES.reduce((n, d) => n + (skills[d.id]?.length || 0), 0)} skills`} title="SKILL TREES" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {DISCIPLINES.map((d) => (
               <SkillTree
