@@ -28,9 +28,10 @@ const rowStyle = {
   background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
 };
 
-export function Settings({ open, onClose }) {
+export function Settings({ open, onClose, icalUrl, onSetIcal }) {
   const { configured, session, signOut } = useAuth();
   const [exported, setExported] = useState(false);
+  const [cal, setCal] = useState(icalUrl || '');
 
   if (!open) return null;
 
@@ -82,6 +83,33 @@ export function Settings({ open, onClose }) {
             <span style={{ fontSize: 13, color: 'var(--muted)' }}>Running offline — data saved on this device.</span>
           </div>
         )}
+
+        {/* Calendar */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Google Calendar</div>
+        <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 8, marginBottom: 8 }}>
+          <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+            Paste your calendar's <span style={{ color: 'var(--text)' }}>secret iCal link</span> to show today's real events on your timeline.
+          </div>
+          <input
+            value={cal}
+            onChange={(e) => setCal(e.target.value)}
+            placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"
+            style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line)', borderRadius: 10, padding: '9px 11px', color: 'var(--text)', fontSize: 12, outline: 'none', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+          />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div className="pressable" onClick={() => onSetIcal(cal.trim())} style={{ flex: 1, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <IconCheck size={14} stroke={2.4} /> {icalUrl ? 'Update' : 'Connect'}
+            </div>
+            {icalUrl && (
+              <div className="pressable" onClick={() => { onSetIcal(''); setCal(''); }} style={{ width: 44, borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}>
+                <IconClose size={15} />
+              </div>
+            )}
+          </div>
+          {icalUrl && (
+            <div className="mono" style={{ fontSize: 9, color: 'var(--lime)', letterSpacing: '0.1em' }}>● CONNECTED</div>
+          )}
+        </div>
 
         {/* Data */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>Your data</div>

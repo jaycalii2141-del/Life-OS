@@ -399,7 +399,7 @@ function MomentumStrip({ momentum = MOMENTUM, streak = 0 }) {
 // ─────────────────────────────────────────────────────────
 // Today's Timeline — add / delete blocks
 // ─────────────────────────────────────────────────────────
-function TodayTimeline({ events, onAdd, onDelete }) {
+function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete }) {
   const [adding, setAdding] = useState(false);
   const [time, setTime] = useState('');
   const [label, setLabel] = useState('');
@@ -417,6 +417,12 @@ function TodayTimeline({ events, onAdd, onDelete }) {
     setTime(''); setLabel(''); setCat(0); setAdding(false);
   };
 
+  // Merge real calendar events (read-only) with manual blocks, sorted by time.
+  const calItems = calendarEvents.map((e) => ({ time: e.time, label: e.label, color: '#00D4FF', kind: 'CAL', cal: true }));
+  const manualItems = events.map((e, i) => ({ ...e, cal: false, _idx: i }));
+  const sortKey = (t) => (t === 'all-day' ? '00:00' : t);
+  const combined = [...calItems, ...manualItems].sort((a, b) => sortKey(a.time).localeCompare(sortKey(b.time)));
+
   return (
     <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
       <HUDTicks />
@@ -425,9 +431,9 @@ function TodayTimeline({ events, onAdd, onDelete }) {
         marginBottom: 14,
       }}>
         <div>
-          <div className="eyebrow">Today · Timeline</div>
+          <div className="eyebrow">{calItems.length > 0 ? 'Today · synced with Google' : 'Today · Timeline'}</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>
-            {events.length} BLOCKS
+            {combined.length} BLOCKS
           </div>
         </div>
         <div
@@ -516,12 +522,12 @@ function TodayTimeline({ events, onAdd, onDelete }) {
       )}
 
       <div>
-        {events.length === 0 && (
+        {combined.length === 0 && (
           <div className="eyebrow" style={{ color: 'var(--dim)', padding: '8px 0' }}>
-            No blocks yet — tap + to add one.
+            No blocks yet — tap + to add one, or connect Google Calendar in settings.
           </div>
         )}
-        {events.map((e, i) => (
+        {combined.map((e, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <TimelineEvent
@@ -529,21 +535,27 @@ function TodayTimeline({ events, onAdd, onDelete }) {
                 label={e.label}
                 color={e.color}
                 kind={e.kind}
-                last={i === events.length - 1}
+                last={i === combined.length - 1}
               />
             </div>
-            <div
-              className="pressable"
-              onClick={() => onDelete(i)}
-              style={{
-                width: 24, height: 24, borderRadius: 7, flexShrink: 0, marginTop: 2,
-                background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--dim)',
-              }}
-            >
-              <IconClose size={13} />
-            </div>
+            {e.cal ? (
+              <div style={{ width: 24, height: 24, flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dim)' }} title="From Google Calendar">
+                <IconCalendar size={13} />
+              </div>
+            ) : (
+              <div
+                className="pressable"
+                onClick={() => onDelete(e._idx)}
+                style={{
+                  width: 24, height: 24, borderRadius: 7, flexShrink: 0, marginTop: 2,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--dim)',
+                }}
+              >
+                <IconClose size={13} />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -554,10 +566,25 @@ function TodayTimeline({ events, onAdd, onDelete }) {
 // ─────────────────────────────────────────────────────────
 // Mission Control screen
 // ─────────────────────────────────────────────────────────
-function MissionControl({ state, setState, momentum, streak, trend, onOpenSettings }) {
+function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onOpenSettings }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
   const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
+
+  // Pull today's real events from the connected Google Calendar.
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  useEffect(() => {
+    if (!icalUrl) { setCalendarEvents([]); return; }
+    let active = true;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const n = new Date();
+    const date = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+    fetch(`/api/calendar?url=${encodeURIComponent(icalUrl)}&tz=${encodeURIComponent(tz)}&date=${date}`)
+      .then((r) => (r.ok ? r.json() : { events: [] }))
+      .then((d) => { if (active) setCalendarEvents(d.events || []); })
+      .catch(() => { if (active) setCalendarEvents([]); });
+    return () => { active = false; };
+  }, [icalUrl]);
 
   // Readiness is derived live from the four meters (each 0–10) → 0–100.
   const readiness = Math.round(((state.energy + state.focus + state.body + state.mood) / 40) * 100);
@@ -591,7 +618,7 @@ function MissionControl({ state, setState, momentum, streak, trend, onOpenSettin
       />
       <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
       <MomentumStrip momentum={momentum} streak={streak} />
-      <TodayTimeline events={events} onAdd={addEvent} onDelete={deleteEvent} />
+      <TodayTimeline events={events} calendarEvents={calendarEvents} onAdd={addEvent} onDelete={deleteEvent} />
     </div>
   );
 }

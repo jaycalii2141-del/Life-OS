@@ -84,6 +84,9 @@ function MainApp() {
   // Daily history — powers the real streak, momentum heatmap, and 7-day trend.
   const [history, setHistory] = useSyncedState('lifeos:history', {});
 
+  // App settings (e.g. connected Google Calendar iCal link).
+  const [settings, setSettings] = useSyncedState('lifeos:settings', {});
+
   // Record today's score whenever mission state changes.
   const today = todayKey();
   const todayReadiness = Math.round(((missionState.energy + missionState.focus + missionState.body + missionState.mood) / 40) * 100);
@@ -105,12 +108,12 @@ function MainApp() {
 
   let screen;
   switch (tab) {
-    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} onOpenSettings={() => setSettingsOpen(true)} />; break;
+    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} />; break;
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
     case 'ai':     screen = <AIScreen captures={captures} />; break;
-    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} onOpenSettings={() => setSettingsOpen(true)} />;
+    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} />;
   }
 
   return (
@@ -135,7 +138,12 @@ function MainApp() {
           onClose={() => setCapture({ open: false, voice: false })}
         />
 
-        <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        <Settings
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          icalUrl={settings.icalUrl}
+          onSetIcal={(url) => setSettings((s) => ({ ...s, icalUrl: url }))}
+        />
       </div>
     </IOSDevice>
   );
