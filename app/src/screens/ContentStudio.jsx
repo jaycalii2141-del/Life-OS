@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HUDTicks, TickCounter, Pill, SectionHead } from '../components/atoms.jsx';
+import { HUDTicks, TickCounter, Pill, SectionHead, ProgressBar } from '../components/atoms.jsx';
 import { IconChevronRight, IconCopy, IconCheck, IconPlus, IconClose } from '../components/icons.jsx';
 import { BRANDS, PIPELINE_STAGES, HOOKS } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
@@ -141,8 +141,9 @@ function Step({ children, onClick }) {
   );
 }
 
-// Pipeline strip (display only this round)
-function PipelineStrip() {
+// Pipeline strip — live counts from real content items
+function PipelineStrip({ items = [] }) {
+  const countFor = (stageId) => items.filter((it) => it.stage === stageId).length;
   return (
     <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
       <HUDTicks />
@@ -151,9 +152,7 @@ function PipelineStrip() {
           <div className="eyebrow">Pipeline</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>IDEA → POSTED</div>
         </div>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>
-          {PIPELINE_STAGES.reduce((s, x) => s + x.count, 0)} ITEMS
-        </span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{items.length} ITEMS</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
@@ -165,7 +164,7 @@ function PipelineStrip() {
                 border: `1px solid ${stage.color}50`, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: stage.color, fontFamily: 'var(--font-display)', fontSize: 18, boxShadow: `0 0 12px -3px ${stage.color}`,
               }}>
-                <TickCounter value={stage.count} />
+                <TickCounter value={countFor(stage.id)} />
               </div>
               <span className="mono" style={{ fontSize: 8, letterSpacing: '0.16em', color: 'var(--muted)', textTransform: 'uppercase' }}>{stage.label}</span>
             </div>
@@ -175,6 +174,142 @@ function PipelineStrip() {
               </div>
             )}
           </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Content tracker — items moving through the pipeline ──
+function ContentItemRow({ item, brands, onUpdate, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const stage = PIPELINE_STAGES.find((s) => s.id === item.stage) || PIPELINE_STAGES[0];
+  const brand = brands.find((b) => b.id === item.brandId);
+  const stageIdx = PIPELINE_STAGES.findIndex((s) => s.id === item.stage);
+
+  return (
+    <div style={{ borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? stage.color : 'var(--line)'}`, transition: 'border-color 200ms' }}>
+      <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
+        <span style={{ width: 8, height: 8, borderRadius: 999, background: brand?.color || '#8A8A95', boxShadow: `0 0 8px ${brand?.color || '#8A8A95'}`, flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500, lineHeight: 1.25, textWrap: 'pretty' }}>{item.title}</div>
+          <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.1em' }}>{(brand?.name || 'NO BRAND').toUpperCase()}</div>
+        </div>
+        <span style={{ padding: '3px 8px', borderRadius: 999, background: `${stage.color}18`, border: `1px solid ${stage.color}60`, color: stage.color, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0 }}>{stage.label}</span>
+      </div>
+
+      {open && (
+        <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <input value={item.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Title" style={ctInp} />
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>Stage</div>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {PIPELINE_STAGES.map((s, i) => {
+                const on = item.stage === s.id;
+                return (
+                  <div key={s.id} className="pressable" onClick={() => onUpdate({ stage: s.id })} style={{
+                    padding: '5px 8px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700,
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    background: on ? `${s.color}20` : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${on ? s.color : 'var(--line)'}`, color: on ? s.color : (i <= stageIdx ? 'var(--muted)' : 'var(--dim)'),
+                  }}>{s.label}</div>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>Brand</div>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {brands.map((b) => {
+                const on = item.brandId === b.id;
+                return (
+                  <div key={b.id} className="pressable" onClick={() => onUpdate({ brandId: b.id })} style={{
+                    padding: '5px 9px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
+                    background: on ? `${b.color}20` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? b.color : 'var(--line)'}`,
+                    color: on ? b.color : 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5,
+                  }}>
+                    <span style={{ width: 5, height: 5, borderRadius: 999, background: b.color }} />
+                    {b.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ctInp = {
+  width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+  borderRadius: 10, padding: '9px 11px', color: 'var(--text)', fontSize: 14, outline: 'none',
+  fontFamily: 'var(--font-body)', boxSizing: 'border-box',
+};
+
+function ContentPipeline({ items, brands, onAdd, onUpdate, onDelete }) {
+  const [adding, setAdding] = useState(false);
+  const [title, setTitle] = useState('');
+  const [brandId, setBrandId] = useState(brands[0]?.id);
+
+  const submit = () => {
+    if (!title.trim()) return;
+    onAdd({ id: Date.now(), title: title.trim(), brandId: brandId || brands[0]?.id, stage: 'idea' });
+    setTitle('');
+    setAdding(false);
+  };
+
+  // sort by pipeline stage order, then newest
+  const order = PIPELINE_STAGES.map((s) => s.id);
+  const sorted = [...items].sort((a, b) => order.indexOf(a.stage) - order.indexOf(b.stage) || b.id - a.id);
+
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">In production · tap to move</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>CONTENT</div>
+        </div>
+        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{
+          width: 30, height: 30, borderRadius: 9,
+          background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)',
+          border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)',
+        }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
+      </div>
+
+      {adding && (
+        <div style={{ marginBottom: 12, padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
+          <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="Content idea…" style={{ ...ctInp, marginBottom: 10 }} />
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+            {brands.map((b) => {
+              const on = brandId === b.id;
+              return (
+                <div key={b.id} className="pressable" onClick={() => setBrandId(b.id)} style={{
+                  padding: '5px 9px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
+                  background: on ? `${b.color}20` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? b.color : 'var(--line)'}`,
+                  color: on ? b.color : 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                  <span style={{ width: 5, height: 5, borderRadius: 999, background: b.color }} />
+                  {b.name}
+                </div>
+              );
+            })}
+          </div>
+          <div className="pressable" onClick={submit} style={{ height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <IconPlus size={15} stroke={2.4} /> Add to pipeline
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {sorted.length === 0 && (
+          <div className="eyebrow" style={{ color: 'var(--dim)', padding: '6px 0' }}>No content yet — tap + to capture an idea.</div>
+        )}
+        {sorted.map((it) => (
+          <ContentItemRow key={it.id} item={it} brands={brands} onUpdate={(patch) => onUpdate(it.id, patch)} onDelete={() => onDelete(it.id)} />
         ))}
       </div>
     </div>
@@ -342,6 +477,140 @@ function PostingCalendar({ calendar = {}, onCycle }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// Projects & Steps — fully customizable in-app project system
+// ─────────────────────────────────────────────────────────
+const miniBtn = {
+  width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 13,
+};
+
+function StepRow({ step, onToggle, onText, onDelete, onUp, onDown, canUp, canDown }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className="pressable" onClick={onToggle} style={{
+        width: 22, height: 22, borderRadius: 7, flexShrink: 0,
+        border: `1.5px solid ${step.done ? 'var(--lime)' : 'var(--line-strong)'}`,
+        background: step.done ? 'var(--lime)' : 'transparent',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {step.done && <IconCheck size={13} color="#06060A" stroke={3} />}
+      </div>
+      <input value={step.text} onChange={(e) => onText(e.target.value)} placeholder="Step"
+        style={{ ...ctInp, flex: 1, padding: '7px 9px', fontSize: 13, textDecoration: step.done ? 'line-through' : 'none', opacity: step.done ? 0.6 : 1 }} />
+      <div className="pressable" onClick={onUp} style={{ ...miniBtn, opacity: canUp ? 1 : 0.3 }}>↑</div>
+      <div className="pressable" onClick={onDown} style={{ ...miniBtn, opacity: canDown ? 1 : 0.3 }}>↓</div>
+      <div className="pressable" onClick={onDelete} style={{ ...miniBtn, color: 'var(--ona-red)' }}><IconClose size={13} /></div>
+    </div>
+  );
+}
+
+function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
+  const [open, setOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState(false);
+  const [newStep, setNewStep] = useState('');
+  const steps = project.steps || [];
+  const done = steps.filter((s) => s.done).length;
+  const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+  const brand = brands.find((b) => b.id === project.brandId);
+  const color = brand?.color || '#00D4FF';
+
+  const addStep = () => { if (!newStep.trim()) return; onStepsChange([...steps, { id: Date.now(), text: newStep.trim(), done: false }]); setNewStep(''); };
+  const setStep = (id, patch) => onStepsChange(steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  const delStep = (id) => onStepsChange(steps.filter((s) => s.id !== id));
+  const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= steps.length) return; const a = [...steps]; [a[i], a[j]] = [a[j], a[i]]; onStepsChange(a); };
+
+  return (
+    <div style={{ borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? color : 'var(--line)'}`, transition: 'border-color 200ms' }}>
+      <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{project.title}</div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>{(brand?.name || 'NO BRAND').toUpperCase()} · {done}/{steps.length} STEPS</div>
+          </div>
+          <span className="display" style={{ fontSize: 18, color }}>{pct}%</span>
+        </div>
+        <div style={{ marginTop: 10 }}><ProgressBar value={pct} color={color} height={4} /></div>
+      </div>
+
+      {open && (
+        <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {editTitle ? (
+            <input autoFocus value={project.title} onChange={(e) => onUpdate({ title: e.target.value })} onBlur={() => setEditTitle(false)} onKeyDown={(e) => e.key === 'Enter' && setEditTitle(false)} style={ctInp} />
+          ) : (
+            <div className="pressable mono" onClick={() => setEditTitle(true)} style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.12em' }}>RENAME PROJECT</div>
+          )}
+
+          <div className="eyebrow">Steps</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {steps.length === 0 && <div className="eyebrow" style={{ color: 'var(--dim)' }}>No steps yet — add the first one below.</div>}
+            {steps.map((s, i) => (
+              <StepRow key={s.id} step={s} onToggle={() => setStep(s.id, { done: !s.done })} onText={(t) => setStep(s.id, { text: t })} onDelete={() => delStep(s.id)} onUp={() => move(i, -1)} onDown={() => move(i, 1)} canUp={i > 0} canDown={i < steps.length - 1} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input value={newStep} onChange={(e) => setNewStep(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addStep()} placeholder="Add a step…" style={{ ...ctInp, flex: 1 }} />
+            <div className="pressable" onClick={addStep} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconPlus size={16} stroke={2.4} /></div>
+          </div>
+
+          <div className="eyebrow">Brand</div>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            {brands.map((b) => {
+              const on = project.brandId === b.id;
+              return (
+                <div key={b.id} className="pressable" onClick={() => onUpdate({ brandId: b.id })} style={{
+                  padding: '5px 9px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
+                  background: on ? `${b.color}20` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? b.color : 'var(--line)'}`,
+                  color: on ? b.color : 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                  <span style={{ width: 5, height: 5, borderRadius: 999, background: b.color }} />{b.name}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE PROJECT</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
+  const [adding, setAdding] = useState(false);
+  const [title, setTitle] = useState('');
+  const submit = () => { if (!title.trim()) return; onAdd({ id: Date.now(), title: title.trim(), brandId: brands[0]?.id, steps: [] }); setTitle(''); setAdding(false); };
+
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div className="eyebrow">{projects.length} active · tap to manage</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>PROJECTS</div>
+        </div>
+        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
+      </div>
+
+      {adding && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="New project or idea…" style={{ ...ctInp, flex: 1 }} />
+          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconCheck size={16} stroke={2.4} /></div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {projects.length === 0 && <div className="eyebrow" style={{ color: 'var(--dim)', padding: '6px 0' }}>No projects yet — tap + to capture an idea or start one.</div>}
+        {projects.map((p) => (
+          <ProjectCard key={p.id} project={p} brands={brands} onUpdate={(patch) => onUpdate(p.id, patch)} onDelete={() => onDelete(p.id)} onStepsChange={(steps) => onUpdate(p.id, { steps })} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // Content Studio screen
 // ─────────────────────────────────────────────────────────
 function ContentStudio() {
@@ -350,6 +619,11 @@ function ContentStudio() {
     hooks: HOOKS.map((text, i) => ({ id: i + 1, text })),
   });
   const [selected, setSelected] = useState(null);
+
+  const [projects, setProjects] = useSyncedState('lifeos:projects', []);
+  const addProject = (p) => setProjects((ps) => [p, ...ps]);
+  const updateProject = (id, patch) => setProjects((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  const deleteProject = (id) => setProjects((ps) => ps.filter((p) => p.id !== id));
 
   const brands = content.brands ?? BRANDS;
   const hooks = content.hooks ?? [];
@@ -397,7 +671,7 @@ function ContentStudio() {
         )}
       </div>
 
-      <PipelineStrip />
+      <Projects projects={projects} brands={brands} onAdd={addProject} onUpdate={updateProject} onDelete={deleteProject} />
       <HookBank hooks={hooks} onAdd={addHook} onUpdate={updateHook} onDelete={deleteHook} />
       <PostingCalendar calendar={calendar} onCycle={cycleDay} />
     </div>
