@@ -5,9 +5,15 @@
 // for one focus for next week. Optional AI summary via /api/chief.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import { IconClose, IconCompass, IconActivity, IconSparkles } from './components/icons.jsx';
+import { IconClose, IconCompass, IconActivity, IconSparkles, IconCalendar } from './components/icons.jsx';
 import { LIFE_DOMAINS } from './data.js';
 import { usageBySurface } from './lib/telemetry.js';
+import { googleCalendarUrl, openExternal } from './lib/actions.js';
+
+// Next weekday morning, for scheduling next-week intentions.
+function tomorrow9() {
+  const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); return d;
+}
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -200,6 +206,26 @@ export function WeeklyReview({ open, onClose }) {
             placeholder="What's the one thing that would make next week a win?"
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 14, fontFamily: 'var(--font-body)' }}
           />
+        </div>
+
+        {/* Act on it — turn intentions into scheduled time */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Act on it</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+          {focus.trim() && (
+            <div className="pressable" onClick={() => openExternal(googleCalendarUrl({ title: focus.trim(), date: tomorrow9(), time: '09:00', durationMin: 90, details: "This week's focus, from your LifeOS review." }))}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 13px', borderRadius: 999, background: 'rgba(0,212,255,0.14)', border: '1px solid rgba(0,212,255,0.5)', color: 'var(--cyan)', fontSize: 12, fontWeight: 700 }}>
+              <IconCalendar size={13} /> Block focus time
+            </div>
+          )}
+          {domains.filter((d) => d.n === 0).slice(0, 2).map((d) => (
+            <div key={d.id} className="pressable" onClick={() => openExternal(googleCalendarUrl({ title: `Time for ${d.name}`, date: tomorrow9(), time: '09:00', durationMin: 60, details: `${d.name} got no attention last week — protect time for it.` }))}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 13px', borderRadius: 999, background: `${d.color}1a`, border: `1px solid ${d.color}66`, color: d.color, fontSize: 12, fontWeight: 700 }}>
+              <IconCalendar size={13} /> Plan {d.emoji} {d.name}
+            </div>
+          ))}
+          {!focus.trim() && domains.every((d) => d.n > 0) && (
+            <div className="eyebrow" style={{ opacity: 0.6 }}>set a focus above to schedule it →</div>
+          )}
         </div>
 
         <div style={{ height: 8 }} />
