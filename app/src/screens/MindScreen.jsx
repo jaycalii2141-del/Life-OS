@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { SectionHead, HUDTicks } from '../components/atoms.jsx';
-import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconClose, IconChevronRight } from '../components/icons.jsx';
+import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconClose, IconChevronRight, IconSparkles } from '../components/icons.jsx';
 import { LIFE_DOMAINS, SEED_FOLDERS, DOMAIN_ALIASES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { logEvent } from '../lib/telemetry.js';
@@ -77,7 +77,7 @@ function InboxCard({ c, onRoute, onArchive, onDelete }) {
   );
 }
 
-export function MindScreen({ captures, setCaptures, onOpenReview }) {
+export function MindScreen({ captures, setCaptures, onOpenReview, onOpenUpgrade }) {
   const [view, setView] = useState('inbox'); // inbox | journal
   const [journal, setJournal] = useSyncedState('lifeos:journal', []);
   const [folders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
@@ -117,11 +117,18 @@ export function MindScreen({ captures, setCaptures, onOpenReview }) {
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <SectionHead eyebrow="Your second brain" title="MIND" trailing={
-        <div className="pressable" onClick={onOpenReview} style={{
-          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999,
-          background: 'rgba(177,76,255,0.12)', border: '1px solid rgba(177,76,255,0.4)', color: 'var(--violet)',
-          fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-        }}><IconCompass size={14} /> WEEKLY REVIEW</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <div className="pressable" onClick={onOpenReview} style={{
+            display: 'flex', alignItems: 'center', gap: 5, padding: '8px 11px', borderRadius: 999,
+            background: 'rgba(177,76,255,0.12)', border: '1px solid rgba(177,76,255,0.4)', color: 'var(--violet)',
+            fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+          }}><IconCompass size={14} /> WEEKLY</div>
+          <div className="pressable" onClick={onOpenUpgrade} style={{
+            display: 'flex', alignItems: 'center', gap: 5, padding: '8px 11px', borderRadius: 999,
+            background: 'rgba(182,255,60,0.12)', border: '1px solid rgba(182,255,60,0.4)', color: 'var(--lime)',
+            fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+          }}><IconSparkles size={14} /> UPGRADE</div>
+        </div>
       } />
 
       {/* View toggle */}

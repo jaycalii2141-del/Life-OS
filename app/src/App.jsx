@@ -13,6 +13,7 @@ import { ONAHQ } from './screens/ONAHQ.jsx';
 import { AIScreen } from './screens/AIScreen.jsx';
 import { MindScreen } from './screens/MindScreen.jsx';
 import { WeeklyReview } from './WeeklyReview.jsx';
+import { MonthlyUpgrade } from './MonthlyUpgrade.jsx';
 import { logEvent } from './lib/telemetry.js';
 import { TODAY, TIMELINE } from './data.js';
 import { todayKey } from './usePersistentState.js';
@@ -77,6 +78,7 @@ function MainApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Tab changes are the backbone of usage telemetry (the "mirror").
   const changeTab = (t) => { setTab(t); logEvent(t, 'open'); };
@@ -122,7 +124,7 @@ function MainApp() {
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
-    case 'mind':   screen = <MindScreen captures={captures} setCaptures={setCaptures} onOpenReview={() => setReviewOpen(true)} />; break;
+    case 'mind':   screen = <MindScreen captures={captures} setCaptures={setCaptures} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} />; break;
     case 'ai':     screen = <AIScreen captures={captures} />; break;
     default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} onGoMind={() => changeTab('mind')} />;
   }
@@ -165,6 +167,11 @@ function MainApp() {
         <WeeklyReview
           open={reviewOpen}
           onClose={() => setReviewOpen(false)}
+        />
+
+        <MonthlyUpgrade
+          open={upgradeOpen}
+          onClose={() => setUpgradeOpen(false)}
         />
       </div>
     </IOSDevice>

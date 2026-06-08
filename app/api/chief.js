@@ -27,6 +27,14 @@ const SYSTEMS = {
     `- Call out attention imbalance across his domains (ONA, Podium, Movement, social, wife, self) if you see it — gently but truthfully.\n` +
     `- Surface one blind spot or pattern worth his attention.\n` +
     `- Suggest one focus for next week. Keep it to a few short lines, no headers, speak directly to Jay.`,
+  upgrade:
+    `You are the Systems Architect for Jay Martinez's LifeOS — a personal operating-system app. Your job is monthly meta-reflection: ` +
+    `look at how Jay actually used the system this month and how his life is trending, then tell him plainly how to run his life and ` +
+    `this app better. Jay co-owns Obstacle Ninja Academy and Podium Creations, trains as an elite movement athlete, and travels with his wife Chelsea.\n\n` +
+    `Using the month's usage + life data below, write a short, sharp monthly note. Rules:\n` +
+    `- Name what's working in how he's using LifeOS, and what he's ignoring (dead features, unused surfaces).\n` +
+    `- Surface the strongest pattern or imbalance across his life this month.\n` +
+    `- Be honest and specific, a few short lines, no headers. Speak directly to Jay. Do not propose anything destructive or automatic — he reviews and decides.`,
 };
 
 export default async function handler(req, res) {
