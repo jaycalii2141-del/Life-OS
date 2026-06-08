@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { HUDTicks, TickCounter, Pill, SectionHead, ProgressBar } from '../components/atoms.jsx';
 import { IconChevronRight, IconCopy, IconCheck, IconPlus, IconClose } from '../components/icons.jsx';
-import { BRANDS, PIPELINE_STAGES, HOOKS } from '../data.js';
+import { BRANDS, PIPELINE_STAGES, HOOKS, SEED_FOLDERS } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 
 // ─────────────────────────────────────────────────────────
@@ -619,13 +619,6 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
 // ─────────────────────────────────────────────────────────
 const FOLDER_COLORS = ['#FF0033', '#FFD23C', '#B6FF3C', '#00D4FF', '#FF3CC8', '#FF8A3C', '#B14CFF'];
 const FOLDER_EMOJIS = ['🥷', '💪', '🤸', '🏆', '🎬', '🎥', '📱', '📈', '🔥', '⚡', '🎯', '❤️', '🏋️', '🧗', '🌀', '✨', '💡', '📁'];
-const SEED_FOLDERS = [
-  { id: 1, name: 'ONA', color: '#FF0033', emoji: '🥷', pinned: true, notes: [], projects: [] },
-  { id: 2, name: 'Podium', color: '#FFD23C', emoji: '🏆', pinned: false, notes: [], projects: [] },
-  { id: 3, name: 'Movement', color: '#B6FF3C', emoji: '🤸', pinned: false, notes: [], projects: [] },
-  { id: 4, name: '@jayy_martinez', color: '#00D4FF', emoji: '📱', pinned: false, notes: [], projects: [] },
-  { id: 5, name: 'Wife & I', color: '#FF3CC8', emoji: '❤️', pinned: false, notes: [], projects: [] },
-];
 
 function getCaptures() {
   try { return JSON.parse(localStorage.getItem('lifeos:captures') || '[]'); } catch { return []; }

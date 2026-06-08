@@ -211,9 +211,31 @@ const LIFE_DOMAINS = [
   { id: 'self',     name: 'Self',         emoji: '🧭', color: '#00D4FF' },
 ];
 
+// Seed folders for the Create workspace. Each carries a `domain` so
+// triaged captures from Mind route into the right folder reliably.
+const SEED_FOLDERS = [
+  { id: 1, name: 'ONA',            domain: 'ona',      color: '#FF0033', emoji: '🥷', pinned: true,  notes: [], projects: [] },
+  { id: 2, name: 'Podium',         domain: 'podium',   color: '#FFD23C', emoji: '🏆', pinned: false, notes: [], projects: [] },
+  { id: 3, name: 'Movement',       domain: 'movement', color: '#B6FF3C', emoji: '🤸', pinned: false, notes: [], projects: [] },
+  { id: 4, name: '@jayy_martinez', domain: 'social',   color: '#00D4FF', emoji: '📱', pinned: false, notes: [], projects: [] },
+  { id: 5, name: 'Wife & I',       domain: 'wife',     color: '#FF3CC8', emoji: '❤️', pinned: false, notes: [], projects: [] },
+  { id: 6, name: 'Self',           domain: 'self',     color: '#00D4FF', emoji: '🧭', pinned: false, notes: [], projects: [] },
+];
+
+// Name aliases used to match an already-saved folder to a domain when it
+// has no `domain` tag yet (folders created before this field existed).
+const DOMAIN_ALIASES = {
+  ona: ['ona'],
+  podium: ['podium'],
+  movement: ['movement', 'training'],
+  social: ['@jayy_martinez', '@jayy', 'jayy', 'social', 'content'],
+  wife: ['wife & i', 'wife and i', 'wife', 'chelsea'],
+  self: ['self', 'me'],
+};
+
 export {
   BRANDS, PIPELINE_STAGES, HOOKS, DISCIPLINES, SKILLS,
   RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, TIMELINE, MOMENTUM,
   ONA_STATS, SALES_STAGES, COACHES, BENCH, INITIATIVES, TODAY,
-  LIFE_DOMAINS,
+  LIFE_DOMAINS, SEED_FOLDERS, DOMAIN_ALIASES,
 };

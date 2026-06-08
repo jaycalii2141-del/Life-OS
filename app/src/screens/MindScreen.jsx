@@ -7,9 +7,18 @@
 import { useState } from 'react';
 import { SectionHead, HUDTicks } from '../components/atoms.jsx';
 import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconClose, IconChevronRight } from '../components/icons.jsx';
-import { LIFE_DOMAINS } from '../data.js';
+import { LIFE_DOMAINS, SEED_FOLDERS, DOMAIN_ALIASES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { logEvent } from '../lib/telemetry.js';
+
+// Find the Create folder that belongs to a domain — by explicit tag,
+// then by name alias for folders created before domain tags existed.
+function folderForDomain(folders, domain) {
+  let f = folders.find((x) => x.domain === domain);
+  if (f) return f;
+  const aliases = DOMAIN_ALIASES[domain] || [];
+  return folders.find((x) => aliases.includes((x.name || '').trim().toLowerCase()));
+}
 
 const TAG_COLORS = { idea: '#00D4FF', ona: '#FF0033', dream: '#B14CFF', task: '#B6FF3C' };
 
@@ -71,12 +80,27 @@ function InboxCard({ c, onRoute, onArchive, onDelete }) {
 export function MindScreen({ captures, setCaptures, onOpenReview }) {
   const [view, setView] = useState('inbox'); // inbox | journal
   const [journal, setJournal] = useSyncedState('lifeos:journal', []);
+  const [folders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
   const [draft, setDraft] = useState('');
 
   const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
   const triaged = (captures || []).filter((c) => c.status === 'triaged');
 
   const route = (id, domain) => {
+    const cap = (captures || []).find((c) => c.id === id);
+    // Deposit the thought as a note in the matching Create folder.
+    if (cap) {
+      setFolders((list) => {
+        const target = folderForDomain(list, domain);
+        const note = { id: Date.now(), title: cap.text, body: '', fromCapture: true };
+        if (target) {
+          return list.map((f) => (f === target ? { ...f, notes: [note, ...(f.notes || [])] } : f));
+        }
+        // No folder for this domain yet — create one from the domain meta.
+        const meta = LIFE_DOMAINS.find((d) => d.id === domain) || { name: domain, color: '#00D4FF', emoji: '📁' };
+        return [...list, { id: Date.now() + 1, name: meta.name, domain, color: meta.color, emoji: meta.emoji, pinned: false, notes: [note], projects: [] }];
+      });
+    }
     setCaptures((list) => list.map((c) => (c.id === id ? { ...c, status: 'triaged', domain, routedAt: Date.now() } : c)));
     logEvent('mind', 'route', domain);
   };
