@@ -117,6 +117,9 @@ function MainApp() {
   const streak = computeStreak(history, today, todayScore);
   const trend = readinessTrend(history, today, todayReadiness);
 
+  // Untriaged captures → a gentle reminder badge on the Mind tab.
+  const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
+
   // Re-key the screen container on tab change so screenIn animation fires
   const screenKey = tab;
 
@@ -144,6 +147,7 @@ function MainApp() {
         <TabBar
           active={tab}
           onChange={changeTab}
+          badges={{ mind: inboxCount }}
           onFab={() => setCapture({ open: true, voice: false })}
           onFabLong={() => setCapture({ open: true, voice: true })}
         />

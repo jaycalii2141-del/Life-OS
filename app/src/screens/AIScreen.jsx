@@ -354,22 +354,26 @@ function AIScreen({ captures = [] }) {
       <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
         <HUDTicks />
         <div style={{ marginBottom: 12 }}>
-          <div className="eyebrow">Recent · auto-routed</div>
-          <div className="section-title" style={{ fontSize: 20, marginTop: 2 }}>HISTORY</div>
+          <div className="eyebrow">Your latest thoughts</div>
+          <div className="section-title" style={{ fontSize: 20, marginTop: 2 }}>RECENT CAPTURES</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {captures.length === 0 && (
             <div className="eyebrow" style={{ color: 'var(--dim)' }}>Nothing captured yet — tap + on any screen.</div>
           )}
-          {captures.map((c, i) => (
-            <div key={c.id || i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
-              <span style={{ width: 6, height: 6, borderRadius: 999, background: c.color || '#00D4FF', boxShadow: `0 0 8px ${c.color || '#00D4FF'}`, marginTop: 6, flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.3 }}>{c.text}</div>
-                <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.1em' }}>{c.time}  ·  {c.tag}</div>
+          {captures.slice(0, 6).map((c, i) => {
+            const status = c.status || 'inbox';
+            const statusColor = status === 'inbox' ? 'var(--gold)' : status === 'triaged' ? 'var(--lime)' : 'var(--dim)';
+            return (
+              <div key={c.id || i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--line)' }}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: c.color || '#00D4FF', boxShadow: `0 0 8px ${c.color || '#00D4FF'}`, marginTop: 6, flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.3 }}>{c.text}</div>
+                  <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.1em' }}>{c.time} · {c.tag} · <span style={{ color: statusColor }}>{status}</span></div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

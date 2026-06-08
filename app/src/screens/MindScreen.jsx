@@ -52,12 +52,16 @@ function InboxCard({ c, onRoute, onArchive, onDelete }) {
 
       {routing ? (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
-          {LIFE_DOMAINS.map((d) => (
-            <div key={d.id} className="pressable" onClick={() => onRoute(d.id)} style={{
-              padding: '7px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-              background: `${d.color}1a`, border: `1px solid ${d.color}66`, color: d.color,
-            }}>{d.emoji} {d.name}</div>
-          ))}
+          {[...LIFE_DOMAINS].sort((a, b) => (b.id === c.tag ? 1 : 0) - (a.id === c.tag ? 1 : 0)).map((d) => {
+            const suggested = d.id === c.tag;
+            return (
+              <div key={d.id} className="pressable" onClick={() => onRoute(d.id)} style={{
+                padding: '7px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                background: `${d.color}${suggested ? '2e' : '1a'}`, border: `1px solid ${d.color}${suggested ? 'cc' : '66'}`, color: d.color,
+                boxShadow: suggested ? `0 0 12px -3px ${d.color}` : 'none',
+              }}>{suggested ? '★ ' : ''}{d.emoji} {d.name}</div>
+            );
+          })}
           <div className="pressable" onClick={() => setRouting(false)} style={{ padding: '7px 10px', borderRadius: 999, color: 'var(--muted)', border: '1px solid var(--line)', fontSize: 11 }}>cancel</div>
         </div>
       ) : (

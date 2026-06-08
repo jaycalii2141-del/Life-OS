@@ -15,7 +15,7 @@ const TABS = [
   { id: 'ai',     label: 'AI',     Icon: IconSparkles, color: '#B14CFF' },
 ];
 
-function TabBar({ active, onChange, onFab, onFabLong }) {
+function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
   const longPressTimer = useRef(null);
   const longPressed = useRef(false);
 
@@ -94,6 +94,20 @@ function TabBar({ active, onChange, onFab, onFabLong }) {
                   background: t.color,
                   boxShadow: `0 0 8px ${t.color}`,
                 }} />
+              )}
+              {badges[t.id] > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: 4, right: '50%', marginRight: -18,
+                  minWidth: 15, height: 15, padding: '0 4px',
+                  borderRadius: 999,
+                  background: t.color,
+                  color: '#06060A',
+                  fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: `0 0 8px ${t.color}`,
+                  border: '1.5px solid #0B0B12',
+                }}>{badges[t.id] > 9 ? '9+' : badges[t.id]}</span>
               )}
               <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
               <span style={{

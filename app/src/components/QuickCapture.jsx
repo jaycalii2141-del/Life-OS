@@ -73,7 +73,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
               <IconCheck size={28} color="#B6FF3C" stroke={2.5} />
             </div>
             <div className="display" style={{ fontSize: 24, color: 'var(--lime)' }}>CAPTURED</div>
-            <div className="eyebrow">routed to {tag}</div>
+            <div className="eyebrow">saved to your inbox · triage in Mind</div>
           </div>
         ) : (
           <>
@@ -239,7 +239,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
             </div>
 
             <div className="eyebrow" style={{ textAlign: 'center', marginTop: 12 }}>
-              ⌘K from any screen · long-press + for voice
+Tap + on any screen · long-press for voice
             </div>
           </>
         )}
