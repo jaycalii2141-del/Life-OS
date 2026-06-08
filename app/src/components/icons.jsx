@@ -44,6 +44,8 @@ const IconClock = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><polyline p
 const IconArrowRight = (p) => <Ico {...p}><line x1="4" y1="12" x2="20" y2="12" /><polyline points="14 6 20 12 14 18" /></Ico>;
 const IconSend = (p) => <Ico {...p}><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></Ico>;
 const IconActivity = (p) => <Ico {...p}><polyline points="3 12 7 12 10 4 14 20 17 12 21 12" /></Ico>;
+const IconSliders = (p) => <Ico {...p}><line x1="4" y1="8" x2="20" y2="8" /><circle cx="9" cy="8" r="2.2" /><line x1="4" y1="16" x2="20" y2="16" /><circle cx="15" cy="16" r="2.2" /></Ico>;
+const IconDownload = (p) => <Ico {...p}><path d="M12 3v12" /><polyline points="7 11 12 16 17 11" /><path d="M5 20h14" /></Ico>;
 
 export {
   Ico,
@@ -51,4 +53,5 @@ export {
   IconMic, IconChevronRight, IconChevronDown, IconClose, IconLock, IconCircle,
   IconFlame, IconCamera, IconCopy, IconUsers, IconTrendUp, IconTarget, IconWarn,
   IconCalendar, IconClock, IconArrowRight, IconSend, IconActivity,
+  IconSliders, IconDownload,
 };

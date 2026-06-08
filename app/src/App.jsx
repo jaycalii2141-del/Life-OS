@@ -17,6 +17,7 @@ import { useSyncedState } from './useSyncedState.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
+import { Settings } from './Settings.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -69,6 +70,7 @@ export default function App() {
 function MainApp() {
   const [tab, setTab] = useState('home');
   const [capture, setCapture] = useState({ open: false, voice: false });
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Mission Control state — per-day, synced to the cloud when signed in.
   const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${todayKey()}`, {
@@ -110,12 +112,12 @@ function MainApp() {
 
   let screen;
   switch (tab) {
-    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} />; break;
+    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} onOpenSettings={() => setSettingsOpen(true)} />; break;
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
     case 'ai':     screen = <AIScreen captures={captures} />; break;
-    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} />;
+    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} onOpenSettings={() => setSettingsOpen(true)} />;
   }
 
   return (
@@ -139,6 +141,8 @@ function MainApp() {
           onSave={addCapture}
           onClose={() => setCapture({ open: false, voice: false })}
         />
+
+        <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       </div>
     </IOSDevice>
   );

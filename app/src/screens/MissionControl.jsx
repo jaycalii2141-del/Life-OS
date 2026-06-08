@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { HUDTicks, TickCounter, Pill, ConfettiBurst, StateMeter, TimelineEvent } from '../components/atoms.jsx';
-import { IconCheck, IconCalendar, IconClose, IconPlus } from '../components/icons.jsx';
+import { IconCheck, IconCalendar, IconClose, IconPlus, IconSliders } from '../components/icons.jsx';
 import { TODAY, TIMELINE, MOMENTUM } from '../data.js';
 
 // ─────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ const TL_CATEGORIES = [
   { kind: 'Focus',  color: '#FF0033' },
 ];
 
-function ReadinessHero({ readiness, trend, energy, focus, body, mood, onMeter }) {
+function ReadinessHero({ readiness, trend, energy, focus, body, mood, onMeter, onOpenSettings }) {
   return (
     <div className="hud glass-strong mesh-readiness" style={{
       padding: '18px 18px 16px',
@@ -46,13 +46,27 @@ function ReadinessHero({ readiness, trend, energy, focus, body, mood, onMeter })
         marginBottom: 4,
       }}>
         <span className="eyebrow">{realDateLabel()}</span>
-        <span className="mono" style={{
-          fontSize: 9, color: 'var(--cyan)',
-          padding: '3px 8px',
-          border: '1px solid rgba(0,212,255,0.3)',
-          borderRadius: 999,
-          letterSpacing: '0.18em',
-        }}>SYS · ONLINE</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="mono" style={{
+            fontSize: 9, color: 'var(--cyan)',
+            padding: '3px 8px',
+            border: '1px solid rgba(0,212,255,0.3)',
+            borderRadius: 999,
+            letterSpacing: '0.18em',
+          }}>SYS · ONLINE</span>
+          <div
+            className="pressable"
+            onClick={onOpenSettings}
+            style={{
+              width: 28, height: 28, borderRadius: 999,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,0.06)', border: '1px solid var(--line)',
+              color: 'var(--muted)',
+            }}
+          >
+            <IconSliders size={15} />
+          </div>
+        </div>
       </div>
 
       <div style={{
@@ -540,7 +554,7 @@ function TodayTimeline({ events, onAdd, onDelete }) {
 // ─────────────────────────────────────────────────────────
 // Mission Control screen
 // ─────────────────────────────────────────────────────────
-function MissionControl({ state, setState, momentum, streak, trend }) {
+function MissionControl({ state, setState, momentum, streak, trend, onOpenSettings }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
   const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
@@ -573,6 +587,7 @@ function MissionControl({ state, setState, momentum, streak, trend }) {
         body={state.body}
         mood={state.mood}
         onMeter={setMeter}
+        onOpenSettings={onOpenSettings}
       />
       <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
       <MomentumStrip momentum={momentum} streak={streak} />
