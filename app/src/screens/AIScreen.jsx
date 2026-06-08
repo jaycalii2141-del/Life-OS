@@ -101,6 +101,39 @@ function routeFreeText(q) {
   return snapshot();
 }
 
+// Compact summary of Jay's live data, sent to the LLM as context.
+function buildContext() {
+  const d = getDaily();
+  const o = getOna();
+  const c = getContent();
+  const sess = getSessions();
+  const r = readiness(d);
+  const lines = [];
+  lines.push(`Readiness: ${r ?? 'unset'}/100 (energy ${d.energy ?? '-'}, focus ${d.focus ?? '-'}, body ${d.body ?? '-'}, mood ${d.mood ?? '-'})`);
+  lines.push(`One Thing: ${d.oneThing || 'not set'}${d.oneThingDone ? ' [done]' : ''}`);
+  if (d.timeline?.length) lines.push(`Today's timeline: ${d.timeline.map((e) => `${e.time} ${e.label}`).join('; ')}`);
+  if (o.stats) lines.push(`ONA: members ${o.stats.members}, MRR $${o.stats.mrr}, NPS ${o.stats.nps}`);
+  if (o.initiatives?.length) lines.push(`Initiatives: ${o.initiatives.map((i) => `${i.priority} ${i.title} ${i.pct}%`).join('; ')}`);
+  if (c.brands?.length) lines.push(`Brands: ${c.brands.map((b) => `${b.name}(${b.status})`).join(', ')}`);
+  if (c.hooks?.length) lines.push(`Hook bank: ${c.hooks.map((h) => h.text).slice(0, 6).join(' | ')}`);
+  lines.push(`Training sessions logged: ${sess.length}`);
+  return lines.join('\n');
+}
+
+// Ask the real LLM via the serverless function; fall back to structured answers.
+async function askLLM(question) {
+  const resp = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ question, context: buildContext() }),
+  });
+  if (!resp.ok) throw new Error('ai unavailable');
+  const data = await resp.json();
+  const text = (data.text || '').trim();
+  if (!text) throw new Error('empty');
+  return text;
+}
+
 // Spinning conic-gradient AI orb
 function AIOrb({ size = 140, listening = false }) {
   return (
@@ -159,11 +192,22 @@ function AIScreen({ captures = [] }) {
     }, 420);
   };
 
-  const submitInput = () => {
+  const submitInput = async () => {
     const q = input.trim();
-    if (!q) return;
+    if (!q || thinking) return;
     setInput('');
-    ask(q, () => routeFreeText(q));
+    setMessages((m) => [...m, { role: 'user', text: q }]);
+    setThinking(true);
+    setListening(true);
+    let text;
+    try {
+      text = await askLLM(q);
+    } catch {
+      text = routeFreeText(q); // graceful fallback before the API key is set
+    }
+    setMessages((m) => [...m, { role: 'ai', text }]);
+    setThinking(false);
+    setListening(false);
   };
 
   return (
