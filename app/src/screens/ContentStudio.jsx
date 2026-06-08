@@ -527,7 +527,7 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
           <span style={{ width: 8, height: 8, borderRadius: 999, background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{project.title}</div>
-            <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>{(brand?.name || 'NO BRAND').toUpperCase()} · {done}/{steps.length} STEPS</div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>{brands.length ? `${(brand?.name || 'NO BRAND').toUpperCase()} · ` : ''}{done}/{steps.length} STEPS</div>
           </div>
           <span className="display" style={{ fontSize: 18, color }}>{pct}%</span>
         </div>
@@ -554,21 +554,25 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
             <div className="pressable" onClick={addStep} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconPlus size={16} stroke={2.4} /></div>
           </div>
 
-          <div className="eyebrow">Brand</div>
-          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-            {brands.map((b) => {
-              const on = project.brandId === b.id;
-              return (
-                <div key={b.id} className="pressable" onClick={() => onUpdate({ brandId: b.id })} style={{
-                  padding: '5px 9px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
-                  background: on ? `${b.color}20` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? b.color : 'var(--line)'}`,
-                  color: on ? b.color : 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5,
-                }}>
-                  <span style={{ width: 5, height: 5, borderRadius: 999, background: b.color }} />{b.name}
-                </div>
-              );
-            })}
-          </div>
+          {brands.length > 0 && (
+            <>
+              <div className="eyebrow">Brand</div>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {brands.map((b) => {
+                  const on = project.brandId === b.id;
+                  return (
+                    <div key={b.id} className="pressable" onClick={() => onUpdate({ brandId: b.id })} style={{
+                      padding: '5px 9px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
+                      background: on ? `${b.color}20` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? b.color : 'var(--line)'}`,
+                      color: on ? b.color : 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5,
+                    }}>
+                      <span style={{ width: 5, height: 5, borderRadius: 999, background: b.color }} />{b.name}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE PROJECT</div>
         </div>
@@ -611,26 +615,167 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// Folders / Spaces — one per brand or life area
+// ─────────────────────────────────────────────────────────
+const FOLDER_COLORS = ['#FF0033', '#FFD23C', '#B6FF3C', '#00D4FF', '#FF3CC8', '#FF8A3C', '#B14CFF'];
+const SEED_FOLDERS = [
+  { id: 1, name: 'ONA', color: '#FF0033', notes: [], projects: [] },
+  { id: 2, name: 'Podium', color: '#FFD23C', notes: [], projects: [] },
+  { id: 3, name: 'Movement', color: '#B6FF3C', notes: [], projects: [] },
+  { id: 4, name: '@jayy_martinez', color: '#00D4FF', notes: [], projects: [] },
+  { id: 5, name: 'Wife & I', color: '#FF3CC8', notes: [], projects: [] },
+];
+
+function NoteCard({ note, onUpdate, onDelete }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? 'var(--cyan)' : 'var(--line)'}`, transition: 'border-color 200ms' }}>
+      <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ padding: '10px 12px' }}>
+        <div style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{note.title || 'Untitled note'}</div>
+        {!open && note.body && (
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{note.body}</div>
+        )}
+      </div>
+      {open && (
+        <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <input autoFocus value={note.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Title" style={ctInp} />
+          <textarea value={note.body} onChange={(e) => onUpdate({ body: e.target.value })} placeholder="Write it down…" rows={5}
+            style={{ ...ctInp, resize: 'vertical', lineHeight: 1.5 }} />
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE NOTE</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
+  const [addingNote, setAddingNote] = useState(false);
+  if (!folder) return null;
+  const notes = folder.notes || [];
+  const projects = folder.projects || [];
+
+  const addNote = () => onUpdate({ notes: [{ id: Date.now(), title: '', body: '' }, ...notes] });
+  const updNote = (id, patch) => onUpdate({ notes: notes.map((n) => (n.id === id ? { ...n, ...patch } : n)) });
+  const delNote = (id) => onUpdate({ notes: notes.filter((n) => n.id !== id) });
+
+  const addProj = (p) => onUpdate({ projects: [p, ...projects] });
+  const updProj = (id, patch) => onUpdate({ projects: projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+  const delProj = (id) => onUpdate({ projects: projects.filter((p) => p.id !== id) });
+
+  return (
+    <>
+      <div className="scrim" onClick={onClose} />
+      <div className="sheet" style={{ maxHeight: '88%', overflowY: 'auto' }}>
+        <div className="sheet-handle" />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+            <span style={{ width: 12, height: 12, borderRadius: 999, background: folder.color, boxShadow: `0 0 10px ${folder.color}`, flexShrink: 0 }} />
+            <input value={folder.name} onChange={(e) => onUpdate({ name: e.target.value })}
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontFamily: 'var(--font-display)', fontSize: 26, letterSpacing: '0.02em' }} />
+          </div>
+          <div className="pressable" onClick={onClose} style={{ width: 32, height: 32, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', color: 'var(--muted)', flexShrink: 0 }}><IconClose size={16} /></div>
+        </div>
+
+        {/* color picker */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+          {FOLDER_COLORS.map((c) => (
+            <div key={c} className="pressable" onClick={() => onUpdate({ color: c })} style={{
+              width: 24, height: 24, borderRadius: 999, background: c,
+              border: folder.color === c ? '2px solid #fff' : '2px solid transparent',
+            }} />
+          ))}
+        </div>
+
+        {/* Notes */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div className="section-title" style={{ fontSize: 18 }}>NOTES</div>
+          <div className="pressable" onClick={() => { addNote(); }} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}><IconPlus size={16} /></div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
+          {notes.length === 0 && <div className="eyebrow" style={{ color: 'var(--dim)' }}>No notes yet — tap + to jot something down.</div>}
+          {notes.map((n) => (
+            <NoteCard key={n.id} note={n} onUpdate={(patch) => updNote(n.id, patch)} onDelete={() => delNote(n.id)} />
+          ))}
+        </div>
+
+        {/* Projects (reused, no brand tagging inside a folder) */}
+        <Projects projects={projects} brands={[]} onAdd={addProj} onUpdate={updProj} onDelete={delProj} />
+
+        {/* Delete folder */}
+        <div className="pressable" onClick={() => { if (window.confirm(`Delete the "${folder.name}" folder and everything in it?`)) onDelete(); }}
+          style={{ marginTop: 16, textAlign: 'center', padding: '10px', borderRadius: 12, background: 'rgba(255,0,51,0.08)', border: '1px solid rgba(255,0,51,0.3)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', fontWeight: 700 }}>
+          DELETE FOLDER
+        </div>
+        <div style={{ height: 8 }} />
+      </div>
+    </>
+  );
+}
+
+function FoldersSection({ folders, onAdd, onOpen }) {
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState('');
+  const submit = () => {
+    if (!name.trim()) return;
+    onAdd({ id: Date.now(), name: name.trim(), color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length], notes: [], projects: [] });
+    setName(''); setAdding(false);
+  };
+
+  return (
+    <div>
+      <SectionHead eyebrow="Tap a folder to open it" title="WORKSPACE" trailing={
+        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
+      } />
+
+      {adding && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="New folder (brand or life area)…" style={{ ...ctInp, flex: 1 }} />
+          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconCheck size={16} stroke={2.4} /></div>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+        {folders.map((f) => {
+          const noteN = (f.notes || []).length;
+          const projN = (f.projects || []).length;
+          return (
+            <div key={f.id} className="pressable hud" onClick={() => onOpen(f.id)} style={{
+              position: 'relative', padding: 14, borderRadius: 16, minHeight: 92,
+              background: `linear-gradient(135deg, ${f.color}14, rgba(11,11,18,0.5))`,
+              border: `1px solid ${f.color}50`, boxShadow: `0 10px 30px -16px ${f.color}`,
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+            }}>
+              <HUDTicks />
+              <span style={{ width: 10, height: 10, borderRadius: 999, background: f.color, boxShadow: `0 0 10px ${f.color}` }} />
+              <div>
+                <div className="display" style={{ fontSize: 19, color: 'var(--text)', letterSpacing: '0.02em', lineHeight: 1, textWrap: 'balance' }}>{f.name}</div>
+                <div className="mono" style={{ fontSize: 8, color: 'var(--muted)', marginTop: 6, letterSpacing: '0.12em' }}>{noteN} NOTES · {projN} PROJECTS</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // Content Studio screen
 // ─────────────────────────────────────────────────────────
 function ContentStudio() {
   const [content, setContent] = useSyncedState('lifeos:content', {
-    brands: BRANDS,
     hooks: HOOKS.map((text, i) => ({ id: i + 1, text })),
   });
-  const [selected, setSelected] = useState(null);
+  const [folders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
+  const [openFolderId, setOpenFolderId] = useState(null);
 
-  const [projects, setProjects] = useSyncedState('lifeos:projects', []);
-  const addProject = (p) => setProjects((ps) => [p, ...ps]);
-  const updateProject = (id, patch) => setProjects((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const deleteProject = (id) => setProjects((ps) => ps.filter((p) => p.id !== id));
+  const addFolder = (f) => setFolders((fs) => [...fs, f]);
+  const updateFolder = (id, patch) => setFolders((fs) => fs.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  const deleteFolder = (id) => { setFolders((fs) => fs.filter((f) => f.id !== id)); setOpenFolderId(null); };
 
-  const brands = content.brands ?? BRANDS;
   const hooks = content.hooks ?? [];
   const calendar = content.calendar ?? {};
-
-  const updateBrand = (id, patch) =>
-    setContent((c) => ({ ...c, brands: (c.brands ?? BRANDS).map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
   const addHook = (h) => setContent((c) => ({ ...c, hooks: [h, ...(c.hooks ?? [])] }));
   const updateHook = (id, patch) =>
     setContent((c) => ({ ...c, hooks: (c.hooks ?? []).map((h) => (h.id === id ? { ...h, ...patch } : h)) }));
@@ -641,7 +786,8 @@ function ContentStudio() {
       return { ...c, calendar: { ...(c.calendar || {}), [key]: (cur + 1) % 5 } };
     });
 
-  const selectedBrand = brands.find((b) => b.id === selected);
+  const totalProjects = folders.reduce((s, f) => s + (f.projects || []).length, 0);
+  const currentFolder = folders.find((f) => f.id === openFolderId);
 
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -649,31 +795,27 @@ function ContentStudio() {
         <HUDTicks />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div className="eyebrow">Studio · Week 21</div>
-            <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>SIX BRANDS · ONE FEED</div>
+            <div className="eyebrow">Studio</div>
+            <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>CREATE · BUILD · TRACK</div>
             <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
-              {brands.reduce((s, b) => s + (b.posted || 0), 0)} POSTS THIS WEEK · TAP A BRAND TO EDIT
+              {folders.length} FOLDERS · {totalProjects} PROJECTS
             </div>
           </div>
           <Pill variant="violet" dot="#B14CFF">LIVE</Pill>
         </div>
       </div>
 
-      <div>
-        <SectionHead eyebrow="6 brands · tap to edit" title="BRAND OS" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-          {brands.map((b) => (
-            <BrandTile key={b.id} brand={b} selected={selected === b.id} onSelect={() => setSelected(selected === b.id ? null : b.id)} />
-          ))}
-        </div>
-        {selectedBrand && (
-          <BrandEditor brand={selectedBrand} onUpdate={(patch) => updateBrand(selectedBrand.id, patch)} onClose={() => setSelected(null)} />
-        )}
-      </div>
+      <FoldersSection folders={folders} onAdd={addFolder} onOpen={setOpenFolderId} />
 
-      <Projects projects={projects} brands={brands} onAdd={addProject} onUpdate={updateProject} onDelete={deleteProject} />
       <HookBank hooks={hooks} onAdd={addHook} onUpdate={updateHook} onDelete={deleteHook} />
       <PostingCalendar calendar={calendar} onCycle={cycleDay} />
+
+      <FolderSheet
+        folder={currentFolder}
+        onUpdate={(patch) => updateFolder(openFolderId, patch)}
+        onDelete={() => deleteFolder(openFolderId)}
+        onClose={() => setOpenFolderId(null)}
+      />
     </div>
   );
 }
