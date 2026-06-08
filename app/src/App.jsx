@@ -16,6 +16,7 @@ import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
+import { SyncBadge } from './SyncBadge.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -29,11 +30,28 @@ export default function App() {
       <IOSDevice dark width={402} height={874}>
         <div style={{
           position: 'absolute', inset: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          display: 'flex', flexDirection: 'column', gap: 18,
+          alignItems: 'center', justifyContent: 'center',
           background: 'var(--bg-0)',
         }}>
-          <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.2em' }}>
-            LOADING…
+          <div style={{ position: 'relative', width: 84, height: 84 }}>
+            <div style={{
+              position: 'absolute', inset: -14, borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(0,212,255,0.35) 0%, transparent 65%)',
+            }} />
+            <div className="orb-spin" style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              background: 'conic-gradient(from 0deg, #00D4FF, #B14CFF, #00D4FF)',
+              WebkitMask: 'radial-gradient(circle, transparent 60%, #000 62%)',
+              mask: 'radial-gradient(circle, transparent 60%, #000 62%)',
+            }} />
+            <div style={{
+              position: 'absolute', inset: '34%', borderRadius: '50%',
+              background: '#00D4FF', boxShadow: '0 0 20px rgba(0,212,255,0.7)',
+            }} />
+          </div>
+          <span className="display" style={{ fontSize: 22, letterSpacing: '0.1em', color: 'var(--text)' }}>
+            LIFE OS
           </span>
         </div>
       </IOSDevice>
@@ -84,6 +102,7 @@ function MainApp() {
   return (
     <IOSDevice dark width={402} height={874}>
       <div className="screen-host">
+        <SyncBadge />
         <div className="screen-scroll" key={screenKey}>
           {screen}
         </div>

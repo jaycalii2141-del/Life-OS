@@ -46,7 +46,11 @@ export function useSyncedState(key, initial) {
         { user_id: uid, key, value, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,key' }
       )
-      .then(() => {});
+      .then(({ error }) => {
+        if (!error) {
+          try { window.dispatchEvent(new CustomEvent('lifeos:sync')); } catch { /* ignore */ }
+        }
+      });
   }, [value, uid, key, configured]);
 
   return [value, setValue];

@@ -138,7 +138,9 @@ function ReadinessRing({ value }) {
         flexDirection: 'column',
       }}>
         <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.18em' }}>READY</span>
-        <span className="display" style={{ fontSize: 14, color: 'var(--text)', marginTop: -2 }}>OPTIMAL</span>
+        <span className="display" style={{ fontSize: 14, color: 'var(--text)', marginTop: -2 }}>
+          {value >= 80 ? 'OPTIMAL' : value >= 60 ? 'STRONG' : value >= 40 ? 'STEADY' : 'LOW'}
+        </span>
       </div>
     </div>
   );
@@ -541,6 +543,9 @@ function MissionControl({ state, setState }) {
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
   const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
 
+  // Readiness is derived live from the four meters (each 0–10) → 0–100.
+  const readiness = Math.round(((state.energy + state.focus + state.body + state.mood) / 40) * 100);
+
   // Fall back to seed for daily states saved before these fields existed
   const oneThingText = state.oneThing ?? TODAY.oneThing;
   const events = state.timeline ?? TIMELINE;
@@ -559,7 +564,7 @@ function MissionControl({ state, setState }) {
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <ReadinessHero
-        readiness={state.readiness}
+        readiness={readiness}
         energy={state.energy}
         focus={state.focus}
         body={state.body}
