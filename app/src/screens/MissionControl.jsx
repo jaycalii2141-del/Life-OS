@@ -582,7 +582,7 @@ function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete, onOpenCal
 // ─────────────────────────────────────────────────────────
 // Mission Control screen
 // ─────────────────────────────────────────────────────────
-function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onOpenSettings, onOpenCalendar }) {
+function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onOpenSettings, onOpenCalendar, onGoMind }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
   const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
@@ -632,7 +632,7 @@ function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onO
         onMeter={setMeter}
         onOpenSettings={onOpenSettings}
       />
-      <ChiefBrief readiness={readiness} oneThing={oneThingText} calendarEvents={calendarEvents} />
+      <ChiefBrief readiness={readiness} oneThing={oneThingText} calendarEvents={calendarEvents} onAddEvent={addEvent} onGoMind={onGoMind} />
       <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
       <MomentumStrip momentum={momentum} streak={streak} />
       <TodayTimeline events={events} calendarEvents={calendarEvents} onAdd={addEvent} onDelete={deleteEvent} onOpenCalendar={onOpenCalendar} />

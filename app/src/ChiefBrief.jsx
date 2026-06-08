@@ -6,8 +6,9 @@
 // deterministic otherwise.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import { IconCompass, IconSparkles, IconChevronDown } from './components/icons.jsx';
+import { IconCompass, IconSparkles, IconChevronDown, IconCalendar, IconSend, IconInbox, IconArrowRight, IconCheck, IconClose } from './components/icons.jsx';
 import { todayKey } from './usePersistentState.js';
+import { googleCalendarUrl, mailtoUrl, openExternal } from './lib/actions.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -55,34 +56,58 @@ function buildLocal({ readiness, oneThing, calendarEvents }) {
   return out.join('\n');
 }
 
-export function ChiefBrief({ readiness, oneThing, calendarEvents }) {
+export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, onGoMind }) {
   const day = todayKey();
   const cacheKey = `lifeos:brief:${day}`;
   const [brief, setBrief] = useState('');
+  const [actions, setActions] = useState([]);
   const [usedAI, setUsedAI] = useState(false);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(true);
+  const [composing, setComposing] = useState(null); // null | event payload draft
+
+  const inbox = inboxCount();
 
   const generate = async (force) => {
     if (!force) {
       const cached = readJSON(cacheKey, null);
-      if (cached && cached.text) { setBrief(cached.text); setUsedAI(!!cached.ai); return; }
+      if (cached && cached.text) { setBrief(cached.text); setUsedAI(!!cached.ai); setActions(cached.actions || []); return; }
     }
     setLoading(true);
     const context = buildContext({ readiness, oneThing, calendarEvents });
-    let text = '', ai = false;
+    let text = '', ai = false, acts = [];
     try {
       const r = await fetch('/api/chief', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'brief', context }) });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       text = (data.text || '').trim();
       if (!text) throw new Error('empty');
+      acts = Array.isArray(data.actions) ? data.actions : [];
       ai = true;
     } catch {
-      text = buildLocal({ readiness, oneThing, calendarEvents }); ai = false;
+      text = buildLocal({ readiness, oneThing, calendarEvents }); ai = false; acts = [];
     }
-    setBrief(text); setUsedAI(ai); setLoading(false);
-    try { localStorage.setItem(cacheKey, JSON.stringify({ text, ai, ts: Date.now() })); } catch { /* */ }
+    setBrief(text); setUsedAI(ai); setActions(acts); setLoading(false);
+    try { localStorage.setItem(cacheKey, JSON.stringify({ text, ai, actions: acts, ts: Date.now() })); } catch { /* */ }
+  };
+
+  // Run an AI-proposed action (event prefills Google Calendar + app timeline; email prefills mail).
+  const runAction = (a) => {
+    if (a.type === 'event') {
+      onAddEvent?.({ time: a.time || '12:00', label: a.title || a.label || 'Block', kind: 'Focus', color: '#B14CFF' });
+      openExternal(googleCalendarUrl({ title: a.title || a.label, time: a.time, durationMin: a.durationMin || 60 }));
+    } else if (a.type === 'email') {
+      openExternal(mailtoUrl({ to: a.to || '', subject: a.subject || a.label || '', body: a.body || '' }));
+    }
+  };
+
+  // Confirm the inline "plan a block" composer.
+  const confirmEvent = () => {
+    const ev = composing;
+    if (!ev || !ev.title.trim()) { setComposing(null); return; }
+    onAddEvent?.({ time: ev.time || '12:00', label: ev.title.trim(), kind: 'Focus', color: '#B14CFF' });
+    openExternal(googleCalendarUrl({ title: ev.title.trim(), time: ev.time, durationMin: parseInt(ev.dur, 10) || 60 }));
+    setComposing(null);
   };
 
   // Generate (from cache or fresh) once the calendar has had a beat to load.
@@ -116,9 +141,63 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents }) {
         loading && !brief ? (
           <div className="eyebrow" style={{ opacity: 0.7, padding: '6px 0' }}>assembling your brief…</div>
         ) : (
-          <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{brief}</div>
+          <>
+            <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{brief}</div>
+
+            {/* Action row — propose & prefill; you confirm send/create in Google */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
+              {inbox > 0 && (
+                <ActionChip icon={<IconInbox size={13} />} color="#FFD23C" label={`Triage ${inbox}`} onClick={() => onGoMind?.()} />
+              )}
+              <ActionChip icon={<IconCalendar size={13} />} color="#00D4FF" label="Plan a block" onClick={() => setComposing({ title: '', time: '09:00', dur: '60' })} />
+              {actions.map((a, i) => (
+                a.type === 'event'
+                  ? <ActionChip key={i} icon={<IconCalendar size={13} />} color="#B14CFF" label={a.label || a.title || 'Add event'} onClick={() => runAction(a)} />
+                  : a.type === 'email'
+                    ? <ActionChip key={i} icon={<IconSend size={13} />} color="#B6FF3C" label={a.label || 'Draft email'} onClick={() => runAction(a)} />
+                    : null
+              ))}
+            </div>
+
+            {/* Inline quick-event composer */}
+            {composing && (
+              <div className="hud glass" style={{ padding: 12, borderRadius: 12, marginTop: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span className="eyebrow" style={{ color: 'var(--cyan)' }}>New block</span>
+                  <div className="pressable" onClick={() => setComposing(null)} style={{ color: 'var(--dim)' }}><IconClose size={14} /></div>
+                </div>
+                <input
+                  autoFocus value={composing.title}
+                  onChange={(e) => setComposing((c) => ({ ...c, title: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') confirmEvent(); }}
+                  placeholder="What are you blocking time for?"
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)', marginBottom: 8 }}
+                />
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input type="time" value={composing.time} onChange={(e) => setComposing((c) => ({ ...c, time: e.target.value }))} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-mono)' }} />
+                  <select value={composing.dur} onChange={(e) => setComposing((c) => ({ ...c, dur: e.target.value }))} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-mono)' }}>
+                    {['30', '45', '60', '90', '120'].map((m) => <option key={m} value={m} style={{ background: '#0B0B12' }}>{m} min</option>)}
+                  </select>
+                  <div className="pressable" onClick={confirmEvent} style={{ flex: 1, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    <IconCheck size={15} stroke={2.4} /> Add to calendar
+                  </div>
+                </div>
+                <div className="eyebrow" style={{ marginTop: 8, opacity: 0.7 }}>opens Google Calendar prefilled — you hit save</div>
+              </div>
+            )}
+          </>
         )
       )}
     </div>
+  );
+}
+
+function ActionChip({ icon, label, color, onClick }) {
+  return (
+    <div className="pressable" onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999,
+      background: `${color}1a`, border: `1px solid ${color}66`, color,
+      fontSize: 12, fontWeight: 700, letterSpacing: '0.02em',
+    }}>{icon}{label}</div>
   );
 }
