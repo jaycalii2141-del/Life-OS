@@ -73,16 +73,9 @@ function MainApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Mission Control state — per-day, synced to the cloud when signed in.
-  const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${todayKey()}`, {
-    readiness: TODAY.readiness,
-    energy: TODAY.energy,
-    focus: TODAY.focus,
-    body: TODAY.body,
-    mood: TODAY.mood,
-    oneThingDone: false,
-    oneThing: TODAY.oneThing,
-    timeline: TIMELINE,
-  });
+  // Each new day starts fresh: blank One Thing, neutral meters to re-assess,
+  // and yesterday's timeline carried forward as an editable template.
+  const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${todayKey()}`, freshDailyDefault(todayKey()));
 
   // Captures — a synced log across all days, newest first.
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
@@ -146,6 +139,37 @@ function MainApp() {
       </div>
     </IOSDevice>
   );
+}
+
+// ─────────────────────────────────────────────────────────
+// Fresh daily default — carry the timeline forward, reset the rest
+// ─────────────────────────────────────────────────────────
+function latestPriorTimeline(todayK) {
+  let bestDate = '';
+  let timeline = null;
+  const prefix = 'lifeos:daily:';
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith(prefix)) {
+      const date = k.slice(prefix.length);
+      if (date < todayK && date > bestDate) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(k));
+          if (parsed?.timeline) { bestDate = date; timeline = parsed.timeline; }
+        } catch { /* skip */ }
+      }
+    }
+  }
+  return timeline;
+}
+
+function freshDailyDefault(todayK) {
+  return {
+    energy: 7, focus: 7, body: 7, mood: 7,
+    oneThingDone: false,
+    oneThing: '',
+    timeline: latestPriorTimeline(todayK) ?? TIMELINE,
+  };
 }
 
 // ─────────────────────────────────────────────────────────

@@ -171,7 +171,7 @@ function OneThingCard({ text, done, onMark, onEdit }) {
   const [draft, setDraft] = useState(text);
 
   const handle = () => {
-    if (done) return;
+    if (done || !text) return;
     setTrigger((t) => t + 1);
     setTimeout(() => onMark(), 80);
   };
@@ -298,16 +298,16 @@ function OneThingCard({ text, done, onMark, onEdit }) {
               style={{
                 flex: 1,
                 fontSize: 17, lineHeight: 1.25, fontWeight: 600,
-                color: 'var(--text)',
+                color: text ? 'var(--text)' : 'var(--muted)',
                 textDecoration: done ? 'line-through' : 'none',
                 opacity: done ? 0.55 : 1,
                 textWrap: 'pretty',
                 cursor: done ? 'default' : 'text',
               }}
-            >{text}</div>
+            >{text || 'Set your One Thing for today →'}</div>
           </div>
 
-          {!done && (
+          {!done && text && (
             <div
               className="pressable"
               onClick={handle}
