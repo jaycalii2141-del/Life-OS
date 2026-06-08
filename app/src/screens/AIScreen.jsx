@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { HUDTicks, Pill, SectionHead } from '../components/atoms.jsx';
-import { IconSparkles, IconCalendar, IconCamera, IconActivity, IconFlame, IconUsers, IconTarget, IconMic, IconSend } from '../components/icons.jsx';
+import { IconSparkles, IconCalendar, IconCamera, IconActivity, IconFlame, IconUsers, IconTarget, IconMic, IconSend, IconCompass, IconSliders } from '../components/icons.jsx';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { todayKey } from '../usePersistentState.js';
 import { COACHES } from '../data.js';
@@ -90,8 +90,34 @@ function snapshot() {
   return `Here's your snapshot:\n  Readiness ${r ?? '—'}/100\n  One Thing → ${d.oneThing || 'not set'}\n  Sessions logged: ${sessions}\n\nAsk me to plan your day, check recovery, run an ONA pulse, or write a hook.`;
 }
 
-function routeFreeText(q) {
+function podiumLocal() {
+  const c = getContent();
+  const folders = readJSON('lifeos:folders', []);
+  const pod = folders.find((f) => f.domain === 'podium' || (f.name || '').toLowerCase() === 'podium');
+  const notes = pod ? (pod.notes || []).length : 0;
+  return `Podium isn't wired to live order/inventory data yet — capture orders, builds, and stock in the Podium folder and I'll track them.${notes ? ` (${notes} note${notes > 1 ? 's' : ''} there now.)` : ''}\n\nThis week: pick the one product or order that moves revenue and ship it. Protect a CNC/build block on the calendar.`;
+}
+
+function architectLocal() {
+  const captures = readJSON('lifeos:captures', []);
+  const inbox = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
+  const focus = readJSON('lifeos:weeklyfocus', {}).text;
+  const bits = [];
+  bits.push(inbox ? `${inbox} thoughts sit untriaged — clear them in Mind to cut mental load.` : 'Capture inbox is clean — nice.');
+  bits.push(focus ? `This week's focus is set: "${focus}". Protect a recurring block for it.` : 'No weekly focus set — run the Weekly Review and pick one.');
+  bits.push('For the full picture, open Mind → UPGRADE for your monthly system review.');
+  return bits.join('\n\n');
+}
+
+function routeFreeText(q, agentId) {
   const t = q.toLowerCase();
+  // Agent-scoped local fallbacks (used before the API key is set).
+  if (agentId === 'coach') return recovery();
+  if (agentId === 'creative') return /shot|shoot|brand|film|post/.test(t) ? shotList() : writeHook();
+  if (agentId === 'ona') return /coach|roster|lesson/.test(t) ? coachReview() : onaPulse();
+  if (agentId === 'podium') return podiumLocal();
+  if (agentId === 'architect') return architectLocal();
+  // Chief / general routing.
   if (/plan|day|schedule|today/.test(t)) return planDay();
   if (/recover|ready|readiness|rest|sore|tired/.test(t)) return recovery();
   if (/ona|pulse|member|mrr|nps|gym|academy/.test(t)) return onaPulse();
@@ -100,6 +126,16 @@ function routeFreeText(q) {
   if (/coach|riley|roster|lesson/.test(t)) return coachReview();
   return snapshot();
 }
+
+// ── The agent roster — each a focused persona with quick actions ──
+const AGENTS = [
+  { id: 'chief',     name: 'Chief of Staff',    role: 'Runs your day',       color: '#B14CFF', Icon: IconCompass,  placeholder: 'What should I focus on today?', quick: [{ label: 'Plan my day', run: planDay }, { label: 'Daily snapshot', run: snapshot }] },
+  { id: 'coach',     name: 'Performance Coach', role: 'Trains & recovers you', color: '#B6FF3C', Icon: IconActivity, placeholder: 'Am I recovered? What should I train?', quick: [{ label: 'Am I recovered?', run: recovery }, { label: 'Plan a session', run: () => 'Open Train → Build My Session for a full plan built from your skill tree, recent training, and readiness.' }] },
+  { id: 'creative',  name: 'Creative Director', role: 'Content & brands',     color: '#FF3CC8', Icon: IconFlame,    placeholder: 'Give me a hook or a shot list…', quick: [{ label: 'Write me a hook', run: writeHook }, { label: 'Shot list', run: shotList }] },
+  { id: 'ona',       name: 'ONA Ops',           role: 'Gym operations',       color: '#FF0033', Icon: IconTarget,   placeholder: 'How is ONA doing?', quick: [{ label: 'ONA pulse', run: onaPulse }, { label: 'Coach review', run: coachReview }] },
+  { id: 'podium',    name: 'Podium Ops',        role: 'Equipment & builds',   color: '#FFD23C', Icon: IconSliders,  placeholder: "What's next for Podium?", quick: [{ label: 'Podium focus', run: podiumLocal }] },
+  { id: 'architect', name: 'Systems Architect', role: 'Improves your systems', color: '#00D4FF', Icon: IconSparkles, placeholder: 'Where am I losing time?', quick: [{ label: 'Find friction', run: architectLocal }] },
+];
 
 // Compact summary of Jay's live data, sent to the LLM as context.
 function buildContext() {
@@ -121,11 +157,11 @@ function buildContext() {
 }
 
 // Ask the real LLM via the serverless function; fall back to structured answers.
-async function askLLM(question) {
+async function askLLM(question, agentId) {
   const resp = await fetch('/api/ai', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ question, context: buildContext() }),
+    body: JSON.stringify({ question, context: buildContext(), agent: agentId }),
   });
   if (!resp.ok) throw new Error('ai unavailable');
   const data = await resp.json();
@@ -161,22 +197,16 @@ function AIOrb({ size = 140, listening = false }) {
   );
 }
 
-const AI_COMMANDS = [
-  { id: 'plan',   label: 'Plan my day',          icon: IconCalendar, color: '#00D4FF', run: planDay },
-  { id: 'shoot',  label: 'Generate shot list',   icon: IconCamera,   color: '#FF3CC8', run: shotList },
-  { id: 'recov',  label: 'Am I recovered?',      icon: IconActivity, color: '#B6FF3C', run: recovery },
-  { id: 'hook',   label: 'Write me a hook',      icon: IconFlame,    color: '#FF8A3C', run: writeHook },
-  { id: 'review', label: 'Coach review (Riley)', icon: IconUsers,    color: '#FFD23C', run: coachReview },
-  { id: 'pulse',  label: 'ONA pulse check',      icon: IconTarget,   color: '#FF0033', run: onaPulse },
-];
-
 function AIScreen({ captures = [] }) {
   const [input, setInput] = useState('');
   const [listening, setListening] = useState(false);
   const [messages, setMessages] = useState([]);
   const [thinking, setThinking] = useState(false);
+  const [agentId, setAgentId] = useState('chief');
   const { configured, session, signOut } = useAuth();
   const endRef = useRef(null);
+
+  const agent = AGENTS.find((a) => a.id === agentId) || AGENTS[0];
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, thinking]);
 
@@ -186,7 +216,7 @@ function AIScreen({ captures = [] }) {
     setListening(true);
     setTimeout(() => {
       const text = responder();
-      setMessages((m) => [...m, { role: 'ai', text }]);
+      setMessages((m) => [...m, { role: 'ai', text, agent: agent.name, color: agent.color }]);
       setThinking(false);
       setListening(false);
     }, 420);
@@ -201,11 +231,11 @@ function AIScreen({ captures = [] }) {
     setListening(true);
     let text;
     try {
-      text = await askLLM(q);
+      text = await askLLM(q, agentId);
     } catch {
-      text = routeFreeText(q); // graceful fallback before the API key is set
+      text = routeFreeText(q, agentId); // graceful fallback before the API key is set
     }
-    setMessages((m) => [...m, { role: 'ai', text }]);
+    setMessages((m) => [...m, { role: 'ai', text, agent: agent.name, color: agent.color }]);
     setThinking(false);
     setListening(false);
   };
@@ -215,7 +245,10 @@ function AIScreen({ captures = [] }) {
       <div className="hud glass-strong mesh-ai" style={{ padding: '22px 18px', borderRadius: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
         <HUDTicks />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 14 }}>
-          <Pill variant="violet" dot="#B14CFF">CLAUDE · 3.7</Pill>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, background: `${agent.color}1a`, border: `1px solid ${agent.color}55` }}>
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: agent.color, boxShadow: `0 0 8px ${agent.color}` }} />
+            <span className="mono" style={{ fontSize: 9, color: agent.color, letterSpacing: '0.14em' }}>{AGENTS.length} AGENTS</span>
+          </div>
           {configured && session ? (
             <span className="pressable mono" onClick={signOut} style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.16em' }}>SIGN OUT</span>
           ) : (
@@ -223,12 +256,12 @@ function AIScreen({ captures = [] }) {
           )}
         </div>
 
-        <AIOrb size={140} listening={listening} />
+        <AIOrb size={132} listening={listening} />
 
-        <div className="display" style={{ fontSize: 28, marginTop: 16, background: 'linear-gradient(90deg, #00D4FF, #B14CFF, #FF3CC8)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-          HOW CAN I MOVE YOU?
+        <div className="display" style={{ fontSize: 25, marginTop: 16, color: agent.color }}>
+          {agent.name.toUpperCase()}
         </div>
-        <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: '0.16em' }}>ASK · DECIDE · ROUTE</div>
+        <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, letterSpacing: '0.16em' }}>{agent.role.toUpperCase()}</div>
 
         <div style={{ width: '100%', marginTop: 18, display: 'flex', gap: 8 }}>
           <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(177,76,255,0.35)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 30px -8px rgba(177,76,255,0.4)' }}>
@@ -237,7 +270,7 @@ function AIScreen({ captures = [] }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitInput()}
-              placeholder="Ask anything about your day…"
+              placeholder={agent.placeholder}
               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 14, fontFamily: 'var(--font-body)' }}
             />
             <div className="pressable" onClick={submitInput} style={{ color: input.trim() ? 'var(--violet)' : 'var(--dim)' }}>
@@ -248,6 +281,26 @@ function AIScreen({ captures = [] }) {
             <IconMic size={20} className={listening ? 'blink' : ''} />
           </div>
         </div>
+      </div>
+
+      {/* Agent roster — tap to switch who you're talking to */}
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, margin: '-2px -2px 0', WebkitOverflowScrolling: 'touch' }}>
+        {AGENTS.map((a) => {
+          const on = a.id === agentId;
+          return (
+            <div key={a.id} className="pressable" onClick={() => setAgentId(a.id)} style={{
+              flexShrink: 0, width: 96, padding: '12px 8px', borderRadius: 14, textAlign: 'center',
+              background: on ? `${a.color}1c` : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${on ? a.color : 'var(--line)'}`,
+              boxShadow: on ? `0 0 18px -6px ${a.color}` : 'none', transition: 'all 200ms',
+            }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, margin: '0 auto 8px', background: `${a.color}1a`, border: `1px solid ${a.color}55`, color: a.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <a.Icon size={17} />
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: on ? a.color : 'var(--muted)', lineHeight: 1.2 }}>{a.name}</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Conversation */}
@@ -262,8 +315,9 @@ function AIScreen({ captures = [] }) {
                 </div>
               ) : (
                 <div key={i} style={{ alignSelf: 'flex-start', maxWidth: '92%', display: 'flex', gap: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--violet)', boxShadow: '0 0 8px var(--violet)', marginTop: 6, flexShrink: 0 }} />
+                  <span style={{ width: 8, height: 8, borderRadius: 999, background: m.color || 'var(--violet)', boxShadow: `0 0 8px ${m.color || 'var(--violet)'}`, marginTop: 6, flexShrink: 0 }} />
                   <div style={{ padding: '8px 12px', borderRadius: 14, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', fontSize: 13, color: 'var(--text)', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>
+                    {m.agent && <div className="mono" style={{ fontSize: 8, color: m.color || 'var(--violet)', letterSpacing: '0.14em', marginBottom: 4 }}>{m.agent.toUpperCase()}</div>}
                     {m.text}
                   </div>
                 </div>
@@ -280,15 +334,15 @@ function AIScreen({ captures = [] }) {
         </div>
       )}
 
-      {/* Quick commands */}
+      {/* Quick actions for the active agent */}
       <div>
-        <SectionHead eyebrow="Tap a command" title="QUICK ACTIONS" />
+        <SectionHead eyebrow={`${agent.name} · tap to run`} title="QUICK ACTIONS" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-          {AI_COMMANDS.map((cmd) => (
-            <div key={cmd.id} className="pressable hud" onClick={() => ask(cmd.label, cmd.run)} style={{ padding: '12px 12px', borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: `1px solid ${cmd.color}30`, display: 'flex', alignItems: 'center', gap: 10, position: 'relative', boxShadow: `0 0 16px -8px ${cmd.color}` }}>
+          {agent.quick.map((cmd, i) => (
+            <div key={i} className="pressable hud" onClick={() => ask(cmd.label, cmd.run)} style={{ padding: '12px 12px', borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: `1px solid ${agent.color}30`, display: 'flex', alignItems: 'center', gap: 10, position: 'relative', boxShadow: `0 0 16px -8px ${agent.color}` }}>
               <HUDTicks />
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: `${cmd.color}18`, border: `1px solid ${cmd.color}50`, color: cmd.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <cmd.icon size={16} />
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: `${agent.color}18`, border: `1px solid ${agent.color}50`, color: agent.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <agent.Icon size={16} />
               </div>
               <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 600, lineHeight: 1.2 }}>{cmd.label}</span>
             </div>
