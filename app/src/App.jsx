@@ -11,6 +11,9 @@ import { TrainingHQ } from './screens/TrainingHQ.jsx';
 import { ContentStudio } from './screens/ContentStudio.jsx';
 import { ONAHQ } from './screens/ONAHQ.jsx';
 import { AIScreen } from './screens/AIScreen.jsx';
+import { MindScreen } from './screens/MindScreen.jsx';
+import { WeeklyReview } from './WeeklyReview.jsx';
+import { logEvent } from './lib/telemetry.js';
 import { TODAY, TIMELINE } from './data.js';
 import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
@@ -73,6 +76,11 @@ function MainApp() {
   const [capture, setCapture] = useState({ open: false, voice: false });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  // Tab changes are the backbone of usage telemetry (the "mirror").
+  const changeTab = (t) => { setTab(t); logEvent(t, 'open'); };
+  useEffect(() => { logEvent('home', 'open'); }, []);
 
   // Mission Control state — per-day, synced to the cloud when signed in.
   // Each new day starts fresh: blank One Thing, neutral meters to re-assess,
@@ -81,7 +89,7 @@ function MainApp() {
 
   // Captures — a synced log across all days, newest first.
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
-  const addCapture = (entry) => setCaptures((list) => [entry, ...list].slice(0, 50));
+  const addCapture = (entry) => { setCaptures((list) => [entry, ...list].slice(0, 50)); logEvent('capture', 'add', entry.tag); };
 
   // Daily history — powers the real streak, momentum heatmap, and 7-day trend.
   const [history, setHistory] = useSyncedState('lifeos:history', {});
@@ -114,6 +122,7 @@ function MainApp() {
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
+    case 'mind':   screen = <MindScreen captures={captures} setCaptures={setCaptures} onOpenReview={() => setReviewOpen(true)} />; break;
     case 'ai':     screen = <AIScreen captures={captures} />; break;
     default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} />;
   }
@@ -128,7 +137,7 @@ function MainApp() {
 
         <TabBar
           active={tab}
-          onChange={setTab}
+          onChange={changeTab}
           onFab={() => setCapture({ open: true, voice: false })}
           onFabLong={() => setCapture({ open: true, voice: true })}
         />
@@ -151,6 +160,11 @@ function MainApp() {
           open={calendarOpen}
           onClose={() => setCalendarOpen(false)}
           icalUrl={settings.icalUrl}
+        />
+
+        <WeeklyReview
+          open={reviewOpen}
+          onClose={() => setReviewOpen(false)}
         />
       </div>
     </IOSDevice>

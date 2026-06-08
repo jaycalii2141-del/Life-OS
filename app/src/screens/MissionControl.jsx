@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { HUDTicks, TickCounter, Pill, ConfettiBurst, StateMeter, TimelineEvent } from '../components/atoms.jsx';
 import { IconCheck, IconCalendar, IconClose, IconPlus, IconSliders } from '../components/icons.jsx';
 import { TODAY, TIMELINE, MOMENTUM } from '../data.js';
+import { ChiefBrief } from '../ChiefBrief.jsx';
 
 // ─────────────────────────────────────────────────────────
 // SCREEN 1 — Mission Control
@@ -631,6 +632,7 @@ function MissionControl({ state, setState, momentum, streak, trend, icalUrl, onO
         onMeter={setMeter}
         onOpenSettings={onOpenSettings}
       />
+      <ChiefBrief readiness={readiness} oneThing={oneThingText} calendarEvents={calendarEvents} />
       <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
       <MomentumStrip momentum={momentum} streak={streak} />
       <TodayTimeline events={events} calendarEvents={calendarEvents} onAdd={addEvent} onDelete={deleteEvent} onOpenCalendar={onOpenCalendar} />

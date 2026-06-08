@@ -38,10 +38,12 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
     const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     onSave?.({
       id: now.getTime(),
+      ts: now.getTime(),
       text: text.trim() || '[Voice memo]',
       tag,
       color: tagColor,
       time,
+      status: 'inbox',
     });
     setSaved(true);
     setTimeout(() => onClose?.(), 700);

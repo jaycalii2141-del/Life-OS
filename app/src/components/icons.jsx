@@ -46,6 +46,12 @@ const IconSend = (p) => <Ico {...p}><line x1="22" y1="2" x2="11" y2="13" /><poly
 const IconActivity = (p) => <Ico {...p}><polyline points="3 12 7 12 10 4 14 20 17 12 21 12" /></Ico>;
 const IconSliders = (p) => <Ico {...p}><line x1="4" y1="8" x2="20" y2="8" /><circle cx="9" cy="8" r="2.2" /><line x1="4" y1="16" x2="20" y2="16" /><circle cx="15" cy="16" r="2.2" /></Ico>;
 const IconDownload = (p) => <Ico {...p}><path d="M12 3v12" /><polyline points="7 11 12 16 17 11" /><path d="M5 20h14" /></Ico>;
+const IconBrain = (p) => <Ico {...p}><path d="M9 4a3 3 0 00-3 3 3 3 0 00-1 5.5A3 3 0 007 17a3 3 0 003 3V4z" /><path d="M15 4a3 3 0 013 3 3 3 0 011 5.5A3 3 0 0117 17a3 3 0 01-3 3V4z" /></Ico>;
+const IconInbox = (p) => <Ico {...p}><path d="M4 13l2.5-8h11L20 13" /><path d="M4 13h5l1.5 3h3L15 13h5v6H4v-6z" /></Ico>;
+const IconArchive = (p) => <Ico {...p}><rect x="3" y="4" width="18" height="5" rx="1" /><path d="M5 9v10h14V9" /><line x1="10" y1="13" x2="14" y2="13" /></Ico>;
+const IconTrash = (p) => <Ico {...p}><polyline points="4 7 20 7" /><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" /><path d="M6 7l1 13h10l1-13" /></Ico>;
+const IconBook = (p) => <Ico {...p}><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2V5z" /><line x1="9" y1="7" x2="15" y2="7" /></Ico>;
+const IconCompass = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><polygon points="16 8 13 13 8 16 11 11 16 8" /></Ico>;
 
 export {
   Ico,
@@ -53,5 +59,6 @@ export {
   IconMic, IconChevronRight, IconChevronDown, IconClose, IconLock, IconCircle,
   IconFlame, IconCamera, IconCopy, IconUsers, IconTrendUp, IconTarget, IconWarn,
   IconCalendar, IconClock, IconArrowRight, IconSend, IconActivity,
-  IconSliders, IconDownload,
+  IconSliders, IconDownload, IconBrain, IconInbox, IconArchive, IconTrash,
+  IconBook, IconCompass,
 };

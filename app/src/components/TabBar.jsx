@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { IconHome, IconBolt, IconPlay, IconNinja, IconSparkles, IconPlus } from './icons.jsx';
+import { IconHome, IconBolt, IconPlay, IconNinja, IconSparkles, IconPlus, IconBrain } from './icons.jsx';
 import { HUDTicks } from './atoms.jsx';
 
 // ─────────────────────────────────────────────────────────
@@ -11,6 +11,7 @@ const TABS = [
   { id: 'train',  label: 'Train',  Icon: IconBolt,     color: '#B6FF3C' },
   { id: 'create', label: 'Create', Icon: IconPlay,     color: '#FF3CC8' },
   { id: 'ona',    label: 'ONA',    Icon: IconNinja,    color: '#FF0033' },
+  { id: 'mind',   label: 'Mind',   Icon: IconBrain,    color: '#FFD23C' },
   { id: 'ai',     label: 'AI',     Icon: IconSparkles, color: '#B14CFF' },
 ];
 

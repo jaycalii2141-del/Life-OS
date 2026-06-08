@@ -197,8 +197,23 @@ const TODAY = {
   streak: 12,
 };
 
+// ─────────────────────────────────────────────────────────
+// Life domains — the buckets every captured thought routes into.
+// These mirror Jay's brand/life folders and power triage + the
+// weekly attention-allocation view.
+// ─────────────────────────────────────────────────────────
+const LIFE_DOMAINS = [
+  { id: 'ona',      name: 'ONA',          emoji: '🥷', color: '#FF0033' },
+  { id: 'podium',   name: 'Podium',       emoji: '🏆', color: '#FFD23C' },
+  { id: 'movement', name: 'Movement',     emoji: '🤸', color: '#B6FF3C' },
+  { id: 'social',   name: '@jayy',        emoji: '🎬', color: '#FF3CC8' },
+  { id: 'wife',     name: 'Wife & I',     emoji: '💛', color: '#B14CFF' },
+  { id: 'self',     name: 'Self',         emoji: '🧭', color: '#00D4FF' },
+];
+
 export {
   BRANDS, PIPELINE_STAGES, HOOKS, DISCIPLINES, SKILLS,
   RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, TIMELINE, MOMENTUM,
   ONA_STATS, SALES_STAGES, COACHES, BENCH, INITIATIVES, TODAY,
+  LIFE_DOMAINS,
 };
