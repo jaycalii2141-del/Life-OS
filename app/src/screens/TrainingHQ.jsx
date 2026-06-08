@@ -3,6 +3,7 @@ import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill } from '../compon
 import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity } from '../components/icons.jsx';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
+import { CoachSheet } from '../CoachSheet.jsx';
 
 // Sessions already logged before persistence existed (seed baseline)
 const BASE_SESSIONS = 38;
@@ -620,6 +621,7 @@ function TrainingHQ() {
   const setRadarAxis = (i, v) => setTraining((t) => ({ ...t, radar: (t.radar ?? RADAR_CURRENT).map((x, idx) => (idx === i ? Math.max(0, Math.min(100, v)) : x)) }));
   const [editHeader, setEditHeader] = useState(false);
   const [editRadar, setEditRadar] = useState(false);
+  const [coachOpen, setCoachOpen] = useState(false);
 
   const tInp = {
     width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line)',
@@ -669,6 +671,22 @@ function TrainingHQ() {
               <span className="mono" style={{ fontSize: 9, color: 'var(--cyan)' }}>{phasePct}% · {Math.max(0, 90 - day)} DAYS LEFT</span>
             </div>
           </div>
+        </div>
+
+        {/* AI Coach CTA */}
+        <div
+          className="pressable"
+          onClick={() => setCoachOpen(true)}
+          style={{
+            height: 52, borderRadius: 16,
+            background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            color: '#06060A', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase',
+            boxShadow: '0 12px 36px -10px rgba(0,212,255,0.5)',
+          }}
+        >
+          <IconActivity size={19} stroke={2.4} />
+          Build my session
         </div>
 
         {/* Body radar */}
@@ -749,6 +767,7 @@ function TrainingHQ() {
       </div>
 
       <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} onLog={logSession} />
+      <CoachSheet open={coachOpen} onClose={() => setCoachOpen(false)} skills={skills} onLog={logSession} />
     </>
   );
 }
