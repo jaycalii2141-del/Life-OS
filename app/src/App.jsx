@@ -2,7 +2,7 @@
 // LIFE OS — App shell
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture, AI sheet.
 // ─────────────────────────────────────────────────────────
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
@@ -86,17 +86,36 @@ function MainApp() {
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
   const addCapture = (entry) => setCaptures((list) => [entry, ...list].slice(0, 50));
 
+  // Daily history — powers the real streak, momentum heatmap, and 7-day trend.
+  const [history, setHistory] = useSyncedState('lifeos:history', {});
+
+  // Record today's score whenever mission state changes.
+  const today = todayKey();
+  const todayReadiness = Math.round(((missionState.energy + missionState.focus + missionState.body + missionState.mood) / 40) * 100);
+  const todayScore = Math.min(4, 1 + (missionState.oneThingDone ? 2 : 0) + (todayReadiness >= 75 ? 1 : 0));
+  useEffect(() => {
+    setHistory((h) => {
+      const cur = h[today];
+      if (cur && cur.score === todayScore && cur.readiness === todayReadiness) return h;
+      return { ...h, [today]: { score: todayScore, readiness: todayReadiness, done: missionState.oneThingDone } };
+    });
+  }, [todayScore, todayReadiness, missionState.oneThingDone]);
+
+  const momentum = buildMomentum(history, today, todayScore);
+  const streak = computeStreak(history, today, todayScore);
+  const trend = readinessTrend(history, today, todayReadiness);
+
   // Re-key the screen container on tab change so screenIn animation fires
   const screenKey = tab;
 
   let screen;
   switch (tab) {
-    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} />; break;
+    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} />; break;
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
     case 'ai':     screen = <AIScreen captures={captures} />; break;
-    default:       screen = <MissionControl state={missionState} setState={setMissionState} />;
+    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} />;
   }
 
   return (
@@ -123,4 +142,49 @@ function MainApp() {
       </div>
     </IOSDevice>
   );
+}
+
+// ─────────────────────────────────────────────────────────
+// History math — date key for N days ago, plus derived stats
+// ─────────────────────────────────────────────────────────
+function keyDaysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  const p = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// Last 14 days of momentum scores (0–4); today's live score caps the array.
+function buildMomentum(history, today, todayScore) {
+  const out = [];
+  for (let i = 13; i >= 0; i--) {
+    const k = keyDaysAgo(i);
+    const score = k === today ? todayScore : (history[k]?.score ?? 0);
+    out.push(score);
+  }
+  return out;
+}
+
+// Consecutive days (ending today) with any activity.
+function computeStreak(history, today, todayScore) {
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const k = keyDaysAgo(i);
+    const score = k === today ? todayScore : (history[k]?.score ?? 0);
+    if (score >= 1) streak += 1;
+    else break;
+  }
+  return streak;
+}
+
+// Today's readiness vs the average of the prior days that have data.
+function readinessTrend(history, today, todayReadiness) {
+  const vals = [];
+  for (let i = 1; i <= 7; i++) {
+    const e = history[keyDaysAgo(i)];
+    if (e && typeof e.readiness === 'number') vals.push(e.readiness);
+  }
+  if (!vals.length) return null;
+  const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+  return Math.round(todayReadiness - avg);
 }

@@ -30,7 +30,7 @@ const TL_CATEGORIES = [
   { kind: 'Focus',  color: '#FF0033' },
 ];
 
-function ReadinessHero({ readiness, energy, focus, body, mood, onMeter }) {
+function ReadinessHero({ readiness, trend, energy, focus, body, mood, onMeter }) {
   return (
     <div className="hud glass-strong mesh-readiness" style={{
       padding: '18px 18px 16px',
@@ -74,10 +74,12 @@ function ReadinessHero({ readiness, energy, focus, body, mood, onMeter }) {
             <TickCounter value={readiness} format={(v) => Math.round(v)} />
           </div>
           <div className="mono" style={{
-            fontSize: 10, color: 'var(--lime)', marginTop: 6,
-            letterSpacing: '0.1em',
+            fontSize: 10, marginTop: 6, letterSpacing: '0.1em',
+            color: trend == null ? 'var(--muted)' : trend >= 0 ? 'var(--lime)' : 'var(--ona-red)',
           }}>
-            ▲ +6 vs 7-day avg
+            {trend == null
+              ? 'building your baseline…'
+              : `${trend >= 0 ? '▲ +' : '▼ '}${trend} vs 7-day avg`}
           </div>
         </div>
       </div>
@@ -323,7 +325,7 @@ function OneThingCard({ text, done, onMark, onEdit }) {
 // ─────────────────────────────────────────────────────────
 // Momentum heatmap (14 days)
 // ─────────────────────────────────────────────────────────
-function MomentumStrip() {
+function MomentumStrip({ momentum = MOMENTUM, streak = 0 }) {
   return (
     <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
       <HUDTicks />
@@ -334,7 +336,7 @@ function MomentumStrip() {
         <div>
           <div className="eyebrow">Momentum</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
-            <span className="display" style={{ fontSize: 26, color: 'var(--gold)' }}>{TODAY.streak}</span>
+            <span className="display" style={{ fontSize: 26, color: 'var(--gold)' }}>{streak}</span>
             <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>DAY STREAK</span>
           </div>
         </div>
@@ -342,9 +344,9 @@ function MomentumStrip() {
       </div>
 
       <div style={{ display: 'flex', gap: 4 }}>
-        {MOMENTUM.map((v, i) => {
+        {momentum.map((v, i) => {
           const intensity = v / 4;
-          const isToday = i === MOMENTUM.length - 1;
+          const isToday = i === momentum.length - 1;
           const opacity = v === 0 ? 0.08 : 0.25 + intensity * 0.75;
           const color = v === 0 ? '#5A5A66'
             : v === 1 ? '#0055FF'
@@ -538,7 +540,7 @@ function TodayTimeline({ events, onAdd, onDelete }) {
 // ─────────────────────────────────────────────────────────
 // Mission Control screen
 // ─────────────────────────────────────────────────────────
-function MissionControl({ state, setState }) {
+function MissionControl({ state, setState, momentum, streak, trend }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
   const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
   const editOneThing = (txt) => setState((s) => ({ ...s, oneThing: txt }));
@@ -565,6 +567,7 @@ function MissionControl({ state, setState }) {
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <ReadinessHero
         readiness={readiness}
+        trend={trend}
         energy={state.energy}
         focus={state.focus}
         body={state.body}
@@ -572,7 +575,7 @@ function MissionControl({ state, setState }) {
         onMeter={setMeter}
       />
       <OneThingCard text={oneThingText} done={state.oneThingDone} onMark={markDone} onEdit={editOneThing} />
-      <MomentumStrip />
+      <MomentumStrip momentum={momentum} streak={streak} />
       <TodayTimeline events={events} onAdd={addEvent} onDelete={deleteEvent} />
     </div>
   );
