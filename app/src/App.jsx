@@ -26,6 +26,8 @@ import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
 import { Onboarding } from './Onboarding.jsx';
+import { BootSplash } from './BootSplash.jsx';
+import { Companion, CompanionLauncher } from './Companion.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -83,6 +85,8 @@ function MainApp() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [onboarded, setOnboarded] = useSyncedState('lifeos:onboarded', false);
+  const [booting, setBooting] = useState(true);
+  const [companionOpen, setCompanionOpen] = useState(false);
 
   // Tab changes are the backbone of usage telemetry (the "mirror").
   const changeTab = (t) => { setTab(t); logEvent(t, 'open'); };
@@ -161,6 +165,9 @@ function MainApp() {
           onClose={() => setCapture({ open: false, voice: false })}
         />
 
+        <CompanionLauncher onOpen={() => { setCompanionOpen(true); logEvent('companion', 'open'); }} />
+        <Companion open={companionOpen} onClose={() => setCompanionOpen(false)} />
+
         {/* Modals mount only when opened, so their code loads on first use. */}
         <Suspense fallback={null}>
           {settingsOpen && (
@@ -183,6 +190,7 @@ function MainApp() {
         </Suspense>
 
         {!onboarded && <Onboarding onDone={() => setOnboarded(true)} />}
+        {booting && <BootSplash onDone={() => setBooting(false)} />}
       </div>
     </IOSDevice>
   );
