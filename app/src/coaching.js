@@ -268,3 +268,87 @@ export function analyzeBlindspots(skills, sessions = [], readiness = null, disci
 export function drillsFor(disciplineId, tier) {
   return (DRILLS[disciplineId] && DRILLS[disciplineId][tier]) || [];
 }
+
+// ─────────────────────────────────────────────────────────
+// Discipline FUNDAMENTALS — the athletic + technical bedrock under the
+// tricks. This is the part that separates "knows tricks" from "elite."
+// Grounded in motor learning + biomechanics (Yeadon on twisting
+// somersaults; stretch-shortening-cycle / RFD plyometric science):
+//   • ALL rotational momentum is created at takeoff — nothing can be
+//     added once you leave the ground. Height & spin are a SET problem.
+//   • Tricking twist is mostly CONTACT twist: initiate it on the ground
+//     with the whole body; arm-only twisting in the air is ~half as
+//     effective.
+//   • Pulling limbs in lowers moment of inertia → faster rotation;
+//     opening slows it for the landing.
+// Each pillar: why (the science), how (the work), standard (the check).
+// ─────────────────────────────────────────────────────────
+export const FUNDAMENTALS_BY_DISCIPLINE = {
+  tricking: [
+    {
+      name: 'Air awareness & spatial orientation',
+      why: 'The #1 separator. Your vestibular/proprioceptive sense of where you are while inverted and twisting is TRAINED, never guessed. Elites built it through thousands of graded, low-consequence reps.',
+      how: 'Progressive exposure: vertical kicks → cartwheels → rolls → flips off elevation into mats; trampoline & tumble-track volume; always spot a known landing; add height/complexity only once the current level is automatic.',
+      standard: 'Calm and oriented inverted and twisting, eyes finding the floor before you land.',
+    },
+    {
+      name: 'The set — your rotation is born at takeoff',
+      why: 'Biomechanically, ALL angular momentum is generated during ground contact — none can be added in the air. A tall, vertical set buys height = airtime = time to rotate = a safe landing. Most stalled trickers have a weak set, not a weak trick.',
+      how: 'Jump-set drills (full triple extension, arms swing and lock by the ears), round-off rebound, standing set-and-spot, punch drills. Build the set before chasing the rotation.',
+      standard: 'A tall vertical set with arms locked overhead, body stacked — height first, rotation second.',
+    },
+    {
+      name: 'The block — turning speed into height',
+      why: 'The block redirects horizontal momentum (your run/swing) into vertical lift via a stiff leg planted ~45° in front, bending then driving into the floor. It is the lever that gives running tricks their air.',
+      how: 'Round-off block, hurdle-step block, depth-jump stiffness (minimal ground time), single-leg blocking off a run. Train ankle/knee stiffness so force redirects up, not collapses.',
+      standard: 'Convert a run into a high vertical jump off one stiff leg without collapsing.',
+    },
+    {
+      name: 'Twisting mechanics — contact twist + tilt',
+      why: 'Tricking twists are mostly CONTACT-initiated: start the twist on the ground with the whole body (arm-only in the air is ~half as effective). Off-axis tricks (cork) add a TILT created at takeoff. Pulling the arms in tightens the body and speeds the spin; opening slows it to spot the landing.',
+      how: 'Standing half/full-twist jumps, late-twist drills, arm-wrap timing, tilt-twist reps on the trampoline. Initiate from the shoulders/hips at takeoff — late and tight — not by flailing the arms aloft.',
+      standard: 'A clean full twist initiated at takeoff, tight in the air, opening on time to land.',
+    },
+    {
+      name: 'Rotational & reactive power (RFD / plyometrics)',
+      why: 'Explosive ground contact and rate of force development create the height and snap; the stretch-shortening cycle (fast eccentric→concentric) is the engine of every set and block. Power-to-weight is king.',
+      how: 'Pogos, depth jumps, broad & tuck jumps, single-leg bounds, and triple-extension strength (squat/Olympic-style). Short, crisp ground contacts; quality over fatigue.',
+      standard: 'A big tuck jump and a strong, controlled single-leg bound off either leg.',
+    },
+    {
+      name: 'Kicking base & dynamic flexibility (the martial-arts root)',
+      why: 'Tricking grew out of martial arts — sharp kicks, full splits, single-leg balance, and hip mobility underpin every setup and the lines that make tricks look elite. Weak kicks cap everything downstream.',
+      how: 'Technical kick reps (round, hook, crescent, tornado), dynamic + static splits, hip CARs, slow controlled balance holds. Flexibility trained both actively and passively.',
+      standard: 'Full splits both sides; controlled head-height kicks on both legs.',
+    },
+    {
+      name: 'Landing & deceleration (eccentric durability)',
+      why: 'The most-skipped pillar and the #1 reason tricking careers end early. Absorbing rotational landings protects the knees and ankles for the long haul — this is what lets you train for decades.',
+      how: 'Depth & rotational landings (stick and absorb), eccentric step-downs, single-leg landings, Nordic curls, calf/achilles & ankle prep, knee-valgus control.',
+      standard: 'Stick rotational landings quietly, knees tracking over toes, no cave or collapse.',
+    },
+    {
+      name: 'Mobility for the set & clean lines',
+      why: 'A tall set needs overhead shoulder + thoracic extension; ankles need dorsiflexion to absorb landings; hips need extension for kicks and clean shapes. Restriction here leaks height and ruins lines.',
+      how: 'Shoulder dislocates & overhead reach, thoracic extension drills, ankle dorsiflexion mobility, hip flexor/extensor work. Prep before sessions; develop on recovery days.',
+      standard: 'Full pain-free overhead reach, an open thoracic, and solid ankle dorsiflexion.',
+    },
+    {
+      name: 'Core line & anti-rotation control',
+      why: 'Controlling tilt, twist, and the tuck/open in the air requires a rigid, switchable trunk. The core is what holds your shape so the physics work for you instead of against you.',
+      how: 'Hollow & arch holds, compression work (V-ups, pike compressions), anti-rotation (Pallof press), and tuck-to-open control drills.',
+      standard: 'Hold a tight line in the air and control the open precisely on demand.',
+    },
+    {
+      name: 'Practice method, fear & recovery',
+      why: 'Skills are learned by graded spatial overload (low → raised → flat), reps with honest feedback, and managed fear — not by sending. Tricking is high-impact and alactic, so volume, tendon health, and recovery decide your ceiling and your longevity.',
+      how: 'Earn every trick off elevation first; film and self-correct; visualize before attempts; rest fully between max efforts; prep patellar/achilles/wrist tendons; deload regularly.',
+      standard: 'A repeatable, safe process for learning any new trick — and no chronic joint pain.',
+    },
+  ],
+};
+
+// Pull the fundamentals for a discipline (used by the skill tree + coach).
+export function fundamentalsFor(disciplineId) {
+  return FUNDAMENTALS_BY_DISCIPLINE[disciplineId] || [];
+}

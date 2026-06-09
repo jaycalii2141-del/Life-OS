@@ -4,7 +4,7 @@ import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity } from '
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
-import { drillsFor } from '../coaching.js';
+import { drillsFor, fundamentalsFor } from '../coaching.js';
 
 // Sessions already logged before persistence existed (seed baseline)
 const BASE_SESSIONS = 38;
@@ -416,6 +416,7 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
           display: 'flex', flexDirection: 'column', gap: 8,
           animation: 'screenIn 320ms cubic-bezier(0.2,0.7,0.2,1)',
         }}>
+          <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} />
           {skills.map((skill, i) => (
             <SkillNode
               key={skill.name}
@@ -424,6 +425,37 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
               disciplineId={discipline.id}
               onChange={(patch) => onUpdate(i, patch)}
             />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The athletic + technical bedrock for a discipline (currently tricking).
+function FundamentalsPanel({ disciplineId, color }) {
+  const [open, setOpen] = useState(false);
+  const items = fundamentalsFor(disciplineId);
+  if (!items.length) return null;
+  return (
+    <div className="hud" style={{ borderRadius: 12, background: `${color}0d`, border: `1px solid ${color}40`, overflow: 'hidden' }}>
+      <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ padding: '11px 13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div className="eyebrow" style={{ color }}>The real foundation</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginTop: 1 }}>FUNDAMENTALS · {items.length} pillars</div>
+        </div>
+        <span style={{ color, fontSize: 18, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }}>›</span>
+      </div>
+      {open && (
+        <div style={{ padding: '0 13px 13px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5 }}>What separates "knows tricks" from elite. Train these alongside the skills.</div>
+          {items.map((f, i) => (
+            <div key={i} style={{ borderLeft: `2px solid ${color}`, paddingLeft: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{i + 1}. {f.name}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 3 }}>{f.why}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text)', lineHeight: 1.45, marginTop: 4 }}><span style={{ color, fontWeight: 700 }}>Train: </span>{f.how}</div>
+              <div style={{ fontSize: 11, color, lineHeight: 1.4, marginTop: 3 }}>✓ {f.standard}</div>
+            </div>
           ))}
         </div>
       )}

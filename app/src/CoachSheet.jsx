@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { IconClose, IconCheck, IconActivity, IconWarn } from './components/icons.jsx';
 import { DISCIPLINES } from './data.js';
-import { analyzeBlindspots, drillsFor } from './coaching.js';
+import { analyzeBlindspots, drillsFor, fundamentalsFor } from './coaching.js';
 import { todayKey } from './usePersistentState.js';
 
 // Pick the tier to train for a discipline: the active skill's tier,
@@ -56,6 +56,8 @@ function buildContext(skills, focusId, duration) {
     const tier = trainTier(skills[d.id] || []);
     const dr = drillsFor(d.id, tier);
     if (dr.length) lines.push(`${d.name} ${tier} drill progression (in order): ${dr.map((x) => `${x.name} — ${x.cue} [common fault: ${x.fault}] [advance when: ${x.gate}]`).join(' | ')}`);
+    const fund = fundamentalsFor(d.id);
+    if (fund.length) lines.push(`${d.name} core fundamentals to keep developing (athletic + technical bedrock): ${fund.map((f) => f.name).join('; ')}. Program some of these into the session, not just tricks.`);
   }
   return lines.join('\n');
 }
