@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { HUDTicks, TickCounter, Pill, ConfettiBurst, StateMeter, TimelineEvent } from '../components/atoms.jsx';
+import { HUDTicks, TickCounter, Pill, ConfettiBurst, StateMeter, TimelineEvent, EmptyState } from '../components/atoms.jsx';
 import { IconCheck, IconCalendar, IconClose, IconPlus, IconSliders } from '../components/icons.jsx';
 import { TODAY, TIMELINE, MOMENTUM } from '../data.js';
 import { ChiefBrief } from '../ChiefBrief.jsx';
@@ -539,9 +539,7 @@ function TodayTimeline({ events, calendarEvents = [], onAdd, onDelete, onOpenCal
 
       <div>
         {combined.length === 0 && (
-          <div className="eyebrow" style={{ color: 'var(--dim)', padding: '8px 0' }}>
-            No blocks yet — tap + to add one, or connect Google Calendar in settings.
-          </div>
+          <EmptyState icon={<IconCalendar size={22} />} text="No blocks yet — tap + to add one, or connect Google Calendar in settings." />
         )}
         {combined.map((e, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>

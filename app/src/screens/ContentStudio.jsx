@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HUDTicks, TickCounter, Pill, SectionHead, ProgressBar } from '../components/atoms.jsx';
+import { HUDTicks, TickCounter, Pill, SectionHead, ProgressBar, EmptyState } from '../components/atoms.jsx';
 import { IconChevronRight, IconCopy, IconCheck, IconPlus, IconClose } from '../components/icons.jsx';
 import { BRANDS, PIPELINE_STAGES, HOOKS, SEED_FOLDERS } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
@@ -306,7 +306,7 @@ function ContentPipeline({ items, brands, onAdd, onUpdate, onDelete }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {sorted.length === 0 && (
-          <div className="eyebrow" style={{ color: 'var(--dim)', padding: '6px 0' }}>No content yet — tap + to capture an idea.</div>
+          <EmptyState icon={<IconPlus size={22} />} text="No content yet — tap + to capture an idea." />
         )}
         {sorted.map((it) => (
           <ContentItemRow key={it.id} item={it} brands={brands} onUpdate={(patch) => onUpdate(it.id, patch)} onDelete={() => onDelete(it.id)} />
@@ -605,7 +605,7 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {projects.length === 0 && <div className="eyebrow" style={{ color: 'var(--dim)', padding: '6px 0' }}>No projects yet — tap + to capture an idea or start one.</div>}
+        {projects.length === 0 && <EmptyState icon={<IconPlus size={22} />} text="No projects yet — tap + to capture an idea or start one." />}
         {projects.map((p) => (
           <ProjectCard key={p.id} project={p} brands={brands} onUpdate={(patch) => onUpdate(p.id, patch)} onDelete={() => onDelete(p.id)} onStepsChange={(steps) => onUpdate(p.id, { steps })} />
         ))}

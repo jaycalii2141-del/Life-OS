@@ -265,7 +265,24 @@ function StatTile({ label, value, suffix, color = 'var(--text)', format = (v) =>
   );
 }
 
+// Shared empty state — a calm, dashed "add something here" affordance.
+// Keeps every list's blank state visually consistent across the app.
+function EmptyState({ icon, text, style }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+      padding: '24px 18px', borderRadius: 14,
+      border: '1px dashed var(--line-strong, var(--line))',
+      background: 'rgba(255,255,255,0.015)',
+      ...style,
+    }}>
+      {icon && <div style={{ color: 'var(--dim)', opacity: 0.8 }}>{icon}</div>}
+      <div className="eyebrow" style={{ color: 'var(--dim)', textAlign: 'center', maxWidth: 240, lineHeight: 1.5 }}>{text}</div>
+    </div>
+  );
+}
+
 export {
   HUDTicks, TickCounter, SectionHead, ProgressBar, Pill, HUDCard,
-  ConfettiBurst, StateMeter, TimelineEvent, StatTile,
+  ConfettiBurst, StateMeter, TimelineEvent, StatTile, EmptyState,
 };

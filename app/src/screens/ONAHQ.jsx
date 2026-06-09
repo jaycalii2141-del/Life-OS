@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HUDTicks, TickCounter, Pill, ProgressBar } from '../components/atoms.jsx';
+import { HUDTicks, TickCounter, Pill, ProgressBar, EmptyState } from '../components/atoms.jsx';
 import { IconWarn, IconPlus, IconClose, IconCheck, IconActivity } from '../components/icons.jsx';
 import { ONA_STATS, SALES_STAGES, COACHES, BENCH, INITIATIVES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
@@ -288,7 +288,7 @@ function InitiativeList({ items, onAdd, onUpdate, onDelete }) {
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {items.length === 0 && <div className="eyebrow" style={{ color: 'var(--dim)', padding: '6px 0' }}>No initiatives yet — tap + to add one.</div>}
+        {items.length === 0 && <EmptyState icon={<IconPlus size={22} />} text="No initiatives yet — tap + to add one." />}
         {items.map((it) => (
           <InitiativeRow key={it.id} it={it} onUpdate={(patch) => onUpdate(it.id, patch)} onDelete={() => onDelete(it.id)} />
         ))}
