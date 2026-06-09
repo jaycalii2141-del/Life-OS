@@ -4,6 +4,7 @@ import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity } from '
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
+import { drillsFor } from '../coaching.js';
 
 // Sessions already logged before persistence existed (seed baseline)
 const BASE_SESSIONS = 38;
@@ -183,7 +184,7 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
 }
 
 // Skill node (3 states: done, active, locked) — tap to edit
-function SkillNode({ skill, color, onChange }) {
+function SkillNode({ skill, color, onChange, disciplineId }) {
   const [editing, setEditing] = useState(false);
 
   const stateMap = {
@@ -326,6 +327,27 @@ function SkillNode({ skill, color, onChange }) {
               >+</div>
             </div>
           )}
+
+          {(() => {
+            const dr = drillsFor(disciplineId, skill.tier);
+            if (!dr.length) return null;
+            return (
+              <div style={{ width: '100%', marginTop: 4, paddingTop: 10, borderTop: '1px solid var(--line)' }}>
+                <div className="eyebrow" style={{ marginBottom: 8, color }}>How to train it · {skill.tier} drills</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {dr.map((x, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 8 }}>
+                      <span style={{ color, fontWeight: 800, fontSize: 12, lineHeight: '16px', flexShrink: 0 }}>›</span>
+                      <div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{x.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4, marginTop: 1 }}>{x.cue}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
@@ -397,6 +419,7 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
               key={skill.name}
               skill={skill}
               color={discipline.color}
+              disciplineId={discipline.id}
               onChange={(patch) => onUpdate(i, patch)}
             />
           ))}

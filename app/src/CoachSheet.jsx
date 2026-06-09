@@ -2,9 +2,19 @@
 // sessions and readiness, then designs today's training. Falls back to a
 // solid deterministic builder when the AI key isn't set.
 import { useState } from 'react';
-import { IconClose, IconCheck, IconActivity } from './components/icons.jsx';
+import { IconClose, IconCheck, IconActivity, IconWarn } from './components/icons.jsx';
 import { DISCIPLINES } from './data.js';
+import { analyzeBlindspots, drillsFor } from './coaching.js';
 import { todayKey } from './usePersistentState.js';
+
+// Pick the tier to train for a discipline: the active skill's tier,
+// else the next locked skill's tier, else Foundation.
+function trainTier(list) {
+  const active = list.find((s) => s.status === 'active');
+  if (active) return active.tier;
+  const next = list.find((s) => s.status === 'locked');
+  return next ? next.tier : 'Foundation';
+}
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -36,6 +46,17 @@ function buildContext(skills, focusId, duration) {
     );
   }
   if (sessions.length) lines.push(`Recent sessions: ${sessions.map((s) => `${s.disciplineName || s.discipline} ${s.duration}min`).join(', ')}.`);
+
+  // Blindspots the coach should actively address.
+  const blindspots = analyzeBlindspots(skills, readJSON('lifeos:sessions', []), r ? r.score : null, DISCIPLINES);
+  if (blindspots.length) lines.push(`Blindspots to address: ${blindspots.map((b) => `[${b.sev}] ${b.title} — ${b.fix}`).join(' | ')}`);
+
+  // Concrete drills for the focus discipline(s) at the relevant tier.
+  for (const d of discs) {
+    const tier = trainTier(skills[d.id] || []);
+    const dr = drillsFor(d.id, tier);
+    if (dr.length) lines.push(`${d.name} ${tier} drills: ${dr.map((x) => `${x.name} (${x.cue})`).join('; ')}`);
+  }
   return lines.join('\n');
 }
 
@@ -66,16 +87,25 @@ function buildLocal(skills, focusId, duration) {
     } else {
       out.push('• No active skill set — pick one from the tree to focus.');
     }
-    if (next && !low) out.push(`• Next progression: attempt ${next.name} drills (${next.cue}).`);
+    if (next && !low) out.push(`• Next progression: attempt ${next.name} (${next.cue}).`);
+    // Drills that build this discipline at its working tier.
+    const dr = drillsFor(d.id, trainTier(list)).slice(0, 2);
+    dr.forEach((x) => out.push(`  ↳ Drill: ${x.name} — ${x.cue}`));
   }
   out.push('');
-  out.push('STRENGTH & CONDITIONING (10–15 min)');
-  out.push(low ? '• Light tempo: core line, mobility, light pulls/holds.' : '• Targeted: straight-arm strength + explosive pulls/jumps for your skills.');
+  out.push('SUPPORTING STRENGTH (10–15 min)');
+  out.push(low ? '• Light tempo: core line, mobility, light pulls/holds.' : '• Straight-arm strength + PULL work to balance push + explosive pulls/jumps.');
+  out.push('• Landing/eccentric: a few quiet depth landings — protect the knees.');
   out.push('');
   out.push('COOL-DOWN (5–8 min)');
   out.push('• Down-regulate breathing, mobilize the tissues you loaded, hydrate.');
+
+  // The single blindspot to keep front of mind.
+  const blindspots = analyzeBlindspots(skills, readJSON('lifeos:sessions', []), r ? r.score : null, DISCIPLINES);
+  const top = blindspots.find((b) => b.sev === 'high') || blindspots.find((b) => b.sev === 'med') || blindspots[0];
+  if (top) { out.push(''); out.push(`⚠ BLINDSPOT: ${top.title} — ${top.fix}`); }
   out.push('');
-  out.push('— Built from your skill tree. Add your Anthropic key in setup for full AI coaching.');
+  out.push('— Built from your skill tree. Add your Anthropic key for full AI coaching.');
   return out.join('\n');
 }
 
@@ -85,8 +115,12 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState('');
   const [usedAI, setUsedAI] = useState(false);
+  const [bsOpen, setBsOpen] = useState(true);
 
   if (!open) return null;
+
+  const blindspots = analyzeBlindspots(skills, readJSON('lifeos:sessions', []), readiness()?.score ?? null, DISCIPLINES);
+  const sevColor = (s) => (s === 'high' ? 'var(--ona-red)' : s === 'med' ? 'var(--gold)' : 'var(--cyan)');
 
   const generate = async () => {
     setLoading(true); setPlan('');
@@ -161,6 +195,33 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
           <IconActivity size={18} stroke={2.4} />
           {loading ? 'Coaching…' : plan ? 'Regenerate' : 'Build session'}
         </div>
+
+        {/* Blindspots — what your coach is watching, always on */}
+        {blindspots.length > 0 && (
+          <div className="hud glass" style={{ marginTop: 16, padding: 14, borderRadius: 14, border: '1px solid rgba(255,210,60,0.22)' }}>
+            <div className="pressable" onClick={() => setBsOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <IconWarn size={15} color="var(--gold)" />
+                <span className="eyebrow" style={{ color: 'var(--gold)' }}>Blindspots your coach is watching</span>
+              </div>
+              <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{blindspots.length}</span>
+            </div>
+            {bsOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+                {blindspots.slice(0, 4).map((b, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 9 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 999, background: sevColor(b.sev), marginTop: 5, flexShrink: 0, boxShadow: `0 0 6px ${sevColor(b.sev)}` }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{b.title}</div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.45, marginTop: 1 }}>{b.detail}</div>
+                      <div style={{ fontSize: 12, color: sevColor(b.sev), lineHeight: 1.45, marginTop: 3 }}>→ {b.fix}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {plan && (
           <div style={{ marginTop: 16 }}>
