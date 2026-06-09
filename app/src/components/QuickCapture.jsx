@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { IconCheck, IconClose, IconMic, IconSend } from './icons.jsx';
+import { celebrate } from '../lib/haptics.js';
+import { Sheet } from './Sheet.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Quick Capture — bottom sheet modal accessible from anywhere
@@ -28,8 +30,6 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
     }
   }, [open, voiceMode]);
 
-  if (!open) return null;
-
   const tagColor = CAPTURE_TAGS.find(t => t.id === tag)?.color;
 
   const handleCapture = () => {
@@ -46,15 +46,12 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
       status: 'inbox',
     });
     setSaved(true);
+    celebrate();
     setTimeout(() => onClose?.(), 700);
   };
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet">
-        <div className="sheet-handle" />
-
+    <Sheet open={open} onClose={onClose} maxHeight="auto">
         {saved ? (
           <div style={{
             padding: '40px 0 24px',
@@ -243,8 +240,7 @@ Tap + on any screen · long-press for voice
             </div>
           </>
         )}
-      </div>
-    </>
+    </Sheet>
   );
 }
 

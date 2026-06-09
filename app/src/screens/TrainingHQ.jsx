@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill } from '../components/atoms.jsx';
+import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill, ConfettiBurst } from '../components/atoms.jsx';
+import { celebrate } from '../lib/haptics.js';
 import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar } from '../components/icons.jsx';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
 import { WeekPlanSheet } from '../WeekPlanSheet.jsx';
+import { Sheet } from '../components/Sheet.jsx';
 import { drillsFor, fundamentalsFor } from '../coaching.js';
 
 // Sessions already logged before persistence existed (seed baseline)
@@ -205,6 +207,7 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
 // Skill node (3 states: done, active, locked) — tap to edit
 function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTrack }) {
   const [editing, setEditing] = useState(false);
+  const [party, setParty] = useState(0);
 
   const stateMap = {
     done: {
@@ -239,6 +242,7 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
     if (status === 'done') pct = 100;
     else if (status === 'locked') pct = 0;
     else if (status === 'active' && (skill.pct <= 0 || skill.pct >= 100)) pct = 50;
+    if (status === 'done' && skill.status !== 'done') { setParty((p) => p + 1); celebrate(); }
     onChange?.({ status, pct });
   };
   const adjust = (delta) => {
@@ -264,6 +268,7 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
         transition: 'border-color 200ms',
       }}
     >
+      <ConfettiBurst trigger={party} />
       <div
         className="pressable"
         onClick={() => setEditing((e) => !e)}
@@ -566,7 +571,6 @@ function LogSessionSheet({ open, onClose, onLog }) {
     }
   }, [open]);
 
-  if (!open) return null;
   const d = DISCIPLINES.find(d => d.id === discipline);
 
   const submit = () => {
@@ -583,10 +587,7 @@ function LogSessionSheet({ open, onClose, onLog }) {
   };
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '76%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
+    <Sheet open={open} onClose={onClose} maxHeight="76%">
 
         {logged ? (
           <div style={{ padding: '32px 0 16px', textAlign: 'center' }}>
@@ -728,8 +729,7 @@ function LogSessionSheet({ open, onClose, onLog }) {
             </div>
           </>
         )}
-      </div>
-    </>
+    </Sheet>
   );
 }
 
@@ -748,6 +748,7 @@ function TrainingHQ() {
   const cycleTrack = (key) => setTrack((t) => {
     const cur = t[key] || 'todo';
     const next = cur === 'todo' ? 'working' : cur === 'working' ? 'done' : 'todo';
+    if (next === 'done') celebrate();
     return { ...t, [key]: next };
   });
 

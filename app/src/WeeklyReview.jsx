@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { IconClose, IconCompass, IconActivity, IconSparkles, IconCalendar } from './components/icons.jsx';
 import { LIFE_DOMAINS } from './data.js';
+import { Sheet } from './components/Sheet.jsx';
 import { usageBySurface } from './lib/telemetry.js';
 import { googleCalendarUrl, openExternal } from './lib/actions.js';
 
@@ -99,7 +100,7 @@ export function WeeklyReview({ open, onClose }) {
     }
   }, [open]);
 
-  if (!open || !w) return null;
+  if (!w) return <Sheet open={open} onClose={onClose} maxHeight="90%" />;
 
   const saveFocus = (val) => {
     setFocus(val);
@@ -140,11 +141,7 @@ export function WeeklyReview({ open, onClose }) {
   );
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '90%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
-
+    <Sheet open={open} onClose={onClose} maxHeight="90%">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div className="eyebrow">The week in review</div>
@@ -229,7 +226,6 @@ export function WeeklyReview({ open, onClose }) {
         </div>
 
         <div style={{ height: 8 }} />
-      </div>
-    </>
+    </Sheet>
   );
 }

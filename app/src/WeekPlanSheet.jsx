@@ -6,6 +6,7 @@ import { IconClose, IconCheck, IconCalendar, IconSparkles, IconChevronDown } fro
 import { DISCIPLINES } from './data.js';
 import { WEEK_TEMPLATE, PROGRAMMING_PRINCIPLES, analyzeBlindspots } from './coaching.js';
 import { todayKey } from './usePersistentState.js';
+import { Sheet } from './components/Sheet.jsx';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -41,8 +42,6 @@ export function WeekPlanSheet({ open, onClose, skills }) {
   const [plan, setPlan] = useState('');
   const [showPrinciples, setShowPrinciples] = useState(false);
 
-  if (!open) return null;
-
   const generate = async () => {
     setLoading(true); setPlan('');
     try {
@@ -61,11 +60,7 @@ export function WeekPlanSheet({ open, onClose, skills }) {
   const focusChips = [{ id: 'all', name: 'Balanced', color: '#00D4FF' }, ...DISCIPLINES];
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '90%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
-
+    <Sheet open={open} onClose={onClose} maxHeight="90%">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div className="eyebrow">Periodization</div>
@@ -161,7 +156,6 @@ export function WeekPlanSheet({ open, onClose, skills }) {
         </div>
 
         <div style={{ height: 10 }} />
-      </div>
-    </>
+    </Sheet>
   );
 }

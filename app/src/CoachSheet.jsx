@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { IconClose, IconCheck, IconActivity, IconWarn } from './components/icons.jsx';
 import { DISCIPLINES } from './data.js';
 import { analyzeBlindspots, drillsFor, fundamentalsFor } from './coaching.js';
+import { celebrate } from './lib/haptics.js';
+import { Sheet } from './components/Sheet.jsx';
 import { todayKey } from './usePersistentState.js';
 
 // Pick the tier to train for a discipline: the active skill's tier,
@@ -119,8 +121,6 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
   const [usedAI, setUsedAI] = useState(false);
   const [bsOpen, setBsOpen] = useState(true);
 
-  if (!open) return null;
-
   const blindspots = analyzeBlindspots(skills, readJSON('lifeos:sessions', []), readiness()?.score ?? null, DISCIPLINES);
   const sevColor = (s) => (s === 'high' ? 'var(--ona-red)' : s === 'med' ? 'var(--gold)' : 'var(--cyan)');
 
@@ -143,15 +143,12 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
   const logIt = () => {
     const d = DISCIPLINES.find((x) => x.id === focus);
     onLog?.({ id: Date.now(), discipline: focus === 'all' ? 'mixed' : focus, disciplineName: d?.name || 'Mixed', duration, intensity: 7, date: new Date().toISOString() });
+    celebrate();
     onClose?.();
   };
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '88%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
-
+    <Sheet open={open} onClose={onClose} maxHeight="88%">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div className="eyebrow">AI Coach</div>
@@ -244,7 +241,6 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
         )}
 
         <div style={{ height: 10 }} />
-      </div>
-    </>
+    </Sheet>
   );
 }

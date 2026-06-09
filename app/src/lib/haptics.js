@@ -7,6 +7,12 @@ export function haptic(ms = 8) {
   try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ms); } catch { /* */ }
 }
 
+// A richer "success" pattern for reward moments (mastered a skill, logged
+// a session, captured a thought). Safe no-op where unsupported.
+export function celebrate() {
+  try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([14, 40, 24]); } catch { /* */ }
+}
+
 // Light tap feedback on every interactive `.pressable` element, installed
 // once globally so we don't have to wire each handler.
 export function installGlobalHaptics() {

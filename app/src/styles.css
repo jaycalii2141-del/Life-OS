@@ -419,6 +419,11 @@ html, body {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+/* Exit animations — sheet slides down, scrim fades out */
+.sheet-closing { animation: sheetOut 240ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+@keyframes sheetOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
+.scrim-closing { animation: scrimOut 220ms ease forwards; }
+@keyframes scrimOut { from { opacity: 1; } to { opacity: 0; } }
 
 .sheet-handle {
   width: 36px;

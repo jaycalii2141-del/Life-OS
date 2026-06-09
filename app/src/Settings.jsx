@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { IconClose, IconDownload, IconCheck } from './components/icons.jsx';
 import { useAuth } from './auth/AuthProvider.jsx';
+import { Sheet } from './components/Sheet.jsx';
 
 function exportData() {
   const data = {};
@@ -33,8 +34,6 @@ export function Settings({ open, onClose, icalUrl, onSetIcal }) {
   const [exported, setExported] = useState(false);
   const [cal, setCal] = useState(icalUrl || '');
 
-  if (!open) return null;
-
   const email = session?.user?.email;
 
   const doExport = () => {
@@ -44,10 +43,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal }) {
   };
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '82%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
+    <Sheet open={open} onClose={onClose} maxHeight="82%">
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
@@ -137,7 +133,6 @@ export function Settings({ open, onClose, icalUrl, onSetIcal }) {
         </div>
 
         <div style={{ height: 12 }} />
-      </div>
-    </>
+    </Sheet>
   );
 }

@@ -25,6 +25,7 @@ import { useSyncedState } from './useSyncedState.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
+import { Onboarding } from './Onboarding.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -81,6 +82,7 @@ function MainApp() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [onboarded, setOnboarded] = useSyncedState('lifeos:onboarded', false);
 
   // Tab changes are the backbone of usage telemetry (the "mirror").
   const changeTab = (t) => { setTab(t); logEvent(t, 'open'); };
@@ -179,6 +181,8 @@ function MainApp() {
             <MonthlyUpgrade open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
           )}
         </Suspense>
+
+        {!onboarded && <Onboarding onDone={() => setOnboarded(true)} />}
       </div>
     </IOSDevice>
   );

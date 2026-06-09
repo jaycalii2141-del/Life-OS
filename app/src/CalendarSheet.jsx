@@ -2,6 +2,7 @@
 // plus quick-add that opens Google Calendar pre-filled.
 import { useState, useEffect } from 'react';
 import { IconClose, IconPlus, IconCalendar, IconCheck } from './components/icons.jsx';
+import { Sheet } from './components/Sheet.jsx';
 
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const MONS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -51,8 +52,6 @@ export function CalendarSheet({ open, onClose, icalUrl }) {
 
   useEffect(() => { if (open) load(); /* eslint-disable-next-line */ }, [open, icalUrl]);
 
-  if (!open) return null;
-
   // group events by date
   const groups = {};
   for (const e of events) { (groups[e.date] = groups[e.date] || []).push(e); }
@@ -70,10 +69,7 @@ export function CalendarSheet({ open, onClose, icalUrl }) {
   };
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '85%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
+    <Sheet open={open} onClose={onClose} maxHeight="85%">
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
@@ -155,7 +151,6 @@ export function CalendarSheet({ open, onClose, icalUrl }) {
           Read-only view · changes happen in Google Calendar
         </div>
         <div style={{ height: 8 }} />
-      </div>
-    </>
+    </Sheet>
   );
 }

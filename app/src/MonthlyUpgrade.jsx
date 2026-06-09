@@ -10,6 +10,7 @@ import { IconClose, IconSparkles, IconCheck, IconArrowRight, IconTrendUp } from 
 import { LIFE_DOMAINS } from './data.js';
 import { usageBySurface } from './lib/telemetry.js';
 import { useSyncedState } from './useSyncedState.js';
+import { Sheet } from './components/Sheet.jsx';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -105,7 +106,7 @@ export function MonthlyUpgrade({ open, onClose }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  if (!open || !m) return null;
+  if (!m) return <Sheet open={open} onClose={onClose} maxHeight="90%" />;
 
   const acceptedIds = new Set(upgrades.map((u) => u.id));
   const dismissedIds = new Set(dismissed);
@@ -139,11 +140,7 @@ export function MonthlyUpgrade({ open, onClose }) {
   };
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '90%', overflowY: 'auto' }}>
-        <div className="sheet-handle" />
-
+    <Sheet open={open} onClose={onClose} maxHeight="90%">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
             <div className="eyebrow" style={{ color: 'var(--lime)' }}>Self-improvement · LifeOS v{version}</div>
@@ -200,7 +197,6 @@ export function MonthlyUpgrade({ open, onClose }) {
         )}
 
         <div style={{ height: 10 }} />
-      </div>
-    </>
+    </Sheet>
   );
 }
