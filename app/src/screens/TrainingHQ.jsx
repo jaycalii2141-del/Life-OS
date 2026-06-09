@@ -341,6 +341,7 @@ function SkillNode({ skill, color, onChange, disciplineId }) {
                       <div>
                         <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{x.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4, marginTop: 1 }}>{x.cue}</div>
+                        {x.gate && <div style={{ fontSize: 10, color, lineHeight: 1.35, marginTop: 2, letterSpacing: '0.02em' }}>✓ ready when: {x.gate}</div>}
                       </div>
                     </div>
                   ))}

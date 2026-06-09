@@ -55,7 +55,7 @@ function buildContext(skills, focusId, duration) {
   for (const d of discs) {
     const tier = trainTier(skills[d.id] || []);
     const dr = drillsFor(d.id, tier);
-    if (dr.length) lines.push(`${d.name} ${tier} drills: ${dr.map((x) => `${x.name} (${x.cue})`).join('; ')}`);
+    if (dr.length) lines.push(`${d.name} ${tier} drill progression (in order): ${dr.map((x) => `${x.name} — ${x.cue} [advance when: ${x.gate}]`).join(' | ')}`);
   }
   return lines.join('\n');
 }
@@ -88,9 +88,9 @@ function buildLocal(skills, focusId, duration) {
       out.push('• No active skill set — pick one from the tree to focus.');
     }
     if (next && !low) out.push(`• Next progression: attempt ${next.name} (${next.cue}).`);
-    // Drills that build this discipline at its working tier.
+    // Drills that build this discipline at its working tier (in teaching order).
     const dr = drillsFor(d.id, trainTier(list)).slice(0, 2);
-    dr.forEach((x) => out.push(`  ↳ Drill: ${x.name} — ${x.cue}`));
+    dr.forEach((x) => out.push(`  ↳ ${x.name} — ${x.cue}  (✓ ${x.gate})`));
   }
   out.push('');
   out.push('SUPPORTING STRENGTH (10–15 min)');
