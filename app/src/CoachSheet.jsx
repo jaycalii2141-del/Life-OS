@@ -55,7 +55,7 @@ function buildContext(skills, focusId, duration) {
   for (const d of discs) {
     const tier = trainTier(skills[d.id] || []);
     const dr = drillsFor(d.id, tier);
-    if (dr.length) lines.push(`${d.name} ${tier} drill progression (in order): ${dr.map((x) => `${x.name} — ${x.cue} [advance when: ${x.gate}]`).join(' | ')}`);
+    if (dr.length) lines.push(`${d.name} ${tier} drill progression (in order): ${dr.map((x) => `${x.name} — ${x.cue} [common fault: ${x.fault}] [advance when: ${x.gate}]`).join(' | ')}`);
   }
   return lines.join('\n');
 }
