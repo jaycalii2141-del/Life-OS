@@ -400,3 +400,31 @@ export const FUNDAMENTALS_BY_DISCIPLINE = {
 export function fundamentalsFor(disciplineId) {
   return FUNDAMENTALS_BY_DISCIPLINE[disciplineId] || [];
 }
+
+// ─────────────────────────────────────────────────────────
+// PERIODIZATION — how to structure the training week. Individual great
+// sessions still fail without smart weekly structure: CNS-heavy skill &
+// power work when fresh, impact alternated with low-impact, mobility
+// daily, real recovery, and a deload every 4th week.
+// ─────────────────────────────────────────────────────────
+export const PROGRAMMING_PRINCIPLES = [
+  'Learn new skills FRESH — early in the session and early in the week. Motor learning collapses under fatigue, and that is when injuries happen.',
+  'Alternate high-impact days (tumbling, tricking, jumps, landings) with low-impact days (hand-balancing, straight-arm strength, mobility) so the same tissue is not hammered twice in a row.',
+  'Power & plyometrics are CNS-intensive — keep them crisp and early; never grind them to fatigue, and do not stack max plyo + heavy lifting + max skill all in one day.',
+  'Strength 2–3×/week supports the skills; pair pressing with pulling every week without fail.',
+  'Mobility & prehab daily in small doses (wrists, shoulders, hips, ankles) + one dedicated mobility/recovery day.',
+  'Auto-regulate by readiness: green = push skills & power; yellow = technique & volume, cap impact; red = recovery only.',
+  'Take at least one full rest day, and deload roughly every 4th week — that is when adaptation and tendon repair actually happen.',
+];
+
+// A balanced movement-athlete microcycle. Scales from 3 to 6 training
+// days — the coach trims from the bottom for fewer days.
+export const WEEK_TEMPLATE = [
+  { day: 'Day 1 · Skill + Power (fresh)', focus: 'Your hardest, newest skill work while most rested', includes: ['New/Active skill from a high-CNS discipline (tricking / tumbling)', 'Set, block & air-awareness drills', 'Explosive plyos (pogos, depth/tuck jumps) — crisp, low volume'], impact: 'high' },
+  { day: 'Day 2 · Strength + Straight-arm', focus: 'Lower-impact strength to support the skills', includes: ['Straight-arm & scapular work (planche/lever leans, hand-balance)', 'Pull/push balanced strength + legs/posterior chain', 'Full mobility & wrist/shoulder prep'], impact: 'low' },
+  { day: 'Day 3 · Skill — second discipline', focus: 'A contrasting discipline so you develop all-around', includes: ['Active skill in acro / parkour / ninja (rotate)', 'Technical & balance work, not max effort', 'Landing & eccentric control'], impact: 'med' },
+  { day: 'Day 4 · Recovery + Mobility', focus: 'Down-week the load so adaptation happens', includes: ['Active recovery, full mobility flow, prehab', 'Light skill polish on something you already own', 'Breathwork, soft tissue, sleep & fuel focus'], impact: 'recovery' },
+  { day: 'Day 5 · Power + Priority discipline', focus: 'Fresh-ish: push your current priority / comp focus', includes: ['Primary discipline skill work', 'Reactive power + conditioning / grip (if ninja)', 'Set/block or twisting mechanics'], impact: 'high' },
+  { day: 'Day 6 · Play + Flow + Flexibility', focus: 'Link what you own; keep it joyful and exploratory', includes: ['Combos / lines / linking owned skills', 'Open-gym play and creative movement', 'Dedicated flexibility (splits, bridge, pancake)'], impact: 'low' },
+  { day: 'Day 7 · Full rest', focus: 'Complete rest — non-negotiable', includes: ['No training; sleep, fuel, recover', 'Light walk / mobility only if you want', 'Plan and visualize the week ahead'], impact: 'rest' },
+];

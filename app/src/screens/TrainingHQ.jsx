@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill } from '../components/atoms.jsx';
-import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity } from '../components/icons.jsx';
+import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar } from '../components/icons.jsx';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
+import { WeekPlanSheet } from '../WeekPlanSheet.jsx';
 import { drillsFor, fundamentalsFor } from '../coaching.js';
 
 // Sessions already logged before persistence existed (seed baseline)
@@ -28,6 +29,24 @@ const TIER_COLORS = {
   Advanced: '#FFD23C',
   Elite: '#FF0033',
 };
+
+// Tap-to-cycle tracker for any drill or fundamental: todo → working → done.
+const TRACK_STATES = {
+  todo:    { label: 'TRACK',   bg: 'rgba(255,255,255,0.05)', border: 'var(--line-strong)', color: 'var(--muted)' },
+  working: { label: 'WORKING', bg: 'rgba(0,212,255,0.16)',   border: 'rgba(0,212,255,0.6)', color: '#00D4FF' },
+  done:    { label: '✓ GOT IT', bg: 'rgba(182,255,60,0.16)', border: 'rgba(182,255,60,0.6)', color: '#B6FF3C' },
+};
+function TrackBtn({ status = 'todo', onClick }) {
+  const s = TRACK_STATES[status] || TRACK_STATES.todo;
+  return (
+    <div className="pressable" onClick={(e) => { e.stopPropagation(); onClick?.(); }} style={{
+      flexShrink: 0, padding: '4px 9px', borderRadius: 999,
+      background: s.bg, border: `1px solid ${s.border}`, color: s.color,
+      fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 58, textAlign: 'center',
+    }}>{s.label}</div>
+  );
+}
 
 // Body radar chart (6 axes, current vs goal)
 function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
@@ -184,7 +203,7 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
 }
 
 // Skill node (3 states: done, active, locked) — tap to edit
-function SkillNode({ skill, color, onChange, disciplineId }) {
+function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTrack }) {
   const [editing, setEditing] = useState(false);
 
   const stateMap = {
@@ -335,17 +354,23 @@ function SkillNode({ skill, color, onChange, disciplineId }) {
               <div style={{ width: '100%', marginTop: 4, paddingTop: 10, borderTop: '1px solid var(--line)' }}>
                 <div className="eyebrow" style={{ marginBottom: 8, color }}>How to train it · {skill.tier} drills</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {dr.map((x, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 8 }}>
-                      <span style={{ color, fontWeight: 800, fontSize: 12, lineHeight: '16px', flexShrink: 0 }}>›</span>
-                      <div>
-                        <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{x.name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4, marginTop: 1 }}>{x.cue}</div>
-                        {x.fault && <div style={{ fontSize: 10, color: 'var(--ona-red)', lineHeight: 1.35, marginTop: 2 }}>⚠ {x.fault}</div>}
-                        {x.gate && <div style={{ fontSize: 10, color, lineHeight: 1.35, marginTop: 2, letterSpacing: '0.02em' }}>✓ ready when: {x.gate}</div>}
+                  {dr.map((x, i) => {
+                    const tk = `d|${disciplineId}|${skill.tier}|${x.name}`;
+                    return (
+                      <div key={i} style={{ display: 'flex', gap: 8 }}>
+                        <span style={{ color, fontWeight: 800, fontSize: 12, lineHeight: '16px', flexShrink: 0 }}>›</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3, flex: 1 }}>{x.name}</div>
+                            <TrackBtn status={track[tk]} onClick={() => onCycleTrack?.(tk)} />
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4, marginTop: 1 }}>{x.cue}</div>
+                          {x.fault && <div style={{ fontSize: 10, color: 'var(--ona-red)', lineHeight: 1.35, marginTop: 2 }}>⚠ {x.fault}</div>}
+                          {x.gate && <div style={{ fontSize: 10, color, lineHeight: 1.35, marginTop: 2, letterSpacing: '0.02em' }}>✓ ready when: {x.gate}</div>}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -357,7 +382,7 @@ function SkillNode({ skill, color, onChange, disciplineId }) {
 }
 
 // Collapsible skill tree section
-function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
+function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {}, onCycleTrack }) {
   const done = skills.filter(s => s.status === 'done').length;
   const active = skills.filter(s => s.status === 'active').length;
 
@@ -416,7 +441,7 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
           display: 'flex', flexDirection: 'column', gap: 8,
           animation: 'screenIn 320ms cubic-bezier(0.2,0.7,0.2,1)',
         }}>
-          <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} />
+          <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} track={track} onCycleTrack={onCycleTrack} />
           {skills.map((skill, i) => (
             <SkillNode
               key={skill.name}
@@ -424,6 +449,8 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
               color={discipline.color}
               disciplineId={discipline.id}
               onChange={(patch) => onUpdate(i, patch)}
+              track={track}
+              onCycleTrack={onCycleTrack}
             />
           ))}
         </div>
@@ -433,7 +460,7 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate }) {
 }
 
 // The athletic + technical bedrock for a discipline (currently tricking).
-function FundamentalsPanel({ disciplineId, color }) {
+function FundamentalsPanel({ disciplineId, color, track = {}, onCycleTrack }) {
   const [open, setOpen] = useState(false);
   const items = fundamentalsFor(disciplineId);
   if (!items.length) return null;
@@ -449,14 +476,20 @@ function FundamentalsPanel({ disciplineId, color }) {
       {open && (
         <div style={{ padding: '0 13px 13px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5 }}>What separates "knows tricks" from elite. Train these alongside the skills.</div>
-          {items.map((f, i) => (
-            <div key={i} style={{ borderLeft: `2px solid ${color}`, paddingLeft: 10 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{i + 1}. {f.name}</div>
-              <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 3 }}>{f.why}</div>
-              <div style={{ fontSize: 11.5, color: 'var(--text)', lineHeight: 1.45, marginTop: 4 }}><span style={{ color, fontWeight: 700 }}>Train: </span>{f.how}</div>
-              <div style={{ fontSize: 11, color, lineHeight: 1.4, marginTop: 3 }}>✓ {f.standard}</div>
-            </div>
-          ))}
+          {items.map((f, i) => {
+            const tk = `f|${disciplineId}|${f.name}`;
+            return (
+              <div key={i} style={{ borderLeft: `2px solid ${color}`, paddingLeft: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', flex: 1 }}>{i + 1}. {f.name}</div>
+                  <TrackBtn status={track[tk]} onClick={() => onCycleTrack?.(tk)} />
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 3 }}>{f.why}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text)', lineHeight: 1.45, marginTop: 4 }}><span style={{ color, fontWeight: 700 }}>Train: </span>{f.how}</div>
+                <div style={{ fontSize: 11, color, lineHeight: 1.4, marginTop: 3 }}>✓ {f.standard}</div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -658,6 +691,14 @@ function TrainingHQ() {
   const sessionCount = BASE_SESSIONS + sessions.length;
   const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
 
+  // Per-user progress on individual drills & fundamentals (tap to cycle).
+  const [track, setTrack] = useSyncedState('lifeos:trackables', {});
+  const cycleTrack = (key) => setTrack((t) => {
+    const cur = t[key] || 'todo';
+    const next = cur === 'todo' ? 'working' : cur === 'working' ? 'done' : 'todo';
+    return { ...t, [key]: next };
+  });
+
   const [skills, setSkills] = useSyncedState('lifeos:skills:v2', SKILLS);
   const updateSkill = (disciplineId, idx, patch) =>
     setSkills((prev) => ({
@@ -679,6 +720,7 @@ function TrainingHQ() {
   const [editHeader, setEditHeader] = useState(false);
   const [editRadar, setEditRadar] = useState(false);
   const [coachOpen, setCoachOpen] = useState(false);
+  const [weekOpen, setWeekOpen] = useState(false);
 
   const tInp = {
     width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line)',
@@ -730,20 +772,36 @@ function TrainingHQ() {
           </div>
         </div>
 
-        {/* AI Coach CTA */}
-        <div
-          className="pressable"
-          onClick={() => setCoachOpen(true)}
-          style={{
-            height: 52, borderRadius: 16,
-            background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            color: '#06060A', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase',
-            boxShadow: '0 12px 36px -10px rgba(0,212,255,0.5)',
-          }}
-        >
-          <IconActivity size={19} stroke={2.4} />
-          Build my session
+        {/* AI Coach CTAs */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div
+            className="pressable"
+            onClick={() => setCoachOpen(true)}
+            style={{
+              flex: 1, height: 52, borderRadius: 16,
+              background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+              boxShadow: '0 12px 36px -10px rgba(0,212,255,0.5)',
+            }}
+          >
+            <IconActivity size={18} stroke={2.4} />
+            Session
+          </div>
+          <div
+            className="pressable"
+            onClick={() => setWeekOpen(true)}
+            style={{
+              flex: 1, height: 52, borderRadius: 16,
+              background: 'linear-gradient(135deg, #B14CFF 0%, #00D4FF 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+              boxShadow: '0 12px 36px -10px rgba(177,76,255,0.5)',
+            }}
+          >
+            <IconCalendar size={18} stroke={2.2} />
+            Plan week
+          </div>
         </div>
 
         {/* Body radar */}
@@ -794,6 +852,8 @@ function TrainingHQ() {
                 expanded={!!expanded[d.id]}
                 onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))}
                 onUpdate={(idx, patch) => updateSkill(d.id, idx, patch)}
+                track={track}
+                onCycleTrack={cycleTrack}
               />
             ))}
           </div>
@@ -825,6 +885,7 @@ function TrainingHQ() {
 
       <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} onLog={logSession} />
       <CoachSheet open={coachOpen} onClose={() => setCoachOpen(false)} skills={skills} onLog={logSession} />
+      <WeekPlanSheet open={weekOpen} onClose={() => setWeekOpen(false)} skills={skills} />
     </>
   );
 }

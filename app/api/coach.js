@@ -8,7 +8,33 @@ export default async function handler(req, res) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'AI not configured' }); return; }
 
-  const { context } = req.body || {};
+  const { context, mode } = req.body || {};
+
+  if (mode === 'week') {
+    const weekSystem =
+      `You are Jay Martinez's elite movement coach and program designer, building his TRAINING WEEK (microcycle). Jay is an ` +
+      `all-around acrobat/movement athlete training gymnastics, tricking, calisthenics, partner acrobatics & hand-balancing, ` +
+      `parkour, and ninja. Apply real periodization. Rules:\n` +
+      `- Put the hardest, newest skill & power work on his freshest days; learn new skills fresh, never fatigued.\n` +
+      `- Alternate high-impact days (tumbling/tricking/jumps/landings) with low-impact days (hand-balance, straight-arm strength, mobility).\n` +
+      `- Strength 2–3×/week, pressing balanced with pulling; power/plyos crisp and early, never to fatigue.\n` +
+      `- Mobility/prehab daily in small doses + one dedicated recovery day; at least one full rest day; note a deload every ~4th week.\n` +
+      `- Address his blindspots and weave in the discipline he has been neglecting. Scale the number of training days to what he gives.\n` +
+      `- Output a clear day-by-day week (Day 1…N) with each day's focus and 2–4 bullet items. Tight, phone-readable, no preamble. End with one short note on auto-regulating by readiness.\n\n` +
+      `Jay's data:\n${context || '(none provided)'}`;
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: MODEL, max_tokens: 1100, system: weekSystem, messages: [{ role: 'user', content: 'Plan my training week.' }] }),
+      });
+      if (!r.ok) { const detail = await r.text(); res.status(502).json({ error: 'Upstream error', detail: detail.slice(0, 300) }); return; }
+      const data = await r.json();
+      const text = (data.content || []).map((b) => b.text || '').join('').trim();
+      res.status(200).json({ text });
+    } catch (e) { res.status(500).json({ error: String(e) }); }
+    return;
+  }
 
   const system =
     `You are Jay Martinez's elite personal movement coach. You blend the expertise of the best coaches and ` +
