@@ -59,29 +59,33 @@ export const DRILLS = {
     ],
   },
   tricking: {
-    // Kicks + clean setups are non-negotiable before any flip.
+    // Kicks, vert, and clean setups are non-negotiable before any flip.
     Foundation: [
-      { name: '1. Technical & stretch kicks (round, hook, crescent)', cue: 'Chamber, snap, retract; stay tall and balanced on the base leg.', gate: 'Balanced controlled kicks both legs.', fault: 'Leaning back / dropping the chest on the kick → stay tall over the base leg, snap from the chamber.' },
-      { name: '2. Pop 360 → 540 (tornado kick)', cue: 'Vertical pop, spot early, late kick; land on the kicking leg.', gate: 'Clean pop 540, landed in control.', fault: 'Traveling and twisting flat/low → pop vertical first, then add the late kick.' },
-      { name: '3. Setups: cartwheel, round-off, J-step, hyper-hook', cue: 'Master the entries — sloppy setups cap every flip you ever learn.', gate: 'Consistent J-step / round-off into vertical.', fault: 'Rushing sloppy setups → slow them down and make them automatic; speed is built last.' },
+      { name: '1. Stance, weight transfer & base kicks (round, hook, crescent)', cue: 'Chamber, snap, retract; stay tall over the base leg. Clean kicks are the alphabet of tricking.', gate: 'Balanced controlled kicks both legs.', fault: 'Leaning back / dropping the chest on the kick → stay tall over the base leg, snap from the chamber.' },
+      { name: '2. Tornado kick: pop 360 → 540', cue: 'Vertical pop, spot early, late kick; land on the kicking leg.', gate: 'Clean pop 540, landed in control.', fault: 'Traveling and twisting flat/low → pop vertical first, then add the late kick.' },
+      { name: '3. Setups: cartwheel, round-off, J-step, hyper-hook', cue: 'Master the entries cold — sloppy setups cap every flip you ever learn.', gate: 'Consistent J-step / round-off into vertical.', fault: 'Rushing sloppy setups → slow them down and make them automatic; speed is built last.' },
+      { name: '4. Round-off rebound / jump-back (the flip engine)', cue: 'Block off the hands, rebound tall and slightly back, arms by the ears — this powers every backward flip.', gate: 'Tall powerful rebound, hips open.', fault: 'Throwing the head/shoulders back instead of blocking up → punch the floor, stay hollow, rebound up first.' },
     ],
-    // First inverts & twists, learned OFF elevation for air-awareness, then flat.
+    // Gateway inverts & twists, learned OFF elevation for air-awareness, then flat.
     Developing: [
-      { name: '1. Aerial (no-hand cartwheel) off a box → flat', cue: 'Reach long over the lead leg, hollow body, kick-punch the legs through.', gate: 'Aerial stuck on flat ground.', fault: 'Putting a hand down or piking → commit to the reach, stay hollow, drive the kick-punch.' },
-      { name: '2. Btwist (cartwheel-twist) off elevation → flat', cue: 'Backside takeoff, set vertical, twist late and tight.', gate: 'Btwist landed on flat.', fault: 'Twisting before setting → establish the backside takeoff and height first, twist late.' },
-      { name: '3. Masterscoops / swing-throughs', cue: 'Build momentum and rotation control before adding gainers and corks.', gate: 'Smooth swing-through to set up flips.', fault: 'No momentum control into the trick → drill the swing/scoop until the entry is effortless.' },
+      { name: '1. Aerial / side aerial (no-hand cartwheel) off a box → flat', cue: 'Reach long over the lead leg, hollow body, kick-punch the legs through.', gate: 'Aerial stuck on flat ground.', fault: 'Putting a hand down or piking → commit to the reach, stay hollow, drive the kick-punch.' },
+      { name: '2. Butterfly kick → butterfly twist (btwist) off elevation → flat', cue: 'Bkick for the shape, then add the backside twist: set vertical, twist late and tight.', gate: 'Btwist landed on flat.', fault: 'Twisting before setting → establish the backside takeoff and height first, then twist late.' },
+      { name: '3. Cheat 720 (twisting kick)', cue: 'Cheat the setup, stay over the base, complete the full rotation before landing.', gate: 'Cheat 720 stuck on the kicking leg.', fault: 'Opening the twist early and under-rotating → stay tight and finish the spin before reaching for the floor.' },
+      { name: '4. Swing-through / masterscoop transitions', cue: 'Build momentum and rotation control — these feed your gainers and corks.', gate: 'Smooth swing-through that sets up a flip.', fault: 'No momentum control into the trick → drill the swing/scoop until the entry is effortless.' },
     ],
-    // First true flips: gainer (forward travel) and cork (off-axis), height → flat.
+    // First true flips: gainer (forward travel), cork (off-axis), raiz, then the full.
     Advanced: [
-      { name: '1. Gainer off elevation → flat', cue: 'Travel forward off one leg, flip backward; spot the takeoff foot.', gate: 'Gainer landed on flat.', fault: 'Jumping backward instead of traveling forward → commit forward off the one foot while flipping back.' },
-      { name: '2. Cork off box → into mat → flat', cue: 'Hurdle, set LOW and diagonal, dump the head late, complete the rotation before opening.', gate: 'Cork landed feet-first on flat.', fault: 'Setting too upright (it becomes a btwist) → set low and diagonal, commit the off-axis dump.' },
+      { name: '1. Gainer (gainer flash) off elevation → flat', cue: 'Travel forward off one leg, flip backward; spot the takeoff foot.', gate: 'Gainer landed on flat.', fault: 'Jumping backward instead of traveling forward → commit forward off the one foot while flipping back.' },
+      { name: '2. Cork (corkscrew) off box → into mat → flat', cue: 'Hurdle, set LOW and diagonal, dump the head late, complete the rotation before opening.', gate: 'Cork landed feet-first on flat.', fault: 'Setting too upright (it becomes a btwist) → set low and diagonal, commit the off-axis dump.' },
       { name: '3. Raiz / touchdown raiz', cue: 'Inverted-cartwheel feel, snap the legs through, finish tall.', gate: 'Raiz stuck, chest up.', fault: 'Landing chest-down → snap the legs through fully and pull the chest up to finish.' },
+      { name: '4. Full (full-twisting layout)', cue: 'From a round-off BHS or standing: set the layout fully, then a late, tight full twist.', gate: 'Full twist landed and stuck.', fault: 'Twisting early kills the rotation and the height → complete the set, twist late.' },
     ],
-    // Own the base cork, then flavor it, then double.
+    // Own the base cork → flavor it → double → multi-twist → combos.
     Elite: [
-      { name: '1. Cork variations (hook, swipe, touchdown)', cue: 'Own the clean base cork before adding any flavor.', gate: '2–3 cork variations landed clean.', fault: 'Flavoring before the base cork is clean → perfect the plain cork first, then add variations.' },
+      { name: '1. Cork variations (hook, swipe, touchdown, shuriken)', cue: 'Own the clean base cork before adding any flavor; one variation at a time.', gate: '2–3 cork variations landed clean.', fault: 'Flavoring before the base cork is clean → perfect the plain cork first, then add variations.' },
       { name: '2. Double cork into pit/tramp → resi → flat', cue: 'Set higher off the single, two tight rotations, eyes find the floor early.', gate: 'Double cork into soft consistently.', fault: 'Not setting higher off the single → you need more height and a tighter first rotation, not more throw.' },
-      { name: '3. Full-twisting layouts & combos', cue: 'Late twist, hold the line, complete rotation before opening; link only what is automatic.', gate: 'Full landed; clean 3-trick combo.', fault: 'Linking before each trick is automatic → master the singles, then connect them.' },
+      { name: '3. Double full / multi-twisting layouts', cue: 'Earn off the single full; set higher, two tight late twists, hold the line.', gate: 'Double full landed.', fault: 'Rushing the twist or under-setting → more set and height, then twist late and tight.' },
+      { name: '4. Combos / linking under fatigue', cue: 'Link only what is automatic; control the landing of trick one to launch trick two.', gate: 'Clean 3-trick combo, controlled throughout.', fault: 'Linking before each trick is automatic → master the singles, then connect them.' },
     ],
   },
   calisthenics: {
