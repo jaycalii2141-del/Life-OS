@@ -139,7 +139,12 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
 
       {open && (
         loading && !brief ? (
-          <div className="eyebrow" style={{ opacity: 0.7, padding: '6px 0' }}>assembling your brief…</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '4px 0' }}>
+            <div className="skeleton" style={{ height: 11, width: '92%' }} />
+            <div className="skeleton" style={{ height: 11, width: '78%' }} />
+            <div className="skeleton" style={{ height: 11, width: '85%' }} />
+            <div className="skeleton" style={{ height: 11, width: '60%' }} />
+          </div>
         ) : (
           <>
             <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{brief}</div>

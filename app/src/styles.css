@@ -93,7 +93,25 @@ html, body {
 
 .screen-content {
   padding: 0 16px;
-  animation: screenIn 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: screenFade 320ms ease;
+}
+@keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Composed, staggered entrance for each screen's cards — premium cascade */
+.screen-content > * {
+  animation: cardIn 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.screen-content > *:nth-child(1) { animation-delay: 30ms; }
+.screen-content > *:nth-child(2) { animation-delay: 75ms; }
+.screen-content > *:nth-child(3) { animation-delay: 120ms; }
+.screen-content > *:nth-child(4) { animation-delay: 165ms; }
+.screen-content > *:nth-child(5) { animation-delay: 210ms; }
+.screen-content > *:nth-child(6) { animation-delay: 255ms; }
+.screen-content > *:nth-child(7) { animation-delay: 300ms; }
+.screen-content > *:nth-child(n+8) { animation-delay: 340ms; }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Full-screen (real phone / installed PWA): clear the real notch + home bar */
@@ -413,3 +431,43 @@ html, body {
 /* small text variants */
 .t-muted { color: var(--muted); }
 .t-dim { color: var(--dim); }
+
+/* ─────────────────────────────────────────────────────────
+   Premium polish: skeleton loaders, crisper press, motion safety
+   ───────────────────────────────────────────────────────── */
+
+/* Skeleton shimmer — show structure while async content loads */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  border-radius: 7px;
+}
+.skeleton::after {
+  content: '';
+  position: absolute; inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.09), transparent);
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeletonShimmer { to { transform: translateX(100%); } }
+
+/* Slightly springier, more tactile press feedback */
+.pressable {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.pressable:active { transform: scale(0.96); }
+
+/* Smooth, native-feeling type rendering */
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+
+/* Respect users who prefer reduced motion (accessibility + polish) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
