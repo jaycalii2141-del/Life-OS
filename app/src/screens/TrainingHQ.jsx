@@ -381,6 +381,58 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
   );
 }
 
+// "What I'm working on" — every active skill + drill/fundamental marked
+// WORKING, pulled into one focused list of current edges.
+function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
+  const activeSkills = [];
+  DISCIPLINES.forEach((d) => (skills[d.id] || []).forEach((s) => {
+    if (s.status === 'active') activeSkills.push({ disc: d, name: s.name, pct: s.pct, tier: s.tier });
+  }));
+  const working = Object.entries(track).filter(([, v]) => v === 'working').map(([k]) => {
+    const p = k.split('|');
+    const disc = DISCIPLINES.find((x) => x.id === p[1]);
+    return { key: k, type: p[0] === 'd' ? 'Drill' : 'Fundamental', disc, name: p[p.length - 1], tier: p[0] === 'd' ? p[2] : null };
+  });
+  const total = activeSkills.length + working.length;
+
+  const Row = ({ color, name, meta, right }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: color, boxShadow: `0 0 7px ${color}`, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.3 }}>{name}</div>
+        {meta && <div className="mono" style={{ fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.08em', marginTop: 1 }}>{meta}</div>}
+      </div>
+      {right}
+    </div>
+  );
+
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(0,212,255,0.22)' }}>
+      <HUDTicks />
+      <div style={{ marginBottom: total ? 8 : 0 }}>
+        <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Your current edges</div>
+        <div className="section-title" style={{ fontSize: 20, marginTop: 2 }}>WORKING ON · {total}</div>
+      </div>
+      {total === 0 ? (
+        <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5, marginTop: 8 }}>Mark a skill Active, or tap TRACK → WORKING on any drill or fundamental, and it shows up here as a current edge.</div>
+      ) : (
+        <div>
+          {activeSkills.map((s, i) => (
+            <Row key={`s${i}`} color={s.disc.color} name={s.name}
+              meta={`${s.disc.name.toUpperCase()} · SKILL · ${s.tier || ''}`}
+              right={<span className="display" style={{ fontSize: 15, color: s.disc.color }}>{s.pct}%</span>} />
+          ))}
+          {working.map((w) => (
+            <Row key={w.key} color={w.disc?.color || '#00D4FF'} name={w.name}
+              meta={`${(w.disc?.name || '').toUpperCase()} · ${w.type.toUpperCase()}${w.tier ? ' · ' + w.tier : ''}`}
+              right={<TrackBtn status="working" onClick={() => onCycleTrack?.(w.key)} />} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Collapsible skill tree section
 function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {}, onCycleTrack }) {
   const done = skills.filter(s => s.status === 'done').length;
@@ -803,6 +855,8 @@ function TrainingHQ() {
             Plan week
           </div>
         </div>
+
+        <WorkingOnPanel skills={skills} track={track} onCycleTrack={cycleTrack} />
 
         {/* Body radar */}
         <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
