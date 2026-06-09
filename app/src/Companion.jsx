@@ -3,8 +3,9 @@
 // world (training, businesses, day, captures, goals) and remembers the
 // conversation across sessions.
 import { useState, useRef, useEffect } from 'react';
-import { IconSparkles, IconSend, IconClose } from './components/icons.jsx';
+import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget } from './components/icons.jsx';
 import { Sheet } from './components/Sheet.jsx';
+import { celebrate } from './lib/haptics.js';
 import { DISCIPLINES } from './data.js';
 import { analyzeBlindspots } from './coaching.js';
 import { useSyncedState } from './useSyncedState.js';
@@ -84,12 +85,26 @@ export function CompanionLauncher({ onOpen }) {
   );
 }
 
+const ACTION_META = {
+  event: { Icon: IconCalendar, color: '#00D4FF', verb: 'Add to calendar' },
+  session: { Icon: IconActivity, color: '#B6FF3C', verb: 'Log session' },
+  capture: { Icon: IconPlus, color: '#FFD23C', verb: 'Save' },
+  focus: { Icon: IconTarget, color: '#FF0033', verb: 'Set focus' },
+  email: { Icon: IconSend, color: '#B14CFF', verb: 'Draft email' },
+};
+
 // ── The conversation ──
-export function Companion({ open, onClose }) {
+export function Companion({ open, onClose, onAction }) {
   const [messages, setMessages] = useSyncedState('lifeos:companion', []);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const endRef = useRef(null);
+
+  const doAction = (msgIdx, actIdx, a) => {
+    onAction?.(a);
+    celebrate();
+    setMessages((list) => list.map((m, mi) => (mi === msgIdx ? { ...m, actions: (m.actions || []).map((x, ai) => (ai === actIdx ? { ...x, done: true } : x)) } : m)));
+  };
 
   useEffect(() => { if (open) setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 120); }, [open, messages, thinking]);
 
@@ -100,17 +115,18 @@ export function Companion({ open, onClose }) {
     const next = [...messages, { role: 'user', text: q }];
     setMessages(next.slice(-60));
     setThinking(true);
-    let reply;
+    let reply, acts = [];
     try {
       const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: next, context: buildGlobalContext() }) });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       reply = (data.text || '').trim();
       if (!reply) throw new Error('empty');
+      acts = Array.isArray(data.actions) ? data.actions : [];
     } catch {
       reply = "I'm ready to think and build with you — add your Anthropic key in Settings and I'll come fully online with everything happening across your training, businesses, and day.";
     }
-    setMessages((m) => [...m, { role: 'ai', text: reply }].slice(-60));
+    setMessages((m) => [...m, { role: 'ai', text: reply, actions: acts }].slice(-60));
     setThinking(false);
   };
 
@@ -150,7 +166,27 @@ export function Companion({ open, onClose }) {
           ) : (
             <div key={i} style={{ alignSelf: 'flex-start', maxWidth: '92%', display: 'flex', gap: 8 }}>
               <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--violet)', boxShadow: '0 0 8px var(--violet)', marginTop: 6, flexShrink: 0 }} />
-              <div style={{ padding: '9px 13px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ padding: '9px 13px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                {m.actions && m.actions.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                    {m.actions.map((a, ai) => {
+                      const meta = ACTION_META[a.type] || { Icon: IconSparkles, color: '#B14CFF' };
+                      const label = a.label || meta.verb;
+                      return (
+                        <div key={ai} className="pressable" onClick={() => !a.done && doAction(i, ai, a)} style={{
+                          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999,
+                          background: a.done ? 'rgba(182,255,60,0.14)' : `${meta.color}1a`,
+                          border: `1px solid ${a.done ? 'rgba(182,255,60,0.5)' : meta.color + '66'}`,
+                          color: a.done ? 'var(--lime)' : meta.color, fontSize: 12, fontWeight: 700, opacity: a.done ? 0.85 : 1,
+                        }}>
+                          <meta.Icon size={13} /> {a.done ? `✓ ${label}` : label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )
         ))}

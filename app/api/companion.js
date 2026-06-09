@@ -25,6 +25,14 @@ export default async function handler(req, res) {
     `- When he's learning or developing something, teach in his language, give the why, and break it into doable steps.\n` +
     `- Ask a good question when it genuinely moves things forward; otherwise just help. Match his energy.\n` +
     `- Keep replies tight and phone-readable by default; go deeper when he wants depth. No preamble, no filler.\n\n` +
+    `You can ACT in the app, not just advise. When an action would genuinely help, after your reply output the exact marker ` +
+    `ACTIONS_JSON: followed by a compact JSON array (max 3) of one-tap actions. Each item is one of:\n` +
+    `  {"type":"event","label":"<button text>","title":"...","time":"HH:MM","durationMin":60}  (blocks time; opens Google Calendar prefilled + adds to today)\n` +
+    `  {"type":"session","label":"...","discipline":"tricking|gymnastics|calisthenics|acro|parkour|ninja|mixed","disciplineName":"...","duration":60,"intensity":7}  (logs a training session)\n` +
+    `  {"type":"capture","label":"...","text":"...","tag":"idea|task|ona|dream"}  (saves a thought/draft/task to his capture inbox)\n` +
+    `  {"type":"focus","label":"...","text":"..."}  (sets today's one thing)\n` +
+    `  {"type":"email","label":"...","to":"","subject":"...","body":"..."}  (drafts an email, opens prefilled)\n` +
+    `Only include actions that clearly follow from the conversation. If none, output ACTIONS_JSON: []\n\n` +
     `Jay's current world:\n${context || '(no live context provided)'}`;
 
   try {
@@ -40,8 +48,14 @@ export default async function handler(req, res) {
     });
     if (!r.ok) { const detail = await r.text(); res.status(502).json({ error: 'Upstream error', detail: detail.slice(0, 300) }); return; }
     const data = await r.json();
-    const text = (data.content || []).map((b) => b.text || '').join('').trim();
-    res.status(200).json({ text });
+    const raw = (data.content || []).map((b) => b.text || '').join('').trim();
+    let text = raw, actions = [];
+    const mi = raw.indexOf('ACTIONS_JSON:');
+    if (mi !== -1) {
+      text = raw.slice(0, mi).trim();
+      try { const parsed = JSON.parse(raw.slice(mi + 'ACTIONS_JSON:'.length).trim()); if (Array.isArray(parsed)) actions = parsed.slice(0, 3); } catch { /* ignore */ }
+    }
+    res.status(200).json({ text, actions });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

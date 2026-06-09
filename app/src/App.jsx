@@ -19,6 +19,7 @@ const MonthlyUpgrade = lazy(() => import('./MonthlyUpgrade.jsx').then((m) => ({ 
 const Settings = lazy(() => import('./Settings.jsx').then((m) => ({ default: m.Settings })));
 const CalendarSheet = lazy(() => import('./CalendarSheet.jsx').then((m) => ({ default: m.CalendarSheet })));
 import { logEvent } from './lib/telemetry.js';
+import { googleCalendarUrl, mailtoUrl, openExternal } from './lib/actions.js';
 import { TODAY, TIMELINE } from './data.js';
 import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
@@ -101,6 +102,31 @@ function MainApp() {
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
   const addCapture = (entry) => { setCaptures((list) => [entry, ...list].slice(0, 50)); logEvent('capture', 'add', entry.tag); };
 
+  // Training sessions live at the shell so the Companion can log them too.
+  const [sessions, setSessions] = useSyncedState('lifeos:sessions', []);
+  const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
+
+  // Companion actions — turn the AI from advisor into operator. External,
+  // irreversible steps (calendar create, email send) are prefilled via deep
+  // link so Jay confirms them in Google; in-app writes are reversible.
+  const runAction = (a) => {
+    if (!a || !a.type) return;
+    if (a.type === 'event') {
+      const time = a.time || '12:00';
+      setMissionState((s) => ({ ...s, timeline: [...(s.timeline ?? TIMELINE), { time, label: a.title || a.label || 'Block', kind: 'Focus', color: '#B14CFF' }].sort((x, y) => x.time.localeCompare(y.time)) }));
+      openExternal(googleCalendarUrl({ title: a.title || a.label || 'Block', time, durationMin: a.durationMin || 60, details: a.details }));
+    } else if (a.type === 'email') {
+      openExternal(mailtoUrl({ to: a.to || '', subject: a.subject || a.label || '', body: a.body || '' }));
+    } else if (a.type === 'session') {
+      logSession({ id: Date.now(), discipline: a.discipline || 'mixed', disciplineName: a.disciplineName || a.discipline || 'Mixed', duration: a.duration || 60, intensity: a.intensity || 7, date: new Date().toISOString() });
+    } else if (a.type === 'capture') {
+      const now = Date.now();
+      addCapture({ id: now, ts: now, text: a.text || a.label || '', tag: a.tag || 'idea', color: '#00D4FF', status: 'inbox', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+    } else if (a.type === 'focus') {
+      setMissionState((s) => ({ ...s, oneThing: a.text || a.label || '' }));
+    }
+  };
+
   // Daily history — powers the real streak, momentum heatmap, and 7-day trend.
   const [history, setHistory] = useSyncedState('lifeos:history', {});
 
@@ -132,7 +158,7 @@ function MainApp() {
   let screen;
   switch (tab) {
     case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} onGoMind={() => changeTab('mind')} />; break;
-    case 'train':  screen = <TrainingHQ />; break;
+    case 'train':  screen = <TrainingHQ sessions={sessions} onLogSession={logSession} />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
     case 'mind':   screen = <MindScreen captures={captures} setCaptures={setCaptures} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} />; break;
@@ -166,7 +192,7 @@ function MainApp() {
         />
 
         <CompanionLauncher onOpen={() => { setCompanionOpen(true); logEvent('companion', 'open'); }} />
-        <Companion open={companionOpen} onClose={() => setCompanionOpen(false)} />
+        <Companion open={companionOpen} onClose={() => setCompanionOpen(false)} onAction={runAction} />
 
         {/* Modals mount only when opened, so their code loads on first use. */}
         <Suspense fallback={null}>

@@ -736,12 +736,15 @@ function LogSessionSheet({ open, onClose, onLog }) {
 // ─────────────────────────────────────────────────────────
 // Training HQ screen
 // ─────────────────────────────────────────────────────────
-function TrainingHQ() {
+function TrainingHQ({ sessions: sessionsProp, onLogSession }) {
   const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
   const [logOpen, setLogOpen] = useState(false);
-  const [sessions, setSessions] = useSyncedState('lifeos:sessions', []);
+  // Sessions are owned by the app shell so the Companion can log them too;
+  // fall back to a local synced copy if rendered standalone.
+  const [ownSessions, setOwnSessions] = useSyncedState('lifeos:sessions', []);
+  const sessions = sessionsProp ?? ownSessions;
   const sessionCount = BASE_SESSIONS + sessions.length;
-  const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
+  const logSession = onLogSession || ((s) => setOwnSessions((list) => [s, ...list].slice(0, 200)));
 
   // Per-user progress on individual drills & fundamentals (tap to cycle).
   const [track, setTrack] = useSyncedState('lifeos:trackables', {});
