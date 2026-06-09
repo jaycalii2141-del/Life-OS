@@ -505,6 +505,19 @@ function StepRow({ step, onToggle, onText, onDelete, onUp, onDown, canUp, canDow
   );
 }
 
+// Turn a project's due date into a short, colour-coded status.
+function dueInfo(due) {
+  if (!due) return null;
+  const d = new Date(`${due}T00:00:00`);
+  if (isNaN(d)) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const days = Math.round((d - today) / 864e5);
+  if (days < 0) return { label: `OVERDUE ${-days}D`, color: 'var(--ona-red)' };
+  if (days === 0) return { label: 'DUE TODAY', color: 'var(--gold)' };
+  if (days <= 3) return { label: `DUE IN ${days}D`, color: 'var(--gold)' };
+  return { label: `DUE ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}`, color: 'var(--dim)' };
+}
+
 function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
   const [open, setOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(false);
@@ -514,6 +527,8 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
   const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
   const brand = brands.find((b) => b.id === project.brandId);
   const color = brand?.color || '#00D4FF';
+  const nextStep = steps.find((s) => !s.done);
+  const di = dueInfo(project.due);
 
   const addStep = () => { if (!newStep.trim()) return; onStepsChange([...steps, { id: Date.now(), text: newStep.trim(), done: false }]); setNewStep(''); };
   const setStep = (id, patch) => onStepsChange(steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -527,7 +542,16 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
           <span style={{ width: 8, height: 8, borderRadius: 999, background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{project.title}</div>
-            <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>{brands.length ? `${(brand?.name || 'NO BRAND').toUpperCase()} · ` : ''}{done}/{steps.length} STEPS</div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>
+              {brands.length ? `${(brand?.name || 'NO BRAND').toUpperCase()} · ` : ''}{done}/{steps.length} STEPS
+              {di && <> · <span style={{ color: di.color, fontWeight: 700 }}>{di.label}</span></>}
+            </div>
+            {nextStep && pct < 100 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                <span style={{ color, fontWeight: 800, fontSize: 12 }}>▸</span>
+                <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nextStep.text}</span>
+              </div>
+            )}
           </div>
           <span className="display" style={{ fontSize: 18, color }}>{pct}%</span>
         </div>
@@ -552,6 +576,15 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <input value={newStep} onChange={(e) => setNewStep(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addStep()} placeholder="Add a step…" style={{ ...ctInp, flex: 1 }} />
             <div className="pressable" onClick={addStep} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconPlus size={16} stroke={2.4} /></div>
+          </div>
+
+          <div className="eyebrow">Due date</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input type="date" value={project.due || ''} onChange={(e) => onUpdate({ due: e.target.value })}
+              style={{ ...ctInp, flex: 1, padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 12, colorScheme: 'dark' }} />
+            {project.due && (
+              <div className="pressable" onClick={() => onUpdate({ due: '' })} style={{ ...miniBtn, color: 'var(--muted)' }}><IconClose size={13} /></div>
+            )}
           </div>
 
           {brands.length > 0 && (
