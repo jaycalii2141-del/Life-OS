@@ -538,3 +538,54 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────
+   V2 VISUAL SYSTEM — CALM is the default.
+   Oura/Linear restraint: no glow, no HUD ticks, no shimmer,
+   flat surfaces, stronger whitespace, signal over spectacle.
+   The original command-center skin lives on as data-vibe="glow"
+   (Settings → Visual system).
+   ───────────────────────────────────────────────────────── */
+html[data-vibe="calm"] {
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.13);
+  --glass: rgba(255, 255, 255, 0.03);
+}
+
+/* kill the spectacle: glows, text-shadows, scanline grid, corner ticks */
+html[data-vibe="calm"] .screen-host *,
+html[data-vibe="calm"] .sheet *,
+html[data-vibe="calm"] .boot * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+html[data-vibe="calm"] .hud-tick { display: none; }
+html[data-vibe="calm"] #root::before { display: none; }
+
+/* keep essential depth: sheets and the tab bar still float */
+html[data-vibe="calm"] .sheet { box-shadow: 0 -16px 48px rgba(0,0,0,0.5) !important; }
+
+/* stop ambient animation loops — calm means still */
+html[data-vibe="calm"] .shimmer-cell,
+html[data-vibe="calm"] .glow-pulse-red,
+html[data-vibe="calm"] .fab-glow,
+html[data-vibe="calm"] .pulse-node { animation: none !important; }
+html[data-vibe="calm"] .bar-fill::after { display: none; }
+html[data-vibe="calm"] .orb-spin { animation-duration: 30s; }
+html[data-vibe="calm"] .orb-spin-fast { animation-duration: 18s; }
+
+/* flatten the mesh heroes into quiet, near-solid panels */
+html[data-vibe="calm"] .mesh-readiness,
+html[data-vibe="calm"] .mesh-train,
+html[data-vibe="calm"] .mesh-content,
+html[data-vibe="calm"] .mesh-ona,
+html[data-vibe="calm"] .mesh-ai {
+  background: linear-gradient(150deg, #0D0D15 0%, #0A0A10 100%);
+}
+
+/* softer drop-shadow filters on svg rings/radar */
+html[data-vibe="calm"] svg circle,
+html[data-vibe="calm"] svg polygon { filter: none !important; }
+
+/* a touch more breathing room between cards */
+html[data-vibe="calm"] .screen-content { padding: 0 18px; }

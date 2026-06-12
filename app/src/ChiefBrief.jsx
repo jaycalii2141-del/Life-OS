@@ -56,14 +56,14 @@ function buildLocal({ readiness, oneThing, calendarEvents }) {
   return out.join('\n');
 }
 
-export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, onGoMind }) {
+export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, onGoMind, defaultOpen = true }) {
   const day = todayKey();
   const cacheKey = `lifeos:brief:${day}`;
   const [brief, setBrief] = useState('');
   const [actions, setActions] = useState([]);
   const [usedAI, setUsedAI] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen);
   const [composing, setComposing] = useState(null); // null | event payload draft
 
   const inbox = inboxCount();

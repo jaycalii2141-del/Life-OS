@@ -1,26 +1,27 @@
 // ─────────────────────────────────────────────────────────
-// LIFE OS — App shell
-// Auth gate → iPhone bezel, tab state, FAB → Quick Capture, AI sheet.
+// LIFE OS V2 — App shell
+// Four surfaces (Today · Life · Perform · Build) + one Intelligence.
+// The Mission Engine lives here so every screen can feed it.
+// Auth gate → iPhone bezel, tab state, FAB → Quick Capture.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
-// Home is the default tab → load it eagerly for an instant first paint.
-import { MissionControl } from './screens/MissionControl.jsx';
+// Today is the default tab → load it eagerly for an instant first paint.
+import { TodayScreen } from './screens/TodayScreen.jsx';
 // Everything else is split into its own chunk, loaded on demand.
-const TrainingHQ = lazy(() => import('./screens/TrainingHQ.jsx').then((m) => ({ default: m.TrainingHQ })));
-const ContentStudio = lazy(() => import('./screens/ContentStudio.jsx').then((m) => ({ default: m.ContentStudio })));
-const ONAHQ = lazy(() => import('./screens/ONAHQ.jsx').then((m) => ({ default: m.ONAHQ })));
-const AIScreen = lazy(() => import('./screens/AIScreen.jsx').then((m) => ({ default: m.AIScreen })));
-const MindScreen = lazy(() => import('./screens/MindScreen.jsx').then((m) => ({ default: m.MindScreen })));
+const PerformScreen = lazy(() => import('./screens/TrainingHQ.jsx').then((m) => ({ default: m.PerformScreen })));
+const BuildScreen = lazy(() => import('./screens/BuildScreen.jsx').then((m) => ({ default: m.BuildScreen })));
+const LifeScreen = lazy(() => import('./screens/LifeScreen.jsx').then((m) => ({ default: m.LifeScreen })));
 const WeeklyReview = lazy(() => import('./WeeklyReview.jsx').then((m) => ({ default: m.WeeklyReview })));
 const MonthlyUpgrade = lazy(() => import('./MonthlyUpgrade.jsx').then((m) => ({ default: m.MonthlyUpgrade })));
 const Settings = lazy(() => import('./Settings.jsx').then((m) => ({ default: m.Settings })));
 const CalendarSheet = lazy(() => import('./CalendarSheet.jsx').then((m) => ({ default: m.CalendarSheet })));
 import { logEvent } from './lib/telemetry.js';
 import { googleCalendarUrl, mailtoUrl, openExternal } from './lib/actions.js';
-import { TODAY, TIMELINE } from './data.js';
+import { TIMELINE } from './data.js';
+import { generateMissions } from './lib/mission.js';
 import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
 import { useAuth } from './auth/AuthProvider.jsx';
@@ -47,10 +48,6 @@ export default function App() {
           background: 'var(--bg-0)',
         }}>
           <div style={{ position: 'relative', width: 84, height: 84 }}>
-            <div style={{
-              position: 'absolute', inset: -14, borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(0,212,255,0.35) 0%, transparent 65%)',
-            }} />
             <div className="orb-spin" style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
               background: 'conic-gradient(from 0deg, #00D4FF, #B14CFF, #00D4FF)',
@@ -59,7 +56,7 @@ export default function App() {
             }} />
             <div style={{
               position: 'absolute', inset: '34%', borderRadius: '50%',
-              background: '#00D4FF', boxShadow: '0 0 20px rgba(0,212,255,0.7)',
+              background: '#00D4FF',
             }} />
           </div>
           <span className="display" style={{ fontSize: 22, letterSpacing: '0.1em', color: 'var(--text)' }}>
@@ -79,7 +76,7 @@ export default function App() {
 // The actual app (all stateful hooks live here, below the gate)
 // ─────────────────────────────────────────────────────────
 function MainApp() {
-  const [tab, setTab] = useState('home');
+  const [tab, setTab] = useState('today');
   const [capture, setCapture] = useState({ open: false, voice: false });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -89,26 +86,88 @@ function MainApp() {
   const [booting, setBooting] = useState(true);
   const [companionOpen, setCompanionOpen] = useState(false);
 
+  // Visual system — CALM by default (Oura/Linear restraint); GLOW is the
+  // original command-center skin, one toggle away in Settings.
+  const [vibe, setVibe] = useSyncedState('lifeos:vibe', 'calm');
+  useEffect(() => {
+    document.documentElement.dataset.vibe = vibe === 'glow' ? 'glow' : 'calm';
+  }, [vibe]);
+
   // Tab changes are the backbone of usage telemetry (the "mirror").
   const changeTab = (t) => { setTab(t); logEvent(t, 'open'); };
-  useEffect(() => { logEvent('home', 'open'); }, []);
+  useEffect(() => { logEvent('today', 'open'); }, []);
 
-  // Mission Control state — per-day, synced to the cloud when signed in.
-  // Each new day starts fresh: blank One Thing, neutral meters to re-assess,
-  // and yesterday's timeline carried forward as an editable template.
-  const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${todayKey()}`, freshDailyDefault(todayKey()));
+  const today = todayKey();
+
+  // Daily state — meters, one thing, timeline. Per-day, cloud-synced.
+  const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${today}`, freshDailyDefault(today));
+
+  // ── The Mission Engine ──
+  // Generated once per day from every data source; regenerable; Build's
+  // Action Center can push extra missions in. Done-state survives re-plans.
+  const [missionDoc, setMissionDoc] = useSyncedState(`lifeos:mission:${today}`, { items: null, doneIds: [] });
+  useEffect(() => {
+    if (!missionDoc.items) {
+      const items = generateMissions();
+      setMissionDoc((d) => (d.items ? d : { ...d, items, doneIds: d.doneIds || [] }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionDoc.items]);
+
+  const missions = missionDoc.items || [];
+  const doneIds = missionDoc.doneIds || [];
+
+  // Keep the One Thing and the mission list in lockstep.
+  useEffect(() => {
+    if (!missionDoc.items) return;
+    const idx = missionDoc.items.findIndex((m) => m.id === 'one-thing');
+    if (missionState.oneThing && idx === -1) {
+      setMissionDoc((d) => ({
+        ...d,
+        items: [{ id: 'one-thing', kind: 'focus', icon: '🎯', title: missionState.oneThing, why: 'Your One Thing — the single win that makes today a success.', est: 90, go: 'today' }, ...d.items].slice(0, 5),
+      }));
+    } else if (missionState.oneThing && idx !== -1 && missionDoc.items[idx].title !== missionState.oneThing) {
+      setMissionDoc((d) => ({ ...d, items: d.items.map((m) => (m.id === 'one-thing' ? { ...m, title: missionState.oneThing } : m)) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionState.oneThing, missionDoc.items]);
+
+  const toggleMission = (id) => {
+    setMissionDoc((d) => {
+      const done = (d.doneIds || []).includes(id);
+      const doneIdsNext = done ? d.doneIds.filter((x) => x !== id) : [...(d.doneIds || []), id];
+      return { ...d, doneIds: doneIdsNext };
+    });
+    if (id === 'one-thing') {
+      setMissionState((s) => ({ ...s, oneThingDone: !doneIds.includes(id) }));
+    }
+    logEvent('mission', 'toggle', id);
+  };
+
+  const regenerateMissions = () => {
+    const items = generateMissions();
+    setMissionDoc((d) => ({ ...d, items, doneIds: (d.doneIds || []).filter((id) => items.some((m) => m.id === id)) }));
+    logEvent('mission', 'regenerate');
+  };
+
+  // Build's Action Center → "do today" pushes a move into the mission.
+  const addMission = (rec) => {
+    setMissionDoc((d) => {
+      const items = d.items || [];
+      if (items.some((m) => m.id === rec.id)) return d;
+      return { ...d, items: [...items, { ...rec, kind: rec.kind || 'build', go: rec.go || 'build' }] };
+    });
+  };
 
   // Captures — a synced log across all days, newest first.
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
   const addCapture = (entry) => { setCaptures((list) => [entry, ...list].slice(0, 50)); logEvent('capture', 'add', entry.tag); };
 
-  // Training sessions live at the shell so the Companion can log them too.
+  // Training sessions live at the shell so the Intelligence can log them too.
   const [sessions, setSessions] = useSyncedState('lifeos:sessions', []);
   const logSession = (s) => setSessions((list) => [s, ...list].slice(0, 200));
 
-  // Companion actions — turn the AI from advisor into operator. External,
-  // irreversible steps (calendar create, email send) are prefilled via deep
-  // link so Jay confirms them in Google; in-app writes are reversible.
+  // Intelligence actions — propose & prefill; Jay confirms external steps.
   const runAction = (a) => {
     if (!a || !a.type) return;
     if (a.type === 'event') {
@@ -133,23 +192,24 @@ function MainApp() {
   // App settings (e.g. connected Google Calendar iCal link).
   const [settings, setSettings] = useSyncedState('lifeos:settings', {});
 
-  // Record today's score whenever mission state changes.
-  const today = todayKey();
+  // Score the day by mission completion (+ a readiness bonus).
   const todayReadiness = Math.round(((missionState.energy + missionState.focus + missionState.body + missionState.mood) / 40) * 100);
-  const todayScore = Math.min(4, 1 + (missionState.oneThingDone ? 2 : 0) + (todayReadiness >= 75 ? 1 : 0));
+  const doneCount = missions.filter((m) => doneIds.includes(m.id)).length;
+  const todayScore = Math.min(4, doneCount + (todayReadiness >= 75 ? 1 : 0));
   useEffect(() => {
     setHistory((h) => {
       const cur = h[today];
       if (cur && cur.score === todayScore && cur.readiness === todayReadiness) return h;
-      return { ...h, [today]: { score: todayScore, readiness: todayReadiness, done: missionState.oneThingDone } };
+      return { ...h, [today]: { score: todayScore, readiness: todayReadiness, done: doneCount } };
     });
-  }, [todayScore, todayReadiness, missionState.oneThingDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayScore, todayReadiness, doneCount]);
 
   const momentum = buildMomentum(history, today, todayScore);
   const streak = computeStreak(history, today, todayScore);
   const trend = readinessTrend(history, today, todayReadiness);
 
-  // Untriaged captures → a gentle reminder badge on the Mind tab.
+  // Untriaged captures → a gentle badge on the Life tab.
   const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
 
   // Re-key the screen container on tab change so screenIn animation fires
@@ -157,13 +217,35 @@ function MainApp() {
 
   let screen;
   switch (tab) {
-    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} onGoMind={() => changeTab('mind')} />; break;
-    case 'train':  screen = <TrainingHQ sessions={sessions} onLogSession={logSession} />; break;
-    case 'create': screen = <ContentStudio />; break;
-    case 'ona':    screen = <ONAHQ />; break;
-    case 'mind':   screen = <MindScreen captures={captures} setCaptures={setCaptures} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} />; break;
-    case 'ai':     screen = <AIScreen captures={captures} />; break;
-    default:       screen = <MissionControl state={missionState} setState={setMissionState} momentum={momentum} streak={streak} trend={trend} icalUrl={settings.icalUrl} onOpenSettings={() => setSettingsOpen(true)} onOpenCalendar={() => setCalendarOpen(true)} onGoMind={() => changeTab('mind')} />;
+    case 'life':
+      screen = <LifeScreen captures={captures} setCaptures={setCaptures} readiness={todayReadiness} trend={trend} history={history} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} />;
+      break;
+    case 'perform':
+      screen = <PerformScreen sessions={sessions} onLogSession={logSession} readiness={todayReadiness} />;
+      break;
+    case 'build':
+      screen = <BuildScreen onAddMission={addMission} missionIds={missions.map((m) => m.id)} />;
+      break;
+    case 'today':
+    default:
+      screen = (
+        <TodayScreen
+          state={missionState}
+          setState={setMissionState}
+          missions={missions}
+          doneIds={doneIds}
+          onToggleMission={toggleMission}
+          onRegenerate={regenerateMissions}
+          momentum={momentum}
+          streak={streak}
+          trend={trend}
+          icalUrl={settings.icalUrl}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenCalendar={() => setCalendarOpen(true)}
+          onOpenCompanion={() => { setCompanionOpen(true); logEvent('companion', 'open'); }}
+          onGoTab={changeTab}
+        />
+      );
   }
 
   return (
@@ -179,7 +261,7 @@ function MainApp() {
         <TabBar
           active={tab}
           onChange={changeTab}
-          badges={{ mind: inboxCount }}
+          badges={{ life: inboxCount }}
           onFab={() => setCapture({ open: true, voice: false })}
           onFabLong={() => setCapture({ open: true, voice: true })}
         />
@@ -202,6 +284,8 @@ function MainApp() {
               onClose={() => setSettingsOpen(false)}
               icalUrl={settings.icalUrl}
               onSetIcal={(url) => setSettings((s) => ({ ...s, icalUrl: url }))}
+              vibe={vibe}
+              onSetVibe={setVibe}
             />
           )}
           {calendarOpen && (
@@ -263,6 +347,7 @@ function freshDailyDefault(todayK) {
     energy: 7, focus: 7, body: 7, mood: 7,
     oneThingDone: false,
     oneThing: '',
+    checkedIn: false,
     timeline: latestPriorTimeline(todayK) ?? TIMELINE,
   };
 }

@@ -1,12 +1,13 @@
 // First-run welcome — a considered first open that orients you to the
-// five surfaces, then gets out of the way. Shown once (synced flag).
-import { IconHome, IconBolt, IconBrain, IconSparkles, IconArrowRight } from './components/icons.jsx';
+// four surfaces + the Intelligence, then gets out of the way.
+import { IconTarget, IconBolt, IconBrain, IconSparkles, IconArrowRight, IconTrendUp } from './components/icons.jsx';
 
 const HIGHLIGHTS = [
-  { Icon: IconHome, color: '#00D4FF', title: 'Today', body: 'Your Chief of Staff briefs you each morning and hands you prefilled actions.' },
-  { Icon: IconBolt, color: '#B6FF3C', title: 'Train', body: 'Skill trees, drills with gates, fundamentals, and a coach that hunts your blindspots.' },
-  { Icon: IconBrain, color: '#FFD23C', title: 'Mind', body: 'Capture anything in seconds; triage it later. Nothing gets lost.' },
-  { Icon: IconSparkles, color: '#B14CFF', title: 'Agents', body: 'Six specialists — Chief, Coach, Creative, ONA, Podium, Architect — on your data.' },
+  { Icon: IconTarget, color: '#00D4FF', title: 'Today', body: 'Every morning LifeOS builds your mission — what matters, what\'s next, what can wait.' },
+  { Icon: IconBrain, color: '#FFD23C', title: 'Life', body: 'Recovery, relationships, reflection. Capture anything; triage it later.' },
+  { Icon: IconBolt, color: '#B6FF3C', title: 'Perform', body: 'Skill trees as a real progression engine — prereqs, gates, drills, mastery estimates.' },
+  { Icon: IconTrendUp, color: '#FF0033', title: 'Build', body: 'ONA + Studio with an Action Center: every metric becomes a recommended move.' },
+  { Icon: IconSparkles, color: '#B14CFF', title: 'Intelligence', body: 'One AI partner, many hats — open it anywhere with the orb. It knows your whole world.' },
 ];
 
 export function Onboarding({ onDone }) {

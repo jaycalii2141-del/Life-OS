@@ -29,7 +29,7 @@ const rowStyle = {
   background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
 };
 
-export function Settings({ open, onClose, icalUrl, onSetIcal }) {
+export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onSetVibe }) {
   const { configured, session, signOut } = useAuth();
   const [exported, setExported] = useState(false);
   const [cal, setCal] = useState(icalUrl || '');
@@ -79,6 +79,31 @@ export function Settings({ open, onClose, icalUrl, onSetIcal }) {
             <span style={{ fontSize: 13, color: 'var(--muted)' }}>Running offline — data saved on this device.</span>
           </div>
         )}
+
+        {/* Visual system */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Visual system</div>
+        <div style={{ ...rowStyle, marginBottom: 18 }}>
+          <div style={{ minWidth: 0, paddingRight: 10 }}>
+            <div style={{ fontSize: 14, color: 'var(--text)' }}>{vibe === 'glow' ? 'Glow' : 'Calm'}</div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.08em' }}>
+              {vibe === 'glow' ? 'FULL COMMAND-CENTER ENERGY' : 'QUIET FOCUS · LESS NOISE, MORE SIGNAL'}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            {[{ id: 'calm', label: 'CALM' }, { id: 'glow', label: 'GLOW' }].map((v) => {
+              const on = vibe === v.id;
+              return (
+                <div key={v.id} className="pressable" onClick={() => onSetVibe?.(v.id)} style={{
+                  padding: '7px 13px', borderRadius: 999,
+                  background: on ? 'rgba(0,212,255,0.14)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${on ? 'rgba(0,212,255,0.55)' : 'var(--line)'}`,
+                  color: on ? 'var(--cyan)' : 'var(--muted)',
+                  fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
+                }}>{v.label}</div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Calendar */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>Google Calendar</div>

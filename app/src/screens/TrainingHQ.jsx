@@ -8,6 +8,7 @@ import { CoachSheet } from '../CoachSheet.jsx';
 import { WeekPlanSheet } from '../WeekPlanSheet.jsx';
 import { Sheet } from '../components/Sheet.jsx';
 import { drillsFor, fundamentalsFor } from '../coaching.js';
+import { TIER_META, masteryEstimate, prereqFor, upcomingUnlocks, nextBreakthrough } from '../lib/mission.js';
 
 // Sessions already logged before persistence existed (seed baseline)
 const BASE_SESSIONS = 38;
@@ -204,8 +205,70 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// Progression Engine hero — the campaign view of all 6 trees.
+// Level = mastered skills; shows the closest breakthrough and
+// what's about to unlock, so the tree feels like a quest line.
+// ─────────────────────────────────────────────────────────
+function ProgressionHero({ skills, readiness, onCoach }) {
+  let mastered = 0, total = 0, pctSum = 0;
+  DISCIPLINES.forEach((d) => (skills[d.id] || []).forEach((s) => {
+    total += 1;
+    pctSum += s.status === 'done' ? 100 : (s.pct || 0);
+    if (s.status === 'done') mastered += 1;
+  }));
+  const overall = total ? Math.round(pctSum / total) : 0;
+  const edge = nextBreakthrough(skills);
+  const unlocks = upcomingUnlocks(skills, 2);
+
+  return (
+    <div className="hud glass-strong mesh-train" style={{ padding: 16, borderRadius: 20 }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <div className="eyebrow">Progression engine</div>
+          <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>LEVEL {mastered}</div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 5 }}>
+            {mastered}/{total} SKILLS MASTERED · {overall}% OVERALL
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div className="eyebrow">Readiness</div>
+          <div className="display" style={{ fontSize: 26, color: readiness >= 75 ? 'var(--lime)' : readiness >= 55 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness ?? '—'}</div>
+        </div>
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <ProgressBar value={overall} color="var(--cyan)" height={5} />
+      </div>
+
+      {edge && (
+        <div className="pressable" onClick={onCoach} style={{
+          marginTop: 12, padding: '10px 12px', borderRadius: 12,
+          background: 'rgba(0,212,255,0.07)', border: '1px solid rgba(0,212,255,0.35)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 16 }}>⚡</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+              Closest breakthrough: {edge.skill.name} · {edge.skill.pct}%
+            </div>
+            <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.08em', marginTop: 2 }}>
+              {edge.disc.name.toUpperCase()} · ~{masteryEstimate(edge.skill)} WKS LEFT · TAP FOR A SESSION PLAN
+            </div>
+          </div>
+        </div>
+      )}
+      {unlocks.length > 0 && (
+        <div className="mono" style={{ fontSize: 9.5, color: 'var(--gold)', letterSpacing: '0.06em', marginTop: 9, lineHeight: 1.5 }}>
+          🔓 ABOUT TO UNLOCK: {unlocks.map((u) => u.skill.name).join(' · ')}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Skill node (3 states: done, active, locked) — tap to edit
-function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTrack }) {
+function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTrack, prereq, readiness, onCoach }) {
   const [editing, setEditing] = useState(false);
   const [party, setParty] = useState(0);
 
@@ -299,6 +362,22 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
               {skill.pct}%
             </span>
           </div>
+          {/* progression meta — prereqs, mastery estimate, readiness gate */}
+          {skill.status === 'locked' && prereq && (
+            <div className="mono" style={{ fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.06em', marginTop: 5 }}>
+              🔒 UNLOCKS AFTER: {prereq.name.toUpperCase()}{prereq.status === 'active' ? ` (${prereq.pct}%)` : ''}
+            </div>
+          )}
+          {skill.status === 'active' && (() => {
+            const meta = TIER_META[skill.tier];
+            const wks = masteryEstimate(skill);
+            const gated = meta && readiness != null && readiness < meta.gate;
+            return (
+              <div className="mono" style={{ fontSize: 8.5, letterSpacing: '0.06em', marginTop: 5, color: gated ? 'var(--gold)' : 'var(--dim)' }}>
+                ~{wks} WKS TO MASTERY{meta ? ` · ${gated ? `⚠ WAIT FOR READINESS ${meta.gate}+` : `READY AT ${meta.gate}+ ✓`}` : ''}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -327,6 +406,13 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
               >{o.label}</div>
             );
           })}
+          {skill.status === 'active' && onCoach && (
+            <div className="pressable" onClick={(e) => { e.stopPropagation(); onCoach(); }} style={{
+              padding: '5px 9px', borderRadius: 999,
+              fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
+              background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.45)', color: 'var(--cyan)',
+            }}>✦ COACH ME</div>
+          )}
           {skill.status === 'active' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
               <div
@@ -439,9 +525,10 @@ function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
 }
 
 // Collapsible skill tree section
-function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {}, onCycleTrack }) {
+function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {}, onCycleTrack, readiness, onCoach }) {
   const done = skills.filter(s => s.status === 'done').length;
   const active = skills.filter(s => s.status === 'active').length;
+  const TIERS = ['Foundation', 'Developing', 'Advanced', 'Elite'];
 
   return (
     <div className="glass" style={{ borderRadius: 14, overflow: 'hidden' }}>
@@ -489,6 +576,25 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {
           <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>
             {done}/{skills.length} MASTERED · {active} ACTIVE
           </div>
+          {/* tier progression map — the quest line at a glance */}
+          <div style={{ display: 'flex', gap: 4, marginTop: 7 }}>
+            {TIERS.map((tier) => {
+              const inTier = skills.filter((s) => s.tier === tier);
+              if (!inTier.length) return null;
+              const doneT = inTier.filter((s) => s.status === 'done').length;
+              const tc = TIER_COLORS[tier];
+              return (
+                <div key={tier} style={{ flex: inTier.length, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <div style={{ width: `${(doneT / inTier.length) * 100}%`, height: '100%', background: tc, transition: 'width 700ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+                  </div>
+                  <span className="mono" style={{ fontSize: 7, letterSpacing: '0.08em', color: doneT === inTier.length ? tc : 'var(--dim)' }}>
+                    {tier.slice(0, 3).toUpperCase()} {doneT}/{inTier.length}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -508,6 +614,9 @@ function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {
               onChange={(patch) => onUpdate(i, patch)}
               track={track}
               onCycleTrack={onCycleTrack}
+              prereq={skill.status === 'locked' ? prereqFor(skills, i) : null}
+              readiness={readiness}
+              onCoach={onCoach}
             />
           ))}
         </div>
@@ -736,7 +845,7 @@ function LogSessionSheet({ open, onClose, onLog }) {
 // ─────────────────────────────────────────────────────────
 // Training HQ screen
 // ─────────────────────────────────────────────────────────
-function TrainingHQ({ sessions: sessionsProp, onLogSession }) {
+function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
   const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
   const [logOpen, setLogOpen] = useState(false);
   // Sessions are owned by the app shell so the Companion can log them too;
@@ -786,9 +895,65 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession }) {
   return (
     <>
       <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* header */}
-        <div className="hud glass-strong mesh-train" style={{
-          padding: 16, borderRadius: 20,
+        {/* L1 — the progression engine (flagship) */}
+        <ProgressionHero skills={skills} readiness={readiness} onCoach={() => setCoachOpen(true)} />
+
+        {/* AI Coach CTAs */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div
+            className="pressable"
+            onClick={() => setCoachOpen(true)}
+            style={{
+              flex: 1, height: 52, borderRadius: 16,
+              background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}
+          >
+            <IconActivity size={18} stroke={2.4} />
+            Session
+          </div>
+          <div
+            className="pressable"
+            onClick={() => setWeekOpen(true)}
+            style={{
+              flex: 1, height: 52, borderRadius: 16,
+              background: 'linear-gradient(135deg, #B14CFF 0%, #00D4FF 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}
+          >
+            <IconCalendar size={18} stroke={2.2} />
+            Plan week
+          </div>
+        </div>
+
+        {/* skill trees — the flagship */}
+        <div>
+          <SectionHead eyebrow={`${DISCIPLINES.length} disciplines · ${DISCIPLINES.reduce((n, d) => n + (skills[d.id]?.length || 0), 0)} skills`} title="SKILL TREES" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {DISCIPLINES.map((d) => (
+              <SkillTree
+                key={d.id}
+                discipline={d}
+                skills={skills[d.id]}
+                expanded={!!expanded[d.id]}
+                onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))}
+                onUpdate={(idx, patch) => updateSkill(d.id, idx, patch)}
+                track={track}
+                onCycleTrack={cycleTrack}
+                readiness={readiness}
+                onCoach={() => setCoachOpen(true)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <WorkingOnPanel skills={skills} track={track} onCycleTrack={cycleTrack} />
+
+        {/* training phase */}
+        <div className="hud glass" style={{
+          padding: 16, borderRadius: 16,
         }}>
           <HUDTicks />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -828,40 +993,6 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession }) {
           </div>
         </div>
 
-        {/* AI Coach CTAs */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div
-            className="pressable"
-            onClick={() => setCoachOpen(true)}
-            style={{
-              flex: 1, height: 52, borderRadius: 16,
-              background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-              boxShadow: '0 12px 36px -10px rgba(0,212,255,0.5)',
-            }}
-          >
-            <IconActivity size={18} stroke={2.4} />
-            Session
-          </div>
-          <div
-            className="pressable"
-            onClick={() => setWeekOpen(true)}
-            style={{
-              flex: 1, height: 52, borderRadius: 16,
-              background: 'linear-gradient(135deg, #B14CFF 0%, #00D4FF 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-              boxShadow: '0 12px 36px -10px rgba(177,76,255,0.5)',
-            }}
-          >
-            <IconCalendar size={18} stroke={2.2} />
-            Plan week
-          </div>
-        </div>
-
-        <WorkingOnPanel skills={skills} track={track} onCycleTrack={cycleTrack} />
-
         {/* Body radar */}
         <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
           <HUDTicks />
@@ -898,25 +1029,6 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession }) {
           )}
         </div>
 
-        {/* skill trees */}
-        <div>
-          <SectionHead eyebrow={`${DISCIPLINES.length} disciplines · ${DISCIPLINES.reduce((n, d) => n + (skills[d.id]?.length || 0), 0)} skills`} title="SKILL TREES" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {DISCIPLINES.map((d) => (
-              <SkillTree
-                key={d.id}
-                discipline={d}
-                skills={skills[d.id]}
-                expanded={!!expanded[d.id]}
-                onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))}
-                onUpdate={(idx, patch) => updateSkill(d.id, idx, patch)}
-                track={track}
-                onCycleTrack={cycleTrack}
-              />
-            ))}
-          </div>
-        </div>
-
         {/* CTA */}
         <div
           className="pressable"
@@ -948,4 +1060,6 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession }) {
   );
 }
 
-export { TrainingHQ, BodyRadar, SkillTree, SkillNode, LogSessionSheet };
+// V2 name — Perform: the progression engine for human performance.
+const PerformScreen = TrainingHQ;
+export { TrainingHQ, PerformScreen, BodyRadar, SkillTree, SkillNode, LogSessionSheet };

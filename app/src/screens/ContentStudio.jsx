@@ -837,7 +837,7 @@ function FoldersSection({ folders, onAdd, onOpen }) {
 // ─────────────────────────────────────────────────────────
 // Content Studio screen
 // ─────────────────────────────────────────────────────────
-function ContentStudio() {
+function ContentStudio({ embedded = false }) {
   const [content, setContent] = useSyncedState('lifeos:content', {
     hooks: HOOKS.map((text, i) => ({ id: i + 1, text })),
   });
@@ -864,7 +864,7 @@ function ContentStudio() {
   const currentFolder = folders.find((f) => f.id === openFolderId);
 
   return (
-    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="hud glass-strong mesh-content" style={{ padding: 16, borderRadius: 20 }}>
         <HUDTicks />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

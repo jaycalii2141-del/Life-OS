@@ -70,7 +70,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
               <IconCheck size={28} color="#B6FF3C" stroke={2.5} />
             </div>
             <div className="display" style={{ fontSize: 24, color: 'var(--lime)' }}>CAPTURED</div>
-            <div className="eyebrow">saved to your inbox · triage in Mind</div>
+            <div className="eyebrow">saved to your inbox · triage in Life</div>
           </div>
         ) : (
           <>

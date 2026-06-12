@@ -350,7 +350,7 @@ function LiveOnaCard({ live }) {
   );
 }
 
-function ONAHQ() {
+function ONAHQ({ embedded = false }) {
   const [ona, setOna] = useSyncedState('lifeos:ona', {
     stats: { members: ONA_STATS.members, mrr: ONA_STATS.mrr, nps: ONA_STATS.nps },
     initiatives: INITIATIVES,
@@ -376,7 +376,7 @@ function ONAHQ() {
   const deleteCoach = (id) => setOna((s) => ({ ...s, coaches: (s.coaches ?? COACHES).filter((c) => c.id !== id) }));
 
   return (
-    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="hud glass-strong mesh-ona" style={{ padding: 18, borderRadius: 20 }}>
         <HUDTicks />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>

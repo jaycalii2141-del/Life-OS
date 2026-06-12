@@ -1,18 +1,18 @@
 import { useRef } from 'react';
-import { IconHome, IconBolt, IconPlay, IconNinja, IconSparkles, IconPlus, IconBrain } from './icons.jsx';
+import { IconTarget, IconBolt, IconTrendUp, IconBrain, IconPlus } from './icons.jsx';
 import { HUDTicks } from './atoms.jsx';
 
 // ─────────────────────────────────────────────────────────
-// TabBar — bottom nav (5 tabs) + floating action button
+// TabBar V2 — four surfaces + floating capture button.
+// Today (the mission) · Life · Perform · Build. The Intelligence
+// is everywhere via the orb, so it doesn't need a tab.
 // ─────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'home',   label: 'Home',   Icon: IconHome,     color: '#00D4FF' },
-  { id: 'train',  label: 'Train',  Icon: IconBolt,     color: '#B6FF3C' },
-  { id: 'create', label: 'Create', Icon: IconPlay,     color: '#FF3CC8' },
-  { id: 'ona',    label: 'ONA',    Icon: IconNinja,    color: '#FF0033' },
-  { id: 'mind',   label: 'Mind',   Icon: IconBrain,    color: '#FFD23C' },
-  { id: 'ai',     label: 'AI',     Icon: IconSparkles, color: '#B14CFF' },
+  { id: 'today',   label: 'Today',   Icon: IconTarget,  color: '#00D4FF' },
+  { id: 'life',    label: 'Life',    Icon: IconBrain,   color: '#FFD23C' },
+  { id: 'perform', label: 'Perform', Icon: IconBolt,    color: '#B6FF3C' },
+  { id: 'build',   label: 'Build',   Icon: IconTrendUp, color: '#FF0033' },
 ];
 
 function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {

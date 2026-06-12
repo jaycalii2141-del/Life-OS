@@ -1,13 +1,18 @@
-// LifeOS Companion — an always-present AI partner Jay can open from any
-// screen to talk, collaborate, learn, build, and grow. Knows his whole
-// world (training, businesses, day, captures, goals) and remembers the
-// conversation across sessions.
+// ─────────────────────────────────────────────────────────
+// LifeOS V2 — THE INTELLIGENCE.
+// One mind, different hats. The six separate "agents" of V1 are now
+// modes of a single companion that knows Jay's whole world and keeps
+// one continuous, synced conversation. Open it from anywhere.
+// It can ACT (calendar, email, session, capture, focus) — always
+// propose-and-confirm, never silent execution.
+// ─────────────────────────────────────────────────────────
 import { useState, useRef, useEffect } from 'react';
 import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget } from './components/icons.jsx';
 import { Sheet } from './components/Sheet.jsx';
 import { celebrate } from './lib/haptics.js';
 import { DISCIPLINES } from './data.js';
 import { analyzeBlindspots } from './coaching.js';
+import { generateMissions, localAnswer, snapshot } from './lib/mission.js';
 import { useSyncedState } from './useSyncedState.js';
 import { todayKey } from './usePersistentState.js';
 
@@ -15,54 +20,63 @@ function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
 }
 
-// Assemble a compact snapshot of Jay's whole world for the companion.
-function buildGlobalContext() {
-  const d = readJSON(`lifeos:daily:${todayKey()}`, {});
-  const readiness = d.energy != null ? Math.round(((d.energy + d.focus + d.body + d.mood) / 40) * 100) : null;
-  const sessions = readJSON('lifeos:sessions', []);
-  const skills = readJSON('lifeos:skills:v2', {});
-  const ona = readJSON('lifeos:ona', {});
-  const content = readJSON('lifeos:content', {});
-  const captures = readJSON('lifeos:captures', []);
-  const focus = readJSON('lifeos:weeklyfocus', {}).text;
-  const folders = readJSON('lifeos:folders', []);
+// One intelligence, different hats.
+const MODES = [
+  { id: 'partner',   name: 'Partner',   color: '#B14CFF', hint: 'whole-life thinking partner' },
+  { id: 'chief',     name: 'Chief',     color: '#00D4FF', hint: 'runs your day & priorities' },
+  { id: 'coach',     name: 'Coach',     color: '#B6FF3C', hint: 'training & recovery' },
+  { id: 'creative',  name: 'Creative',  color: '#FF3CC8', hint: 'content & brands' },
+  { id: 'ona',       name: 'ONA',       color: '#FF0033', hint: 'gym operations' },
+  { id: 'podium',    name: 'Podium',    color: '#FFD23C', hint: 'equipment & builds' },
+  { id: 'architect', name: 'Architect', color: '#FF8A3C', hint: 'improves your systems' },
+];
 
+const STARTERS = {
+  partner: ["What should I focus on today?", 'What am I neglecting right now?', 'Help me think something through'],
+  chief: ['Plan my day around my mission', "What's the highest-leverage hour today?"],
+  coach: ['Am I recovered enough to push?', 'Coach me on my closest breakthrough'],
+  creative: ['Write me 3 hooks for JayMuvs', "What content move matters most this week?"],
+  ona: ['Run the ONA pulse', 'How do I revive the stale leads?'],
+  podium: ["What's next for Podium?"],
+  architect: ['Where am I losing time?', 'What should LifeOS do better?'],
+};
+
+// Assemble a compact snapshot of Jay's whole world for the intelligence.
+function buildGlobalContext() {
+  const s = snapshot();
+  const d = s.daily;
   const L = [];
   L.push(`Today: ${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}.`);
-  if (readiness != null) L.push(`Readiness ${readiness}/100. One thing: ${d.oneThing || 'not set'}.`);
-  if (focus) L.push(`This week's focus: ${focus}.`);
+  if (s.readiness != null) L.push(`Readiness ${s.readiness}/100. One thing: ${d.oneThing || 'not set'}.`);
+  if (s.weeklyFocus) L.push(`This week's focus: ${s.weeklyFocus}.`);
+
+  // Today's mission (the campaign the whole app revolves around).
+  const missionDoc = readJSON(`lifeos:mission:${todayKey()}`, null);
+  const missions = missionDoc?.items?.length ? missionDoc.items : generateMissions(s);
+  const doneIds = missionDoc?.doneIds || [];
+  if (missions.length) L.push(`Today's mission: ${missions.map((m) => `${doneIds.includes(m.id) ? '[done] ' : ''}${m.title}`).join('; ')}.`);
 
   // Training
   const active = [];
-  DISCIPLINES.forEach((disc) => (skills[disc.id] || []).forEach((s) => { if (s.status === 'active') active.push(`${disc.name}:${s.name} ${s.pct}%`); }));
+  DISCIPLINES.forEach((disc) => (s.skills[disc.id] || []).forEach((sk) => { if (sk.status === 'active') active.push(`${disc.name}:${sk.name} ${sk.pct}%`); }));
   if (active.length) L.push(`Training — active skills: ${active.join(', ')}.`);
-  L.push(`Training sessions logged: ${sessions.length}.`);
-  const bs = analyzeBlindspots(skills, sessions, readiness, DISCIPLINES).filter((b) => b.sev !== 'low');
+  L.push(`Training sessions logged: ${s.sessions.length}.`);
+  const bs = analyzeBlindspots(s.skills, s.sessions, s.readiness, DISCIPLINES).filter((b) => b.sev !== 'low');
   if (bs.length) L.push(`Training blindspots: ${bs.map((b) => b.title).join('; ')}.`);
 
-  // ONA
-  if (ona.stats) L.push(`ONA: members ${ona.stats.members}, MRR $${ona.stats.mrr}, NPS ${ona.stats.nps}.`);
-  if (ona.initiatives?.length) L.push(`ONA initiatives: ${ona.initiatives.map((i) => `${i.priority} ${i.title} ${i.pct}%`).join('; ')}.`);
-
-  // Content / folders
-  if (content.brands?.length) L.push(`Brands: ${content.brands.map((b) => `${b.name}(${b.status})`).join(', ')}.`);
+  // Businesses
+  if (s.ona.stats) L.push(`ONA: members ${s.ona.stats.members}, MRR $${s.ona.stats.mrr}, NPS ${s.ona.stats.nps}.`);
+  if (s.ona.initiatives?.length) L.push(`ONA initiatives: ${s.ona.initiatives.map((i) => `${i.priority} ${i.title} ${i.pct}%`).join('; ')}.`);
+  if (s.content.brands?.length) L.push(`Brands: ${s.content.brands.map((b) => `${b.name}(${b.status})`).join(', ')}.`);
   const projs = [];
-  folders.forEach((f) => (f.projects || []).forEach((p) => { const done = (p.steps || []).filter((s) => s.done).length; projs.push(`${f.name}:${p.title} (${done}/${(p.steps || []).length})`); }));
+  s.folders.forEach((f) => (f.projects || []).forEach((p) => { const done = (p.steps || []).filter((x) => x.done).length; projs.push(`${f.name}:${p.title} (${done}/${(p.steps || []).length})`); }));
   if (projs.length) L.push(`Active projects: ${projs.slice(0, 8).join('; ')}.`);
 
-  // Capture
-  const inbox = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
+  const inbox = s.captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
   if (inbox) L.push(`${inbox} thoughts waiting in the capture inbox.`);
 
   return L.join('\n');
 }
-
-const STARTERS = [
-  "What should I focus on today?",
-  'Help me think through a Podium decision',
-  'Coach me on my cork progression',
-  "What am I neglecting right now?",
-];
 
 // ── Floating launcher, present on every screen ──
 export function CompanionLauncher({ onOpen }) {
@@ -79,7 +93,6 @@ export function CompanionLauncher({ onOpen }) {
         boxShadow: '0 10px 30px -8px rgba(177,76,255,0.6)',
       }}
     >
-      <div style={{ position: 'absolute', inset: -8, borderRadius: '50%', background: 'radial-gradient(circle, rgba(177,76,255,0.4) 0%, transparent 65%)' }} className="glow-pulse-red" />
       <IconSparkles size={24} color="#06060A" stroke={2} style={{ position: 'relative' }} />
     </div>
   );
@@ -96,9 +109,12 @@ const ACTION_META = {
 // ── The conversation ──
 export function Companion({ open, onClose, onAction }) {
   const [messages, setMessages] = useSyncedState('lifeos:companion', []);
+  const [mode, setMode] = useState('partner');
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
   const endRef = useRef(null);
+
+  const activeMode = MODES.find((m) => m.id === mode) || MODES[0];
 
   const doAction = (msgIdx, actIdx, a) => {
     onAction?.(a);
@@ -117,27 +133,28 @@ export function Companion({ open, onClose, onAction }) {
     setThinking(true);
     let reply, acts = [];
     try {
-      const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: next, context: buildGlobalContext() }) });
+      const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: next, context: buildGlobalContext(), mode }) });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       reply = (data.text || '').trim();
       if (!reply) throw new Error('empty');
       acts = Array.isArray(data.actions) ? data.actions : [];
     } catch {
-      reply = "I'm ready to think and build with you — add your Anthropic key in Settings and I'll come fully online with everything happening across your training, businesses, and day.";
+      // Local intelligence — real answers from live data until the key is set.
+      reply = localAnswer(q, mode);
     }
-    setMessages((m) => [...m, { role: 'ai', text: reply, actions: acts }].slice(-60));
+    setMessages((m) => [...m, { role: 'ai', text: reply, actions: acts, mode }].slice(-60));
     setThinking(false);
   };
 
   return (
-    <Sheet open={open} onClose={onClose} maxHeight="90%">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+    <Sheet open={open} onClose={onClose} maxHeight="92%">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 11, background: 'linear-gradient(135deg, #B14CFF, #00D4FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconSparkles size={19} /></div>
+          <div style={{ width: 34, height: 34, borderRadius: 11, background: `linear-gradient(135deg, ${activeMode.color}, #00D4FF)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconSparkles size={19} /></div>
           <div>
-            <div className="eyebrow" style={{ color: 'var(--violet)' }}>Your AI</div>
-            <div className="display" style={{ fontSize: 21, marginTop: 1 }}>LIFE OS</div>
+            <div className="eyebrow" style={{ color: activeMode.color }}>{activeMode.hint}</div>
+            <div className="display" style={{ fontSize: 20, marginTop: 1 }}>LIFEOS INTELLIGENCE</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -148,26 +165,49 @@ export function Companion({ open, onClose, onAction }) {
         </div>
       </div>
 
+      {/* Hats — one intelligence, different modes */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, WebkitOverflowScrolling: 'touch' }}>
+        {MODES.map((m) => {
+          const on = m.id === mode;
+          return (
+            <div key={m.id} className="pressable" onClick={() => setMode(m.id)} style={{
+              flexShrink: 0, padding: '6px 12px', borderRadius: 999,
+              background: on ? `${m.color}1c` : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${on ? m.color : 'var(--line)'}`,
+              color: on ? m.color : 'var(--muted)',
+              fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+            }}>{m.name.toUpperCase()}</div>
+          );
+        })}
+      </div>
+
       {/* Conversation */}
-      <div style={{ minHeight: 220, maxHeight: '52vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 6 }}>
+      <div style={{ minHeight: 220, maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 6 }}>
         {messages.length === 0 && !thinking && (
           <div style={{ padding: '8px 0' }}>
-            <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>Hey Jay — I'm your partner across all of this. Ask me anything, think out loud, or pick a starting point:</div>
+            <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>One partner across everything — your day, your training, your businesses. Pick a hat above or just start:</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-              {STARTERS.map((s, i) => (
-                <div key={i} className="pressable" onClick={() => send(s)} style={{ padding: '11px 14px', borderRadius: 12, background: 'rgba(177,76,255,0.08)', border: '1px solid rgba(177,76,255,0.3)', color: 'var(--text)', fontSize: 13 }}>{s}</div>
+              {(STARTERS[mode] || STARTERS.partner).map((s, i) => (
+                <div key={i} className="pressable" onClick={() => send(s)} style={{ padding: '11px 14px', borderRadius: 12, background: `${activeMode.color}10`, border: `1px solid ${activeMode.color}45`, color: 'var(--text)', fontSize: 13 }}>{s}</div>
               ))}
             </div>
           </div>
         )}
-        {messages.map((m, i) => (
-          m.role === 'user' ? (
-            <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '86%', padding: '9px 13px', borderRadius: 16, borderBottomRightRadius: 4, background: 'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(177,76,255,0.18))', border: '1px solid rgba(177,76,255,0.3)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.45 }}>{m.text}</div>
-          ) : (
+        {messages.map((m, i) => {
+          if (m.role === 'user') {
+            return (
+              <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '86%', padding: '9px 13px', borderRadius: 16, borderBottomRightRadius: 4, background: 'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(177,76,255,0.18))', border: '1px solid rgba(177,76,255,0.3)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.45 }}>{m.text}</div>
+            );
+          }
+          const mMode = MODES.find((x) => x.id === m.mode) || MODES[0];
+          return (
             <div key={i} style={{ alignSelf: 'flex-start', maxWidth: '92%', display: 'flex', gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--violet)', boxShadow: '0 0 8px var(--violet)', marginTop: 6, flexShrink: 0 }} />
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: mMode.color, marginTop: 6, flexShrink: 0 }} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ padding: '9px 13px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                <div style={{ padding: '9px 13px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                  {m.mode && m.mode !== 'partner' && <div className="mono" style={{ fontSize: 8, color: mMode.color, letterSpacing: '0.14em', marginBottom: 4 }}>{mMode.name.toUpperCase()} MODE</div>}
+                  {m.text}
+                </div>
                 {m.actions && m.actions.length > 0 && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
                     {m.actions.map((a, ai) => {
@@ -188,11 +228,11 @@ export function Companion({ open, onClose, onAction }) {
                 )}
               </div>
             </div>
-          )
-        ))}
+          );
+        })}
         {thinking && (
           <div style={{ alignSelf: 'flex-start', display: 'flex', gap: 6, alignItems: 'center', padding: '4px 6px' }}>
-            <span className="blink" style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--violet)' }} />
+            <span className="blink" style={{ width: 6, height: 6, borderRadius: 999, background: activeMode.color }} />
             <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.12em' }}>THINKING…</span>
           </div>
         )}
@@ -201,16 +241,16 @@ export function Companion({ open, onClose, onAction }) {
 
       {/* Input */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(177,76,255,0.35)', borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', boxShadow: '0 0 30px -10px rgba(177,76,255,0.4)' }}>
+        <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: `1px solid ${activeMode.color}55`, borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center' }}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send()}
-            placeholder="Talk to your AI…"
+            placeholder={`Talk to your AI · ${activeMode.hint}…`}
             style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontFamily: 'var(--font-body)' }}
           />
         </div>
-        <div className="pressable" onClick={() => send()} style={{ width: 50, borderRadius: 14, background: input.trim() ? 'linear-gradient(135deg, #B14CFF, #00D4FF)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#06060A' : 'var(--dim)' }}>
+        <div className="pressable" onClick={() => send()} style={{ width: 50, borderRadius: 14, background: input.trim() ? `linear-gradient(135deg, ${activeMode.color}, #00D4FF)` : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#06060A' : 'var(--dim)' }}>
           <IconSend size={19} stroke={2.2} />
         </div>
       </div>

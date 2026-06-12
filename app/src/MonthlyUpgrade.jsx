@@ -15,7 +15,7 @@ import { Sheet } from './components/Sheet.jsx';
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
 }
-const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', ona: 'ONA', mind: 'Mind', ai: 'Agents', capture: 'Capture' };
+const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', ona: 'ONA', mind: 'Mind', ai: 'Agents', capture: 'Capture', today: 'Today', life: 'Life', perform: 'Perform', build: 'Build', companion: 'Intelligence', mission: 'Mission' };
 
 // Crunch the month from local data + telemetry.
 function buildMonth() {

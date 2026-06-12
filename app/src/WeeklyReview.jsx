@@ -24,7 +24,7 @@ function dayKey(d) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', ona: 'ONA', mind: 'Mind', ai: 'Agents' };
+const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', ona: 'ONA', mind: 'Mind', ai: 'Agents', today: 'Today', life: 'Life', perform: 'Perform', build: 'Build', companion: 'Intelligence', mission: 'Mission' };
 
 // Crunch the week from local data.
 function buildWeek() {
