@@ -332,39 +332,46 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
       }}
     >
       <ConfettiBurst trigger={party} />
+      {/* compact row — one clean line; detail lives one tap away */}
       <div
         className="pressable"
         onClick={() => setEditing((e) => !e)}
-        style={{ display: 'flex', alignItems: 'center', gap: 12 }}
+        style={{ display: 'flex', alignItems: 'center', gap: 11 }}
       >
-        <div className={skill.status === 'active' ? 'pulse-node' : ''} style={{
-          width: 22, height: 22, borderRadius: 8,
+        <div style={{
+          width: 20, height: 20, borderRadius: 7,
           background: s.iconBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0,
         }}>{s.icon}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)' }}>{skill.name}</span>
-            {skill.tier && (() => {
-              const tc = TIER_COLORS[skill.tier] || 'var(--muted)';
-              return <span className="mono" style={{ fontSize: 7, letterSpacing: '0.1em', color: tc, border: `1px solid ${tc}66`, borderRadius: 999, padding: '1px 5px', textTransform: 'uppercase', flexShrink: 0 }}>{skill.tier}</span>;
-            })()}
+          <div style={{ fontSize: 14, fontWeight: 600, color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {skill.name}
           </div>
-          {skill.cue && (
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3, lineHeight: 1.3, textWrap: 'pretty' }}>{skill.cue}</div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-            <div style={{ flex: 1, height: 3 }}>
-              <ProgressBar value={skill.pct} color={s.pctColor} height={3} />
+          {skill.status === 'active' && (
+            <div style={{ marginTop: 5 }}>
+              <ProgressBar value={skill.pct} color={s.pctColor} height={2.5} />
             </div>
-            <span className="mono" style={{ fontSize: 10, color: s.pctColor, minWidth: 32, textAlign: 'right' }}>
-              {skill.pct}%
-            </span>
-          </div>
-          {/* progression meta — prereqs, mastery estimate, readiness gate */}
+          )}
+        </div>
+        {skill.status === 'active' && (
+          <span className="mono" style={{ fontSize: 11, color: s.pctColor, fontWeight: 700, flexShrink: 0 }}>{skill.pct}%</span>
+        )}
+        <span style={{ color: 'var(--dim)', transform: editing ? 'rotate(90deg)' : 'none', transition: 'transform 200ms', flexShrink: 0, fontSize: 12 }}>›</span>
+      </div>
+
+      {/* detail + editor */}
+      {editing && (
+        <div style={{
+          marginTop: 10, paddingTop: 10,
+          borderTop: '1px solid var(--line)',
+          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+        }}>
+          {skill.cue && (
+            <div style={{ width: '100%', fontSize: 12, color: 'var(--muted)', lineHeight: 1.45, textWrap: 'pretty' }}>{skill.cue}</div>
+          )}
           {skill.status === 'locked' && prereq && (
-            <div className="mono" style={{ fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.06em', marginTop: 5 }}>
+            <div className="mono" style={{ width: '100%', fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.06em' }}>
               🔒 UNLOCKS AFTER: {prereq.name.toUpperCase()}{prereq.status === 'active' ? ` (${prereq.pct}%)` : ''}
             </div>
           )}
@@ -373,21 +380,11 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
             const wks = masteryEstimate(skill);
             const gated = meta && readiness != null && readiness < meta.gate;
             return (
-              <div className="mono" style={{ fontSize: 8.5, letterSpacing: '0.06em', marginTop: 5, color: gated ? 'var(--gold)' : 'var(--dim)' }}>
+              <div className="mono" style={{ width: '100%', fontSize: 8.5, letterSpacing: '0.06em', color: gated ? 'var(--gold)' : 'var(--dim)' }}>
                 ~{wks} WKS TO MASTERY{meta ? ` · ${gated ? `⚠ WAIT FOR READINESS ${meta.gate}+` : `READY AT ${meta.gate}+ ✓`}` : ''}
               </div>
             );
           })()}
-        </div>
-      </div>
-
-      {/* inline editor */}
-      {editing && (
-        <div style={{
-          marginTop: 10, paddingTop: 10,
-          borderTop: '1px solid var(--line)',
-          display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-        }}>
           {STATUS_OPTS.map((o) => {
             const on = skill.status === o.id;
             return (
@@ -524,103 +521,79 @@ function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
   );
 }
 
-// Collapsible skill tree section
-function SkillTree({ discipline, skills, expanded, onToggle, onUpdate, track = {}, onCycleTrack, readiness, onCoach }) {
-  const done = skills.filter(s => s.status === 'done').length;
-  const active = skills.filter(s => s.status === 'active').length;
-  const TIERS = ['Foundation', 'Developing', 'Advanced', 'Elite'];
+// Tier-grouped skill tree — one discipline at a time, quest-line clarity.
+// Mastered skills fold away into a single line per tier; the eye lands
+// on what's active and what unlocks next.
+const TIERS = ['Foundation', 'Developing', 'Advanced', 'Elite'];
+
+function SkillTree({ discipline, skills, onUpdate, track = {}, onCycleTrack, readiness, onCoach }) {
+  const [showMastered, setShowMastered] = useState({});
+  const indexed = skills.map((skill, idx) => ({ skill, idx }));
 
   return (
-    <div className="glass" style={{ borderRadius: 14, overflow: 'hidden' }}>
-      <div
-        className="pressable"
-        onClick={onToggle}
-        style={{
-          padding: '12px 14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-        }}
-      >
-        <div style={{
-          width: 30, height: 30, borderRadius: 9,
-          background: `${discipline.color}18`,
-          border: `1px solid ${discipline.color}50`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: discipline.color,
-          fontFamily: 'var(--font-mono)',
-          fontWeight: 700,
-          fontSize: 16,
-          flexShrink: 0,
-          boxShadow: `0 0 14px -4px ${discipline.color}`,
-        }}>{discipline.icon}</div>
+    <div className="glass" style={{ borderRadius: 16, padding: '12px 12px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} track={track} onCycleTrack={onCycleTrack} />
 
-        <div style={{ flex: 1 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 18,
-              letterSpacing: '0.04em',
-              color: 'var(--text)',
-            }}>{discipline.name.toUpperCase()}</span>
-            <span style={{
-              transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
-              transition: 'transform 240ms',
-              color: 'var(--muted)',
-            }}>
-              <IconChevronDown size={16} />
-            </span>
-          </div>
-          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>
-            {done}/{skills.length} MASTERED · {active} ACTIVE
-          </div>
-          {/* tier progression map — the quest line at a glance */}
-          <div style={{ display: 'flex', gap: 4, marginTop: 7 }}>
-            {TIERS.map((tier) => {
-              const inTier = skills.filter((s) => s.tier === tier);
-              if (!inTier.length) return null;
-              const doneT = inTier.filter((s) => s.status === 'done').length;
-              const tc = TIER_COLORS[tier];
-              return (
-                <div key={tier} style={{ flex: inTier.length, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                    <div style={{ width: `${(doneT / inTier.length) * 100}%`, height: '100%', background: tc, transition: 'width 700ms cubic-bezier(0.2,0.7,0.2,1)' }} />
-                  </div>
-                  <span className="mono" style={{ fontSize: 7, letterSpacing: '0.08em', color: doneT === inTier.length ? tc : 'var(--dim)' }}>
-                    {tier.slice(0, 3).toUpperCase()} {doneT}/{inTier.length}
+      {TIERS.map((tier) => {
+        const inTier = indexed.filter(({ skill }) => skill.tier === tier);
+        if (!inTier.length) return null;
+        const tc = TIER_COLORS[tier];
+        const mastered = inTier.filter(({ skill }) => skill.status === 'done');
+        const open = inTier.filter(({ skill }) => skill.status !== 'done');
+        const showAll = !!showMastered[tier];
+        const meta = TIER_META[tier];
+
+        return (
+          <div key={tier}>
+            {/* slim tier header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span className="mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', color: tc, textTransform: 'uppercase' }}>{tier}</span>
+              <div style={{ flex: 1, height: 2, borderRadius: 999, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{ width: `${(mastered.length / inTier.length) * 100}%`, height: '100%', background: tc, transition: 'width 600ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+              </div>
+              <span className="mono" style={{ fontSize: 9, color: mastered.length === inTier.length ? tc : 'var(--dim)' }}>
+                {mastered.length}/{inTier.length}{meta ? ` · R${meta.gate}+` : ''}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {/* mastered fold into one quiet line */}
+              {mastered.length > 0 && !showAll && (
+                <div className="pressable" onClick={() => setShowMastered((m) => ({ ...m, [tier]: true }))} style={{
+                  padding: '8px 12px', borderRadius: 10,
+                  background: `${tc}0a`, border: `1px solid ${tc}30`,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                }}>
+                  <IconCheck size={12} color={tc} stroke={2.6} />
+                  <span style={{ flex: 1, fontSize: 12, color: 'var(--muted)' }}>
+                    {mastered.length} mastered — {mastered.map(({ skill }) => skill.name).slice(0, 2).join(', ')}{mastered.length > 2 ? '…' : ''}
                   </span>
+                  <span className="mono" style={{ fontSize: 9, color: tc, letterSpacing: '0.08em' }}>SHOW</span>
                 </div>
-              );
-            })}
+              )}
+              {(showAll ? inTier : open).map(({ skill, idx }) => (
+                <SkillNode
+                  key={skill.name}
+                  skill={skill}
+                  color={discipline.color}
+                  disciplineId={discipline.id}
+                  onChange={(patch) => onUpdate(idx, patch)}
+                  track={track}
+                  onCycleTrack={onCycleTrack}
+                  prereq={skill.status === 'locked' ? prereqFor(skills, idx) : null}
+                  readiness={readiness}
+                  onCoach={onCoach}
+                />
+              ))}
+              {showAll && mastered.length > 0 && (
+                <div className="pressable mono" onClick={() => setShowMastered((m) => ({ ...m, [tier]: false }))} style={{ textAlign: 'center', fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em', padding: '4px 0' }}>
+                  HIDE MASTERED
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
-
-      {expanded && (
-        <div style={{
-          padding: '0 14px 14px',
-          display: 'flex', flexDirection: 'column', gap: 8,
-          animation: 'screenIn 320ms cubic-bezier(0.2,0.7,0.2,1)',
-        }}>
-          <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} track={track} onCycleTrack={onCycleTrack} />
-          {skills.map((skill, i) => (
-            <SkillNode
-              key={skill.name}
-              skill={skill}
-              color={discipline.color}
-              disciplineId={discipline.id}
-              onChange={(patch) => onUpdate(i, patch)}
-              track={track}
-              onCycleTrack={onCycleTrack}
-              prereq={skill.status === 'locked' ? prereqFor(skills, i) : null}
-              readiness={readiness}
-              onCoach={onCoach}
-            />
-          ))}
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }
@@ -846,7 +819,12 @@ function LogSessionSheet({ open, onClose, onLog }) {
 // Training HQ screen
 // ─────────────────────────────────────────────────────────
 function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
-  const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
+  // One discipline in focus at a time; remembered between visits.
+  const [disc, setDisc] = useState(() => {
+    try { return localStorage.getItem('lifeos:lastdisc') || 'tricking'; } catch { return 'tricking'; }
+  });
+  const pickDisc = (id) => { setDisc(id); try { localStorage.setItem('lifeos:lastdisc', id); } catch { /* ignore */ } };
+  const activeDiscipline = DISCIPLINES.find((d) => d.id === disc) || DISCIPLINES[0];
   const [logOpen, setLogOpen] = useState(false);
   // Sessions are owned by the app shell so the Companion can log them too;
   // fall back to a local synced copy if rendered standalone.
@@ -898,55 +876,59 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
         {/* L1 — the progression engine (flagship) */}
         <ProgressionHero skills={skills} readiness={readiness} onCoach={() => setCoachOpen(true)} />
 
-        {/* AI Coach CTAs */}
+        {/* one clean action row — coach a session, log one, plan the week */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <div
-            className="pressable"
-            onClick={() => setCoachOpen(true)}
-            style={{
-              flex: 1, height: 52, borderRadius: 16,
-              background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-            }}
-          >
-            <IconActivity size={18} stroke={2.4} />
-            Session
-          </div>
-          <div
-            className="pressable"
-            onClick={() => setWeekOpen(true)}
-            style={{
-              flex: 1, height: 52, borderRadius: 16,
-              background: 'linear-gradient(135deg, #B14CFF 0%, #00D4FF 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              color: '#06060A', fontWeight: 800, fontSize: 12.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-            }}
-          >
-            <IconCalendar size={18} stroke={2.2} />
-            Plan week
-          </div>
+          {[
+            { label: 'Coach', Icon: IconActivity, onClick: () => setCoachOpen(true), grad: 'linear-gradient(135deg, #00D4FF, #B6FF3C)' },
+            { label: 'Log', Icon: IconCheck, onClick: () => setLogOpen(true), grad: 'linear-gradient(135deg, #B6FF3C, #FFD23C)' },
+            { label: 'Week', Icon: IconCalendar, onClick: () => setWeekOpen(true), grad: 'linear-gradient(135deg, #B14CFF, #00D4FF)' },
+          ].map((b) => (
+            <div key={b.label} className="pressable" onClick={b.onClick} style={{
+              flex: 1, height: 48, borderRadius: 14,
+              background: b.grad,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              color: '#06060A', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}>
+              <b.Icon size={16} stroke={2.4} />
+              {b.label}
+            </div>
+          ))}
         </div>
 
-        {/* skill trees — the flagship */}
+        {/* skill trees — the flagship. One discipline in focus at a time. */}
         <div>
           <SectionHead eyebrow={`${DISCIPLINES.length} disciplines · ${DISCIPLINES.reduce((n, d) => n + (skills[d.id]?.length || 0), 0)} skills`} title="SKILL TREES" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {DISCIPLINES.map((d) => (
-              <SkillTree
-                key={d.id}
-                discipline={d}
-                skills={skills[d.id]}
-                expanded={!!expanded[d.id]}
-                onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))}
-                onUpdate={(idx, patch) => updateSkill(d.id, idx, patch)}
-                track={track}
-                onCycleTrack={cycleTrack}
-                readiness={readiness}
-                onCoach={() => setCoachOpen(true)}
-              />
-            ))}
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 10, WebkitOverflowScrolling: 'touch' }}>
+            {DISCIPLINES.map((d) => {
+              const on = disc === d.id;
+              const list = skills[d.id] || [];
+              const doneN = list.filter((x) => x.status === 'done').length;
+              return (
+                <div key={d.id} className="pressable" onClick={() => pickDisc(d.id)} style={{
+                  flexShrink: 0, padding: '8px 13px', borderRadius: 999,
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  background: on ? `${d.color}1a` : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${on ? d.color : 'var(--line)'}`,
+                  color: on ? d.color : 'var(--muted)',
+                  transition: 'all 200ms',
+                }}>
+                  <span style={{ fontSize: 13 }}>{d.icon}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.02em' }}>{d.name}</span>
+                  <span className="mono" style={{ fontSize: 9, opacity: 0.75 }}>{doneN}/{list.length}</span>
+                </div>
+              );
+            })}
           </div>
+          <SkillTree
+            key={disc}
+            discipline={activeDiscipline}
+            skills={skills[disc] || []}
+            onUpdate={(idx, patch) => updateSkill(disc, idx, patch)}
+            track={track}
+            onCycleTrack={cycleTrack}
+            readiness={readiness}
+            onCoach={() => setCoachOpen(true)}
+          />
         </div>
 
         <WorkingOnPanel skills={skills} track={track} onCycleTrack={cycleTrack} />
@@ -1029,28 +1011,6 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
           )}
         </div>
 
-        {/* CTA */}
-        <div
-          className="pressable"
-          onClick={() => setLogOpen(true)}
-          style={{
-            height: 56,
-            borderRadius: 16,
-            background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: 8,
-            color: '#06060A',
-            fontWeight: 800,
-            fontSize: 14,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            boxShadow: '0 12px 36px -8px rgba(0,212,255,0.5)',
-            marginTop: 4,
-          }}
-        >
-          <IconActivity size={20} stroke={2.4} />
-          Log Session
-        </div>
       </div>
 
       <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} onLog={logSession} />
