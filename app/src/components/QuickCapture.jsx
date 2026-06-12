@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { IconCheck, IconClose, IconMic, IconSend } from './icons.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { Sheet } from './Sheet.jsx';
+import { voiceSupported, createListener } from '../lib/voice.js';
 
 // ─────────────────────────────────────────────────────────
 // Quick Capture — bottom sheet modal accessible from anywhere
@@ -17,23 +18,44 @@ const CAPTURE_TAGS = [
 function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
   const [text, setText] = useState('');
   const [tag, setTag] = useState('idea');
-  const [recording, setRecording] = useState(voiceMode);
+  const [recording, setRecording] = useState(false);
   const [saved, setSaved] = useState(false);
   const inputRef = useRef(null);
+  const listenerRef = useRef(null);
+
+  // Real dictation — speech lands straight in the input.
+  const stopListening = () => { listenerRef.current?.abort(); listenerRef.current = null; setRecording(false); };
+  const startListening = () => {
+    if (!voiceSupported()) return;
+    stopListening();
+    const l = createListener({
+      onInterim: (t) => setText(t),
+      onResult: (t) => setText(t),
+      onEnd: () => setRecording(false),
+    });
+    if (!l) return;
+    listenerRef.current = l;
+    setRecording(true);
+    l.start();
+  };
 
   useEffect(() => {
     if (open) {
       setText('');
       setSaved(false);
-      setRecording(voiceMode);
-      setTimeout(() => inputRef.current?.focus(), 320);
+      if (voiceMode && voiceSupported()) setTimeout(() => startListening(), 420);
+      else setTimeout(() => inputRef.current?.focus(), 320);
+    } else {
+      stopListening();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, voiceMode]);
 
   const tagColor = CAPTURE_TAGS.find(t => t.id === tag)?.color;
 
   const handleCapture = () => {
-    if (!text.trim() && !recording) return;
+    if (!text.trim()) return;
+    stopListening();
     const now = new Date();
     const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     onSave?.({
@@ -134,7 +156,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
               </div>
               <div
                 className="pressable"
-                onClick={() => setRecording((r) => !r)}
+                onClick={() => (recording ? stopListening() : startListening())}
                 style={{
                   width: 48,
                   borderRadius: 14,
@@ -168,7 +190,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
                   boxShadow: '0 0 8px var(--ona-red)',
                 }} className="blink" />
                 <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)' }}>
-                  RECORDING · 0:03
+                  LISTENING · JUST TALK
                 </span>
                 <div style={{ flex: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
                   {Array.from({ length: 24 }).map((_, i) => (

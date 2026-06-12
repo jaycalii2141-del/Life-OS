@@ -7,9 +7,10 @@
 // propose-and-confirm, never silent execution.
 // ─────────────────────────────────────────────────────────
 import { useState, useRef, useEffect } from 'react';
-import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget } from './components/icons.jsx';
+import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget, IconMic } from './components/icons.jsx';
 import { Sheet } from './components/Sheet.jsx';
 import { celebrate } from './lib/haptics.js';
+import { voiceSupported, ttsSupported, createListener, speak, stopSpeaking } from './lib/voice.js';
 import { DISCIPLINES } from './data.js';
 import { analyzeBlindspots } from './coaching.js';
 import { generateMissions, localAnswer, snapshot } from './lib/mission.js';
@@ -79,11 +80,27 @@ function buildGlobalContext() {
 }
 
 // ── Floating launcher, present on every screen ──
-export function CompanionLauncher({ onOpen }) {
+// Tap = open the Intelligence. Long-press = open straight into voice.
+export function CompanionLauncher({ onOpen, onOpenVoice }) {
+  const timer = useRef(null);
+  const longPressed = useRef(false);
+  const down = () => {
+    longPressed.current = false;
+    timer.current = setTimeout(() => { longPressed.current = true; onOpenVoice?.(); }, 450);
+  };
+  const up = () => {
+    clearTimeout(timer.current);
+    if (!longPressed.current) onOpen?.();
+  };
+  const cancel = () => clearTimeout(timer.current);
   return (
     <div
       className="pressable"
-      onClick={onOpen}
+      onMouseDown={down}
+      onMouseUp={up}
+      onMouseLeave={cancel}
+      onTouchStart={down}
+      onTouchEnd={up}
       style={{
         position: 'absolute', left: 18, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
         width: 52, height: 52, borderRadius: 18, zIndex: 50,
@@ -107,14 +124,45 @@ const ACTION_META = {
 };
 
 // ── The conversation ──
-export function Companion({ open, onClose, onAction }) {
+export function Companion({ open, onClose, onAction, startVoice = false }) {
   const [messages, setMessages] = useSyncedState('lifeos:companion', []);
   const [mode, setMode] = useState('partner');
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  // Voice replies on = full hands-free loop (speak → answer → listen again).
+  const [voiceOn, setVoiceOn] = useSyncedState('lifeos:voicereplies', false);
   const endRef = useRef(null);
+  const listenerRef = useRef(null);
+  const openRef = useRef(open);
+  const voiceOnRef = useRef(voiceOn);
+  useEffect(() => { openRef.current = open; }, [open]);
+  useEffect(() => { voiceOnRef.current = voiceOn; }, [voiceOn]);
 
   const activeMode = MODES.find((m) => m.id === mode) || MODES[0];
+
+  const stopListening = () => {
+    listenerRef.current?.abort();
+    listenerRef.current = null;
+    setListening(false);
+  };
+
+  const startListening = () => {
+    if (!voiceSupported() || thinking) return;
+    stopSpeaking();
+    setSpeaking(false);
+    stopListening();
+    const l = createListener({
+      onInterim: (t) => setInput(t),
+      onResult: (t) => { setInput(''); sendRef.current?.(t); },
+      onEnd: () => setListening(false),
+    });
+    if (!l) return;
+    listenerRef.current = l;
+    setListening(true);
+    l.start();
+  };
 
   const doAction = (msgIdx, actIdx, a) => {
     onAction?.(a);
@@ -123,6 +171,13 @@ export function Companion({ open, onClose, onAction }) {
   };
 
   useEffect(() => { if (open) setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 120); }, [open, messages, thinking]);
+
+  // Opened in voice mode (mic on the Ask bar / long-press on the orb).
+  useEffect(() => {
+    if (open && startVoice) setTimeout(() => startListening(), 450);
+    if (!open) { stopListening(); stopSpeaking(); setSpeaking(false); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, startVoice]);
 
   const send = async (text) => {
     const q = (text ?? input).trim();
@@ -145,7 +200,19 @@ export function Companion({ open, onClose, onAction }) {
     }
     setMessages((m) => [...m, { role: 'ai', text: reply, actions: acts, mode }].slice(-60));
     setThinking(false);
+    // Speak the answer, then hand the mic back — a real conversation.
+    if (voiceOnRef.current && openRef.current) {
+      setSpeaking(true);
+      speak(reply, {
+        onEnd: () => {
+          setSpeaking(false);
+          if (openRef.current && voiceOnRef.current) startListening();
+        },
+      });
+    }
   };
+  const sendRef = useRef(send);
+  useEffect(() => { sendRef.current = send; });
 
   return (
     <Sheet open={open} onClose={onClose} maxHeight="92%">
@@ -158,6 +225,14 @@ export function Companion({ open, onClose, onAction }) {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {ttsSupported() && (
+            <div className="pressable mono" onClick={() => { if (voiceOn) { stopSpeaking(); setSpeaking(false); } setVoiceOn(!voiceOn); }} style={{
+              fontSize: 9, letterSpacing: '0.1em', fontWeight: 700, padding: '5px 9px', borderRadius: 999,
+              background: voiceOn ? 'rgba(182,255,60,0.14)' : 'rgba(255,255,255,0.05)',
+              border: `1px solid ${voiceOn ? 'rgba(182,255,60,0.5)' : 'var(--line)'}`,
+              color: voiceOn ? 'var(--lime)' : 'var(--muted)',
+            }}>{voiceOn ? '🔊 VOICE ON' : '🔇 VOICE'}</div>
+          )}
           {messages.length > 0 && (
             <div className="pressable mono" onClick={() => setMessages([])} style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.12em', padding: '4px 8px' }}>CLEAR</div>
           )}
@@ -236,20 +311,41 @@ export function Companion({ open, onClose, onAction }) {
             <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.12em' }}>THINKING…</span>
           </div>
         )}
+        {speaking && !thinking && (
+          <div className="pressable" onClick={() => { stopSpeaking(); setSpeaking(false); }} style={{ alignSelf: 'flex-start', display: 'flex', gap: 6, alignItems: 'center', padding: '4px 6px' }}>
+            <span className="blink" style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--lime)' }} />
+            <span className="mono" style={{ fontSize: 10, color: 'var(--lime)', letterSpacing: '0.12em' }}>SPEAKING · TAP TO STOP</span>
+          </div>
+        )}
         <div ref={endRef} />
       </div>
 
-      {/* Input */}
+      {/* Input — type it, or just talk */}
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: `1px solid ${activeMode.color}55`, borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center' }}>
+        <div style={{
+          flex: 1, background: 'rgba(255,255,255,0.04)',
+          border: `1px solid ${listening ? 'rgba(255,0,51,0.6)' : `${activeMode.color}55`}`,
+          borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', transition: 'border-color 200ms',
+        }}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send()}
-            placeholder={`Talk to your AI · ${activeMode.hint}…`}
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 15, fontFamily: 'var(--font-body)' }}
+            placeholder={listening ? 'Listening… just talk' : `Talk to your AI · ${activeMode.hint}…`}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: listening ? 'var(--ona-red)' : 'var(--text)', fontSize: 15, fontFamily: 'var(--font-body)' }}
           />
         </div>
+        {voiceSupported() && (
+          <div className="pressable" onClick={() => (listening ? stopListening() : startListening())} style={{
+            width: 50, borderRadius: 14,
+            background: listening ? 'rgba(255,0,51,0.18)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${listening ? 'rgba(255,0,51,0.6)' : 'var(--line-strong)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: listening ? 'var(--ona-red)' : 'var(--text)', transition: 'all 200ms',
+          }}>
+            <IconMic size={20} className={listening ? 'blink' : ''} />
+          </div>
+        )}
         <div className="pressable" onClick={() => send()} style={{ width: 50, borderRadius: 14, background: input.trim() ? `linear-gradient(135deg, ${activeMode.color}, #00D4FF)` : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#06060A' : 'var(--dim)' }}>
           <IconSend size={19} stroke={2.2} />
         </div>

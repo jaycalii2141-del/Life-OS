@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill } from '../components/atoms.jsx';
-import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconSend } from '../components/icons.jsx';
+import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
@@ -162,7 +162,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
 // ─────────────────────────────────────────────────────────
 function AskBar({ onOpen }) {
   return (
-    <div className="pressable hud glass" onClick={onOpen} style={{
+    <div className="pressable hud glass" onClick={() => onOpen(false)} style={{
       padding: '13px 14px', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 10,
       border: '1px solid rgba(177,76,255,0.3)',
     }}>
@@ -170,7 +170,12 @@ function AskBar({ onOpen }) {
         <IconSparkles size={15} />
       </div>
       <span style={{ flex: 1, fontSize: 13.5, color: 'var(--muted)' }}>Ask your AI anything…</span>
-      <IconSend size={16} color="var(--violet)" />
+      <div className="pressable" onClick={(e) => { e.stopPropagation(); onOpen(true); }} style={{
+        width: 34, height: 34, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.35)', color: 'var(--ona-red)',
+      }}>
+        <IconMic size={17} />
+      </div>
     </div>
   );
 }

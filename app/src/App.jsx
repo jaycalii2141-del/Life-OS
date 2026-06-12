@@ -85,6 +85,12 @@ function MainApp() {
   const [onboarded, setOnboarded] = useSyncedState('lifeos:onboarded', false);
   const [booting, setBooting] = useState(true);
   const [companionOpen, setCompanionOpen] = useState(false);
+  const [companionVoice, setCompanionVoice] = useState(false);
+  const openCompanion = (voice = false) => {
+    setCompanionVoice(!!voice);
+    setCompanionOpen(true);
+    logEvent('companion', voice ? 'open-voice' : 'open');
+  };
 
   // Visual system — CALM by default (Oura/Linear restraint); GLOW is the
   // original command-center skin, one toggle away in Settings.
@@ -242,7 +248,7 @@ function MainApp() {
           icalUrl={settings.icalUrl}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenCalendar={() => setCalendarOpen(true)}
-          onOpenCompanion={() => { setCompanionOpen(true); logEvent('companion', 'open'); }}
+          onOpenCompanion={openCompanion}
           onGoTab={changeTab}
         />
       );
@@ -273,8 +279,8 @@ function MainApp() {
           onClose={() => setCapture({ open: false, voice: false })}
         />
 
-        <CompanionLauncher onOpen={() => { setCompanionOpen(true); logEvent('companion', 'open'); }} />
-        <Companion open={companionOpen} onClose={() => setCompanionOpen(false)} onAction={runAction} />
+        <CompanionLauncher onOpen={() => openCompanion(false)} onOpenVoice={() => openCompanion(true)} />
+        <Companion open={companionOpen} startVoice={companionVoice} onClose={() => { setCompanionOpen(false); setCompanionVoice(false); }} onAction={runAction} />
 
         {/* Modals mount only when opened, so their code loads on first use. */}
         <Suspense fallback={null}>
