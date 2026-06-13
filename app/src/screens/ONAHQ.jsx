@@ -65,39 +65,217 @@ function ONAStat({ label, value, prefix, suffix, color, trend, onChange }) {
   );
 }
 
-// ── Sales pipeline — editable counts ──
-function SalesPipeline({ stages, onUpdate }) {
-  const totalStale = stages.reduce((s, x) => s + (x.stale || 0), 0);
+// ─────────────────────────────────────────────────────────
+// Sales pipeline — a real mini-CRM, not just counts.
+// Tap a stage to open it: every person with phone, first/last
+// visit, notes, days since contact, and one-tap actions —
+// CALL, TEXT, mark touched, advance to the next stage.
+// ─────────────────────────────────────────────────────────
+const STAGE_FLOW = { leads: 'trials', trials: 'closing', closing: 'new' };
+const STAGE_NEXT_LABEL = { leads: '→ TRIAL', trials: '→ CLOSING', closing: '→ MEMBER' };
+
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(`${dateStr}T12:00:00`);
+  if (isNaN(d)) return null;
+  return Math.max(0, Math.round((Date.now() - d.getTime()) / 864e5));
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+const isStale = (p) => {
+  const ds = daysSince(p.lastContact || p.lastVisit || p.addedOn);
+  return ds != null && ds > 7;
+};
+
+function PersonCard({ p, color, stageId, onUpdate, onDelete, onAdvance }) {
+  const [editing, setEditing] = useState(false);
+  const contactDays = daysSince(p.lastContact || p.lastVisit || p.addedOn);
+  const stale = isStale(p);
+  const inp = {
+    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
+    borderRadius: 10, padding: '8px 10px', color: 'var(--text)', fontSize: 13, outline: 'none',
+    fontFamily: 'var(--font-body)', boxSizing: 'border-box',
+  };
+  const chip = (bg, border, fg) => ({
+    padding: '6px 10px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 4,
+    background: bg, border: `1px solid ${border}`, color: fg,
+    fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em',
+  });
+
+  return (
+    <div style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${stale ? 'rgba(255,107,91,0.4)' : 'var(--line)'}` }}>
+      <div className="pressable" onClick={() => setEditing((e) => !e)} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 650, color: 'var(--text)' }}>{p.name}</span>
+            {stale && <span className="mono" style={{ fontSize: 8, color: 'var(--ona-red)', letterSpacing: '0.08em' }}>⚠ {contactDays}D SILENT</span>}
+          </div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 3 }}>
+            {p.phone || 'no phone'}{p.interest ? ` · ${p.interest}` : ''}
+          </div>
+          <div className="mono" style={{ fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.06em', marginTop: 3 }}>
+            {p.firstVisit ? `FIRST ${p.firstVisit}` : 'NEVER VISITED'}{p.lastVisit ? ` · LAST ${p.lastVisit}` : ''}{p.lastContact ? ` · TOUCHED ${p.lastContact}` : ''}
+          </div>
+          {p.note && !editing && <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4, marginTop: 4 }}>{p.note}</div>}
+        </div>
+        <span style={{ color: 'var(--dim)', fontSize: 12, transform: editing ? 'rotate(90deg)' : 'none', transition: 'transform 200ms', flexShrink: 0 }}>›</span>
+      </div>
+
+      {/* action row — always visible, one tap each */}
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 9 }}>
+        {p.phone && (
+          <>
+            <a href={`tel:${p.phone.replace(/[^0-9+]/g, '')}`} className="pressable" style={{ ...chip('rgba(52,211,153,0.12)', 'rgba(52,211,153,0.45)', 'var(--lime)'), textDecoration: 'none' }}>📞 CALL</a>
+            <a href={`sms:${p.phone.replace(/[^0-9+]/g, '')}`} className="pressable" style={{ ...chip('rgba(69,183,232,0.12)', 'rgba(69,183,232,0.45)', 'var(--cyan)'), textDecoration: 'none' }}>💬 TEXT</a>
+          </>
+        )}
+        <div className="pressable" onClick={() => onUpdate({ lastContact: todayStr() })} style={chip('rgba(255,255,255,0.05)', 'var(--line-strong)', 'var(--muted)')}>✓ TOUCHED</div>
+        {STAGE_FLOW[stageId] && (
+          <div className="pressable" onClick={onAdvance} style={chip('rgba(233,196,106,0.12)', 'rgba(233,196,106,0.5)', 'var(--gold)')}>{STAGE_NEXT_LABEL[stageId]}</div>
+        )}
+      </div>
+
+      {/* editor */}
+      {editing && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input value={p.name} onChange={(e) => onUpdate({ name: e.target.value })} placeholder="Name" style={{ ...inp, flex: 1.2 }} />
+            <input value={p.phone || ''} onChange={(e) => onUpdate({ phone: e.target.value })} placeholder="Phone" style={{ ...inp, flex: 1 }} />
+          </div>
+          <input value={p.interest || ''} onChange={(e) => onUpdate({ interest: e.target.value })} placeholder="Interested in (kids ninja, adult, open gym…)" style={inp} />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ flex: 1 }}>
+              <div className="eyebrow" style={{ marginBottom: 4 }}>First visit</div>
+              <input type="date" value={p.firstVisit || ''} onChange={(e) => onUpdate({ firstVisit: e.target.value })} style={{ ...inp, fontFamily: 'var(--font-mono)', fontSize: 11, colorScheme: 'dark' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="eyebrow" style={{ marginBottom: 4 }}>Last visit</div>
+              <input type="date" value={p.lastVisit || ''} onChange={(e) => onUpdate({ lastVisit: e.target.value })} style={{ ...inp, fontFamily: 'var(--font-mono)', fontSize: 11, colorScheme: 'dark' }} />
+            </div>
+          </div>
+          <textarea value={p.note || ''} onChange={(e) => onUpdate({ note: e.target.value })} placeholder="Notes — objections, family, what they care about…" rows={2} style={{ ...inp, resize: 'vertical', lineHeight: 1.45 }} />
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>REMOVE</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SalesPipeline({ stages, onUpdate, people, onPeopleChange }) {
+  const [openStage, setOpenStage] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftPhone, setDraftPhone] = useState('');
+
+  const listFor = (id) => people[id] || [];
+  const countFor = (stage) => (listFor(stage.id).length > 0 ? listFor(stage.id).length : stage.count);
+  const staleFor = (stage) => {
+    const list = listFor(stage.id);
+    return list.length ? list.filter(isStale).length : (stage.stale || 0);
+  };
+  const totalStale = stages.reduce((s, x) => s + staleFor(x), 0);
+
+  const setList = (stageId, fn) => onPeopleChange((pp) => ({ ...pp, [stageId]: fn(pp[stageId] || []) }));
+  const addPerson = (stageId) => {
+    if (!draftName.trim()) return;
+    setList(stageId, (l) => [{ id: Date.now(), name: draftName.trim(), phone: draftPhone.trim(), addedOn: todayStr(), note: '' }, ...l]);
+    setDraftName(''); setDraftPhone(''); setAdding(false);
+  };
+  const advance = (stageId, personId) => {
+    const next = STAGE_FLOW[stageId];
+    if (!next) return;
+    const person = listFor(stageId).find((p) => p.id === personId);
+    if (!person) return;
+    onPeopleChange((pp) => ({
+      ...pp,
+      [stageId]: (pp[stageId] || []).filter((p) => p.id !== personId),
+      [next]: [{ ...person, lastContact: todayStr() }, ...(pp[next] || [])],
+    }));
+  };
+
   return (
     <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
-          <div className="eyebrow">Sales Pipeline · tap a count</div>
+          <div className="eyebrow">Sales pipeline · tap a stage for the people</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>FUNNEL</div>
         </div>
         {totalStale > 0 && <Pill variant="red">⚠ {totalStale} STALE</Pill>}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {stages.map((stage, idx) => (
-          <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ minWidth: 50, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase' }}>{stage.label}</div>
-            <div style={{ flex: 1, height: 28, background: 'rgba(255,255,255,0.04)', borderRadius: 8, border: '1px solid var(--line)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (stage.count / 30) * 100)}%`, background: `linear-gradient(90deg, ${stage.color}30, ${stage.color}10)`, borderRight: `2px solid ${stage.color}`, boxShadow: `inset 0 0 12px ${stage.color}40`, transition: 'width 600ms cubic-bezier(0.2,0.7,0.2,1)' }} />
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 8px', gap: 6 }}>
-                <Stepper onClick={() => onUpdate(idx, { count: Math.max(0, stage.count - 1) })}>−</Stepper>
-                <span className="display" style={{ fontSize: 16, color: stage.color, lineHeight: 1, minWidth: 22, textAlign: 'center' }}>{stage.count}</span>
-                <Stepper onClick={() => onUpdate(idx, { count: stage.count + 1 })}>+</Stepper>
-                {stage.stale > 0 && (
-                  <span className="mono blink" style={{ fontSize: 9, color: 'var(--ona-red)', fontWeight: 700, marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <IconWarn size={11} />{stage.stale} STALE
-                  </span>
-                )}
+        {stages.map((stage, idx) => {
+          const open = openStage === stage.id;
+          const list = listFor(stage.id);
+          const count = countFor(stage);
+          const stale = staleFor(stage);
+          return (
+            <div key={stage.id}>
+              <div className="pressable" onClick={() => { setOpenStage(open ? null : stage.id); setAdding(false); }} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ minWidth: 50, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', color: open ? stage.color : 'var(--muted)', fontWeight: 700, textTransform: 'uppercase' }}>{stage.label}</div>
+                <div style={{ flex: 1, height: 28, background: 'rgba(255,255,255,0.04)', borderRadius: 8, border: `1px solid ${open ? stage.color + '60' : 'var(--line)'}`, position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (count / 30) * 100)}%`, background: `linear-gradient(90deg, ${stage.color}30, ${stage.color}10)`, borderRight: `2px solid ${stage.color}`, transition: 'width 600ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 8 }}>
+                    <span className="display" style={{ fontSize: 16, color: stage.color, lineHeight: 1 }}>{count}</span>
+                    {list.length === 0 && <span className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.08em' }}>NO PEOPLE YET</span>}
+                    {stale > 0 && (
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--ona-red)', fontWeight: 700, marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <IconWarn size={11} />{stale} STALE
+                      </span>
+                    )}
+                    <span style={{ marginLeft: stale > 0 ? 0 : 'auto', color: 'var(--dim)', fontSize: 11, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }}>›</span>
+                  </div>
+                </div>
               </div>
+
+              {open && (
+                <div style={{ margin: '8px 0 4px', paddingLeft: 8, borderLeft: `2px solid ${stage.color}40`, display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {/* manual count fallback while the list is empty */}
+                  {list.length === 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 0 4px' }}>
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.08em' }}>ROUGH COUNT</span>
+                      <Stepper onClick={() => onUpdate(idx, { count: Math.max(0, stage.count - 1) })}>−</Stepper>
+                      <span className="mono" style={{ fontSize: 12, color: 'var(--text)', minWidth: 20, textAlign: 'center' }}>{stage.count}</span>
+                      <Stepper onClick={() => onUpdate(idx, { count: stage.count + 1 })}>+</Stepper>
+                      <span className="mono" style={{ fontSize: 8, color: 'var(--dim)' }}>— ADD PEOPLE TO MAKE IT REAL →</span>
+                    </div>
+                  )}
+
+                  {list.map((p) => (
+                    <PersonCard
+                      key={p.id}
+                      p={p}
+                      color={stage.color}
+                      stageId={stage.id}
+                      onUpdate={(patch) => setList(stage.id, (l) => l.map((x) => (x.id === p.id ? { ...x, ...patch } : x)))}
+                      onDelete={() => setList(stage.id, (l) => l.filter((x) => x.id !== p.id))}
+                      onAdvance={() => advance(stage.id, p.id)}
+                    />
+                  ))}
+
+                  {adding ? (
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <input autoFocus value={draftName} onChange={(e) => setDraftName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addPerson(stage.id)} placeholder="Name"
+                        style={{ flex: 1.2, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '9px 10px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-body)' }} />
+                      <input value={draftPhone} onChange={(e) => setDraftPhone(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addPerson(stage.id)} placeholder="Phone"
+                        style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '9px 10px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-mono)' }} />
+                      <div className="pressable" onClick={() => addPerson(stage.id)} style={{ width: 40, borderRadius: 10, background: `linear-gradient(135deg, ${stage.color}, #45B7E8)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconCheck size={15} stroke={2.6} /></div>
+                    </div>
+                  ) : (
+                    <div className="pressable" onClick={() => setAdding(true)} style={{
+                      padding: '9px 0', borderRadius: 10, textAlign: 'center',
+                      border: `1px dashed ${stage.color}50`, color: stage.color,
+                      fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.14em', fontWeight: 700,
+                    }}>+ ADD {stage.id === 'new' ? 'MEMBER' : stage.label.replace(/s$/i, '').toUpperCase()}</div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -371,6 +549,9 @@ function ONAHQ({ embedded = false }) {
   const updateInitiative = (id, patch) => setOna((s) => ({ ...s, initiatives: (s.initiatives ?? INITIATIVES).map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
   const deleteInitiative = (id) => setOna((s) => ({ ...s, initiatives: (s.initiatives ?? INITIATIVES).filter((i) => i.id !== id) }));
   const updateSale = (idx, patch) => setOna((s) => ({ ...s, sales: (s.sales ?? SALES_STAGES).map((st, i) => (i === idx ? { ...st, ...patch } : st)) }));
+  // The funnel's actual people — a mini-CRM keyed by stage id.
+  const pipelinePeople = ona.pipelinePeople ?? {};
+  const setPipelinePeople = (fn) => setOna((s) => ({ ...s, pipelinePeople: fn(s.pipelinePeople ?? {}) }));
   const addCoach = (c) => setOna((s) => ({ ...s, coaches: [...(s.coaches ?? COACHES), c] }));
   const updateCoach = (id, patch) => setOna((s) => ({ ...s, coaches: (s.coaches ?? COACHES).map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
   const deleteCoach = (id) => setOna((s) => ({ ...s, coaches: (s.coaches ?? COACHES).filter((c) => c.id !== id) }));
@@ -395,7 +576,7 @@ function ONAHQ({ embedded = false }) {
 
       <LiveOnaCard live={live} />
 
-      <SalesPipeline stages={sales} onUpdate={updateSale} />
+      <SalesPipeline stages={sales} onUpdate={updateSale} people={pipelinePeople} onPeopleChange={setPipelinePeople} />
       <CoachRoster coaches={coaches} onAdd={addCoach} onUpdate={updateCoach} onDelete={deleteCoach} />
       <InitiativeList items={initiatives} onAdd={addInitiative} onUpdate={updateInitiative} onDelete={deleteInitiative} />
     </div>

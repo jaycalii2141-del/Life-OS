@@ -105,12 +105,26 @@ export function recommendOna(ona, live) {
   const inits = ona.initiatives || [];
   const avgValue = stats.members ? Math.round((stats.mrr || 0) / stats.members) : 120;
 
-  const stale = sales.reduce((s, x) => s + (x.stale || 0), 0);
+  // Stale people — prefer the real CRM (named people) over rough counts.
+  const people = ona.pipelinePeople || {};
+  const personStale = (p) => {
+    const ref = p.lastContact || p.lastVisit || p.addedOn;
+    if (!ref) return false;
+    const d = new Date(`${ref}T12:00:00`);
+    return !isNaN(d) && (Date.now() - d.getTime()) / 864e5 > 7;
+  };
+  const stalePeople = ['leads', 'trials', 'closing'].flatMap((st) => (people[st] || []).filter(personStale));
+  const stale = stalePeople.length || sales.reduce((s, x) => s + (x.stale || 0), 0);
   if (stale > 0) {
+    const first = stalePeople[0];
     recs.push({
       id: 'ona-stale', domain: 'ona', icon: '📞',
-      title: `Call ${stale} stale lead${stale > 1 ? 's' : ''}`,
-      why: 'Leads sitting >1wk close at half the rate. A 10-min call run revives them.',
+      title: first
+        ? `Call ${first.name}${stale > 1 ? ` + ${stale - 1} more going cold` : ''}`
+        : `Call ${stale} stale lead${stale > 1 ? 's' : ''}`,
+      why: first
+        ? `No contact in over a week${first.phone ? ` — their number is one tap away in the funnel` : ''}. Warm leads close at 2× the rate.`
+        : 'Leads sitting >1wk close at half the rate. A 10-min call run revives them.',
       impact: `≈ +$${Math.round(stale * avgValue * 0.25).toLocaleString()}/mo if 1 in 4 converts`,
       est: 25,
     });
