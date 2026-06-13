@@ -94,7 +94,7 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
   // Run an AI-proposed action (event prefills Google Calendar + app timeline; email prefills mail).
   const runAction = (a) => {
     if (a.type === 'event') {
-      onAddEvent?.({ time: a.time || '12:00', label: a.title || a.label || 'Block', kind: 'Focus', color: '#B14CFF' });
+      onAddEvent?.({ time: a.time || '12:00', label: a.title || a.label || 'Block', kind: 'Focus', color: '#2DD4BF' });
       openExternal(googleCalendarUrl({ title: a.title || a.label, time: a.time, durationMin: a.durationMin || 60 }));
     } else if (a.type === 'email') {
       openExternal(mailtoUrl({ to: a.to || '', subject: a.subject || a.label || '', body: a.body || '' }));
@@ -105,7 +105,7 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
   const confirmEvent = () => {
     const ev = composing;
     if (!ev || !ev.title.trim()) { setComposing(null); return; }
-    onAddEvent?.({ time: ev.time || '12:00', label: ev.title.trim(), kind: 'Focus', color: '#B14CFF' });
+    onAddEvent?.({ time: ev.time || '12:00', label: ev.title.trim(), kind: 'Focus', color: '#2DD4BF' });
     openExternal(googleCalendarUrl({ title: ev.title.trim(), time: ev.time, durationMin: parseInt(ev.dur, 10) || 60 }));
     setComposing(null);
   };
@@ -118,17 +118,17 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
   }, [day]);
 
   return (
-    <div className="hud glass-strong" style={{ padding: '16px 16px 14px', borderRadius: 20, position: 'relative', overflow: 'hidden', border: '1px solid rgba(177,76,255,0.28)', boxShadow: '0 0 40px -18px rgba(177,76,255,0.6)' }}>
+    <div className="hud glass-strong" style={{ padding: '16px 16px 14px', borderRadius: 20, position: 'relative', overflow: 'hidden', border: '1px solid rgba(45,212,191,0.28)', boxShadow: '0 0 40px -18px rgba(45,212,191,0.6)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: open ? 12 : 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 26, height: 26, borderRadius: 8, background: 'linear-gradient(135deg, #B14CFF, #00D4FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconCompass size={15} /></div>
+          <div style={{ width: 26, height: 26, borderRadius: 8, background: 'linear-gradient(135deg, #2DD4BF, #45B7E8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconCompass size={15} /></div>
           <div>
             <div className="eyebrow" style={{ color: 'var(--violet)' }}>Chief of Staff</div>
             <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em' }}>{usedAI ? 'AI BRIEF' : 'YOUR BRIEF'} · {new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div className="pressable" onClick={() => generate(true)} title="Refresh" style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--violet)', background: 'rgba(177,76,255,0.1)' }}>
+          <div className="pressable" onClick={() => generate(true)} title="Refresh" style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--violet)', background: 'rgba(45,212,191,0.1)' }}>
             <IconSparkles size={15} className={loading ? 'blink' : ''} />
           </div>
           <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
@@ -152,14 +152,14 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
             {/* Action row — propose & prefill; you confirm send/create in Google */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
               {inbox > 0 && (
-                <ActionChip icon={<IconInbox size={13} />} color="#FFD23C" label={`Triage ${inbox}`} onClick={() => onGoMind?.()} />
+                <ActionChip icon={<IconInbox size={13} />} color="#E9C46A" label={`Triage ${inbox}`} onClick={() => onGoMind?.()} />
               )}
-              <ActionChip icon={<IconCalendar size={13} />} color="#00D4FF" label="Plan a block" onClick={() => setComposing({ title: '', time: '09:00', dur: '60' })} />
+              <ActionChip icon={<IconCalendar size={13} />} color="#45B7E8" label="Plan a block" onClick={() => setComposing({ title: '', time: '09:00', dur: '60' })} />
               {actions.map((a, i) => (
                 a.type === 'event'
-                  ? <ActionChip key={i} icon={<IconCalendar size={13} />} color="#B14CFF" label={a.label || a.title || 'Add event'} onClick={() => runAction(a)} />
+                  ? <ActionChip key={i} icon={<IconCalendar size={13} />} color="#2DD4BF" label={a.label || a.title || 'Add event'} onClick={() => runAction(a)} />
                   : a.type === 'email'
-                    ? <ActionChip key={i} icon={<IconSend size={13} />} color="#B6FF3C" label={a.label || 'Draft email'} onClick={() => runAction(a)} />
+                    ? <ActionChip key={i} icon={<IconSend size={13} />} color="#34D399" label={a.label || 'Draft email'} onClick={() => runAction(a)} />
                     : null
               ))}
             </div>
@@ -181,9 +181,9 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <input type="time" value={composing.time} onChange={(e) => setComposing((c) => ({ ...c, time: e.target.value }))} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-mono)' }} />
                   <select value={composing.dur} onChange={(e) => setComposing((c) => ({ ...c, dur: e.target.value }))} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'var(--font-mono)' }}>
-                    {['30', '45', '60', '90', '120'].map((m) => <option key={m} value={m} style={{ background: '#0B0B12' }}>{m} min</option>)}
+                    {['30', '45', '60', '90', '120'].map((m) => <option key={m} value={m} style={{ background: '#101214' }}>{m} min</option>)}
                   </select>
-                  <div className="pressable" onClick={confirmEvent} style={{ flex: 1, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  <div className="pressable" onClick={confirmEvent} style={{ flex: 1, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#0A0B0D', fontWeight: 700, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                     <IconCheck size={15} stroke={2.4} /> Add to calendar
                   </div>
                 </div>

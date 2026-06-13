@@ -115,7 +115,7 @@ function HUDCard({ children, style, className = '', glow, mesh, padding = 16, on
 }
 
 // Confetti burst (60 pieces from a center point)
-function ConfettiBurst({ trigger, colors = ['#FF0033', '#00D4FF', '#B14CFF', '#B6FF3C', '#FFD23C', '#FF8A3C'] }) {
+function ConfettiBurst({ trigger, colors = ['#FF6B5B', '#45B7E8', '#2DD4BF', '#34D399', '#E9C46A', '#F4A261'] }) {
   const [tokens, setTokens] = useState([]);
   useEffect(() => {
     if (!trigger) return;

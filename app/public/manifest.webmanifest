@@ -1,13 +1,13 @@
 {
-  "name": "Life OS",
-  "short_name": "Life OS",
+  "name": "JAM HQ",
+  "short_name": "JAM HQ",
   "description": "Move with purpose. Create with passion. Live in motion.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#06060A",
-  "theme_color": "#06060A",
+  "background_color": "#0A0B0D",
+  "theme_color": "#0A0B0D",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },

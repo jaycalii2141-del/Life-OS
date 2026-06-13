@@ -60,15 +60,15 @@ export default function LoginScreen() {
 
           <div style={{
             width: 64, height: 64, borderRadius: 20,
-            background: 'radial-gradient(circle at 30% 30%, #fff 0%, #00D4FF 35%, #B14CFF 80%)',
+            background: 'radial-gradient(circle at 30% 30%, #fff 0%, #45B7E8 35%, #2DD4BF 80%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 40px -6px rgba(0,212,255,0.6)', marginBottom: 16,
+            boxShadow: '0 0 40px -6px rgba(69,183,232,0.6)', marginBottom: 16,
           }}>
             <IconSparkles size={30} color="#fff" stroke={1.8} />
           </div>
 
           <div className="display" style={{ fontSize: 34, letterSpacing: '0.04em', lineHeight: 1, textAlign: 'center' }}>
-            LIFE OS
+            JAM HQ
           </div>
           <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', letterSpacing: '0.2em', marginTop: 8 }}>
             {isSignup ? 'CREATE YOUR ACCOUNT' : 'WELCOME BACK'}
@@ -111,12 +111,12 @@ export default function LoginScreen() {
               onClick={submit}
               style={{
                 marginTop: 16, height: 50, borderRadius: 14,
-                background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)',
+                background: 'linear-gradient(135deg, #45B7E8 0%, #2DD4BF 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                color: '#06060A', fontWeight: 700, fontSize: 14,
+                color: '#0A0B0D', fontWeight: 700, fontSize: 14,
                 letterSpacing: '0.1em', textTransform: 'uppercase',
                 opacity: busy ? 0.6 : 1,
-                boxShadow: '0 10px 30px -8px rgba(0,212,255,0.5)',
+                boxShadow: '0 10px 30px -8px rgba(69,183,232,0.5)',
               }}
             >
               {busy ? 'Working…' : (isSignup ? 'Create Account' : 'Sign In')}
@@ -144,9 +144,9 @@ export default function LoginScreen() {
 
 const inputStyle = {
   width: '100%', background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(0,212,255,0.35)', borderRadius: 14,
+  border: '1px solid rgba(69,183,232,0.35)', borderRadius: 14,
   padding: '13px 14px', color: 'var(--text)', fontSize: 16,
   fontFamily: 'var(--font-body)', outline: 'none',
-  boxShadow: '0 0 30px -10px rgba(0,212,255,0.4)',
+  boxShadow: '0 0 30px -10px rgba(69,183,232,0.4)',
   boxSizing: 'border-box',
 };

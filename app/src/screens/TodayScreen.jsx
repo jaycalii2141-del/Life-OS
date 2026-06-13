@@ -14,6 +14,8 @@ import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalenda
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
+import { SEED_QUESTS, questProgress, nextMilestone, alignmentScore, recentWins } from '../lib/quests.js';
+import { useSyncedState } from '../useSyncedState.js';
 import { TIMELINE } from '../data.js';
 
 function realDateLabel() {
@@ -25,12 +27,12 @@ function greetingLabel() {
   return h < 12 ? 'Good morning, Jay' : h < 18 ? 'Good afternoon, Jay' : 'Good evening, Jay';
 }
 
-const KIND_COLORS = { focus: '#FF0033', train: '#B6FF3C', build: '#FFD23C', ritual: '#00D4FF' };
+const KIND_COLORS = { focus: '#FF6B5B', train: '#34D399', build: '#E9C46A', ritual: '#45B7E8' };
 
 // ─────────────────────────────────────────────────────────
 // L1 — Today's Mission
 // ─────────────────────────────────────────────────────────
-function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing }) {
+function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, alignment }) {
   const [party, setParty] = useState(0);
   const [editingFocus, setEditingFocus] = useState(false);
   const [draft, setDraft] = useState('');
@@ -57,9 +59,14 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span className="eyebrow">{realDateLabel()}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {alignment != null && (
+            <span className="mono" style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.1em' }}>
+              ALIGNMENT {alignment}
+            </span>
+          )}
           {readiness != null && (
             <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>
-              READINESS {readiness}
+              R{readiness}
             </span>
           )}
           {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em' }}>🔥 {streak}</span>}
@@ -75,7 +82,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
             {done}/{total} · {estimateLabel(missions, doneIds)}
           </span>
           <div className="pressable" onClick={onRegenerate} title="Re-plan"
-            style={{ width: 26, height: 26, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--violet)', background: 'rgba(177,76,255,0.1)' }}>
+            style={{ width: 26, height: 26, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--violet)', background: 'rgba(45,212,191,0.1)' }}>
             <IconSparkles size={14} />
           </div>
         </div>
@@ -91,8 +98,8 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
           return (
             <div key={m.id} style={{
               padding: '10px 12px', borderRadius: 14,
-              background: isNext ? 'rgba(0,212,255,0.07)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isNext ? 'rgba(0,212,255,0.45)' : 'var(--line)'}`,
+              background: isNext ? 'rgba(69,183,232,0.07)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${isNext ? 'rgba(69,183,232,0.45)' : 'var(--line)'}`,
               opacity: isDone ? 0.5 : 1, transition: 'all 200ms',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
@@ -102,7 +109,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
                   background: isDone ? 'var(--lime)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  {isDone && <IconCheck size={14} color="#06060A" stroke={3} />}
+                  {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }} className="pressable" onClick={() => onGo(m)}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -139,20 +146,103 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
             <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim()) { onSetOneThing(draft.trim()); setEditingFocus(false); } }}
               placeholder="The one win that makes today a success…"
-              style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,0,51,0.4)', borderRadius: 12, padding: '10px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)' }} />
+              style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,107,91,0.4)', borderRadius: 12, padding: '10px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)' }} />
             <div className="pressable" onClick={() => { if (draft.trim()) { onSetOneThing(draft.trim()); } setEditingFocus(false); }}
-              style={{ width: 44, borderRadius: 12, background: 'linear-gradient(135deg, #FF0033, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+              style={{ width: 44, borderRadius: 12, background: 'linear-gradient(135deg, #FF6B5B, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
               <IconCheck size={16} stroke={2.4} />
             </div>
           </div>
         ) : (
           <div className="pressable" onClick={() => setEditingFocus(true)} style={{
             marginTop: 12, padding: '10px 12px', borderRadius: 12, textAlign: 'center',
-            border: '1px dashed rgba(255,0,51,0.45)', color: 'var(--ona-red)',
+            border: '1px dashed rgba(255,107,91,0.45)', color: 'var(--ona-red)',
             fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', fontWeight: 700,
           }}>+ SET YOUR ONE THING</div>
         )
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// MISSIONS — the long campaigns (quest system). Each breaks into
+// milestones; checking one off is a real win, not a task tick.
+// ─────────────────────────────────────────────────────────
+function MissionsCard({ quests, onToggleMilestone }) {
+  const [openId, setOpenId] = useState(null);
+  const active = quests.filter((q) => questProgress(q) < 100);
+
+  return (
+    <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span className="eyebrow" style={{ color: 'var(--gold)' }}>Missions</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{active.length} ACTIVE CAMPAIGNS</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {active.map((q) => {
+          const pct = questProgress(q);
+          const next = nextMilestone(q);
+          const open = openId === q.id;
+          return (
+            <div key={q.id} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? 'var(--line-strong)' : 'var(--line)'}` }}>
+              <div className="pressable" onClick={() => setOpenId(open ? null : q.id)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <span style={{ fontSize: 15, flexShrink: 0 }}>{q.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{q.title}</div>
+                    {!open && next && (
+                      <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.06em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        ▸ {next.text.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <span className="display" style={{ fontSize: 16, color: pct >= 60 ? 'var(--lime)' : 'var(--cyan)', flexShrink: 0 }}>{pct}%</span>
+                </div>
+                <div style={{ marginTop: 8 }}><ProgressBar value={pct} color={pct >= 60 ? 'var(--lime)' : 'var(--cyan)'} height={3} /></div>
+              </div>
+              {open && (
+                <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {q.why && <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4 }}>{q.why}</div>}
+                  {(q.milestones || []).map((m) => (
+                    <div key={m.id} className="pressable" onClick={() => { onToggleMilestone(q.id, m.id); if (!m.done) celebrate(); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '4px 0' }}>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                        border: `1.5px solid ${m.done ? 'var(--lime)' : 'var(--line-strong)'}`,
+                        background: m.done ? 'var(--lime)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {m.done && <IconCheck size={11} color="#0A0B0D" stroke={3} />}
+                      </div>
+                      <span style={{ fontSize: 12.5, color: m.done ? 'var(--dim)' : 'var(--text)', textDecoration: m.done ? 'line-through' : 'none', lineHeight: 1.3 }}>{m.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Recent wins — momentum is fuel. Surface it.
+// ─────────────────────────────────────────────────────────
+function WinsStrip({ wins }) {
+  if (!wins.length) return null;
+  return (
+    <div className="hud glass" style={{ padding: '12px 14px', borderRadius: 16, border: '1px solid rgba(52,211,153,0.2)' }}>
+      <span className="eyebrow" style={{ color: 'var(--lime)' }}>Recent wins</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+        {wins.map((w, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13 }}>{w.icon}</span>
+            <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.3 }}>{w.text}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -164,15 +254,15 @@ function AskBar({ onOpen }) {
   return (
     <div className="pressable hud glass" onClick={() => onOpen(false)} style={{
       padding: '13px 14px', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 10,
-      border: '1px solid rgba(177,76,255,0.3)',
+      border: '1px solid rgba(45,212,191,0.3)',
     }}>
-      <div style={{ width: 28, height: 28, borderRadius: 9, background: 'linear-gradient(135deg, #B14CFF, #00D4FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A', flexShrink: 0 }}>
+      <div style={{ width: 28, height: 28, borderRadius: 9, background: 'linear-gradient(135deg, #2DD4BF, #45B7E8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D', flexShrink: 0 }}>
         <IconSparkles size={15} />
       </div>
       <span style={{ flex: 1, fontSize: 13.5, color: 'var(--muted)' }}>Ask your AI anything…</span>
       <div className="pressable" onClick={(e) => { e.stopPropagation(); onOpen(true); }} style={{
         width: 34, height: 34, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.35)', color: 'var(--ona-red)',
+        background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.35)', color: 'var(--ona-red)',
       }}>
         <IconMic size={17} />
       </div>
@@ -205,10 +295,10 @@ function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
       </div>
       {open && (
         <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-          <StateMeter label="Energy" value={state.energy} color="#00D4FF" onChange={(v) => onMeter('energy', v)} />
-          <StateMeter label="Focus" value={state.focus} color="#B14CFF" onChange={(v) => onMeter('focus', v)} />
-          <StateMeter label="Body" value={state.body} color="#B6FF3C" onChange={(v) => onMeter('body', v)} />
-          <StateMeter label="Mood" value={state.mood} color="#FFD23C" onChange={(v) => onMeter('mood', v)} />
+          <StateMeter label="Energy" value={state.energy} color="#45B7E8" onChange={(v) => onMeter('energy', v)} />
+          <StateMeter label="Focus" value={state.focus} color="#2DD4BF" onChange={(v) => onMeter('focus', v)} />
+          <StateMeter label="Body" value={state.body} color="#34D399" onChange={(v) => onMeter('body', v)} />
+          <StateMeter label="Mood" value={state.mood} color="#E9C46A" onChange={(v) => onMeter('mood', v)} />
         </div>
       )}
     </div>
@@ -232,7 +322,7 @@ function MomentumStrip({ momentum = [], streak = 0 }) {
       <div style={{ display: 'flex', gap: 4 }}>
         {momentum.map((v, i) => {
           const isToday = i === momentum.length - 1;
-          const color = v === 0 ? '#5A5A66' : v === 1 ? '#0055FF' : v === 2 ? '#00D4FF' : v === 3 ? '#FFD23C' : '#B6FF3C';
+          const color = v === 0 ? '#5A5A66' : v === 1 ? '#1E6F9F' : v === 2 ? '#45B7E8' : v === 3 ? '#E9C46A' : '#34D399';
           return (
             <div key={i} style={{
               flex: 1, height: 24, borderRadius: 5, background: color,
@@ -250,9 +340,9 @@ function MomentumStrip({ momentum = [], streak = 0 }) {
 // L3 — Later today (timeline, collapsed by default)
 // ─────────────────────────────────────────────────────────
 const TL_CATEGORIES = [
-  { kind: 'Body', color: '#00D4FF' }, { kind: 'Create', color: '#FF3CC8' },
-  { kind: 'Train', color: '#FF8A3C' }, { kind: 'ONA', color: '#B6FF3C' },
-  { kind: 'Acro', color: '#B14CFF' }, { kind: 'Focus', color: '#FF0033' },
+  { kind: 'Body', color: '#45B7E8' }, { kind: 'Create', color: '#FF8A4C' },
+  { kind: 'Train', color: '#F4A261' }, { kind: 'ONA', color: '#34D399' },
+  { kind: 'Acro', color: '#2DD4BF' }, { kind: 'Focus', color: '#FF6B5B' },
 ];
 
 function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCalendar }) {
@@ -262,7 +352,7 @@ function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCale
   const [label, setLabel] = useState('');
   const [cat, setCat] = useState(0);
 
-  const calItems = calendarEvents.map((e) => ({ time: e.time, label: e.label, color: '#00D4FF', kind: 'CAL', cal: true }));
+  const calItems = calendarEvents.map((e) => ({ time: e.time, label: e.label, color: '#45B7E8', kind: 'CAL', cal: true }));
   const manualItems = events.map((e, i) => ({ ...e, cal: false, _idx: i }));
   const sortKey = (t) => (t === 'all-day' ? '00:00' : t);
   const combined = [...calItems, ...manualItems].sort((a, b) => sortKey(a.time).localeCompare(sortKey(b.time)));
@@ -293,8 +383,8 @@ function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCale
             }}><IconCalendar size={14} /> Calendar</div>
             <div className="pressable" onClick={() => setAdding((a) => !a)} style={{
               flex: 1, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              background: adding ? 'rgba(255,255,255,0.05)' : 'rgba(0,212,255,0.1)',
-              border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.35)'}`,
+              background: adding ? 'rgba(255,255,255,0.05)' : 'rgba(69,183,232,0.1)',
+              border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(69,183,232,0.35)'}`,
               color: adding ? 'var(--muted)' : 'var(--cyan)', fontSize: 11, fontWeight: 600,
             }}>{adding ? <IconClose size={13} /> : <IconPlus size={14} />} Block</div>
           </div>
@@ -316,7 +406,7 @@ function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCale
                   }}>{c.kind}</div>
                 ))}
               </div>
-              <div className="pressable" onClick={submit} style={{ height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <div className="pressable" onClick={submit} style={{ height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#0A0B0D', fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 <IconPlus size={14} stroke={2.4} /> Add
               </div>
             </div>
@@ -356,6 +446,22 @@ export function TodayScreen({
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v, checkedIn: true }));
   const readiness = Math.round(((state.energy + state.focus + state.body + state.mood) / 40) * 100);
 
+  // Quest system — the long campaigns behind the daily mission.
+  const [quests, setQuests] = useSyncedState('lifeos:quests', SEED_QUESTS);
+  const toggleMilestone = (qid, mid) => setQuests((list) => list.map((q) => (
+    q.id !== qid ? q : {
+      ...q,
+      milestones: (q.milestones || []).map((m) => (m.id === mid ? { ...m, done: !m.done, doneAt: !m.done ? Date.now() : undefined } : m)),
+    }
+  )));
+
+  // Life Alignment + wins — computed fresh each open (cheap, local).
+  const [alignment, setAlignment] = useState(null);
+  const [wins, setWins] = useState([]);
+  useEffect(() => {
+    try { setAlignment(alignmentScore()); setWins(recentWins()); } catch { /* first run */ }
+  }, [doneIds, quests]);
+
   // Real calendar events for today (read-only).
   const [calendarEvents, setCalendarEvents] = useState([]);
   useEffect(() => {
@@ -392,13 +498,18 @@ export function TodayScreen({
         onGo={goMission}
         oneThing={state.oneThing}
         onSetOneThing={(txt) => setState((s) => ({ ...s, oneThing: txt }))}
+        alignment={alignment}
       />
 
       <AskBar onOpen={onOpenCompanion} />
 
+      <MissionsCard quests={quests} onToggleMilestone={toggleMilestone} />
+
       <CheckInCard state={state} onMeter={setMeter} readiness={readiness} trend={trend} onOpenSettings={onOpenSettings} />
 
       <MomentumStrip momentum={momentum} streak={streak} />
+
+      <WinsStrip wins={wins} />
 
       <ChiefBrief
         readiness={readiness}

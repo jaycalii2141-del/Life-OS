@@ -56,7 +56,7 @@ function buildMonth() {
 // Deterministic improvement proposals from the month's data.
 function buildProposals(m) {
   const out = [];
-  if (m.inbox >= 6) out.push({ id: 'triage-habit', accent: '#FFD23C', title: 'Make triage a daily 2-minute habit', body: `${m.inbox} thoughts are stuck in your inbox. A short daily triage keeps the mental clutter at zero.` });
+  if (m.inbox >= 6) out.push({ id: 'triage-habit', accent: '#E9C46A', title: 'Make triage a daily 2-minute habit', body: `${m.inbox} thoughts are stuck in your inbox. A short daily triage keeps the mental clutter at zero.` });
 
   const neglected = LIFE_DOMAINS.filter((d) => !(m.byDomain[d.id] > 0));
   if (neglected.length) {
@@ -65,9 +65,9 @@ function buildProposals(m) {
   }
 
   const untouched = LIFE_DOMAINS; // training discipline imbalance
-  if (m.mSessions >= 3 && m.trained.size <= 2) out.push({ id: 'cross-train', accent: '#B6FF3C', title: 'Add one cross-training micro-session', body: 'Your sessions clustered in one or two disciplines. One weekly micro-session in a neglected discipline keeps you well-rounded.' });
+  if (m.mSessions >= 3 && m.trained.size <= 2) out.push({ id: 'cross-train', accent: '#34D399', title: 'Add one cross-training micro-session', body: 'Your sessions clustered in one or two disciplines. One weekly micro-session in a neglected discipline keeps you well-rounded.' });
 
-  if (m.avgReadiness != null && m.avgReadiness < 60) out.push({ id: 'recovery-block', accent: '#00D4FF', title: 'Build a real recovery block into the week', body: `Average readiness ran ${m.avgReadiness}/100 this month. A protected recovery day pays back in output.` });
+  if (m.avgReadiness != null && m.avgReadiness < 60) out.push({ id: 'recovery-block', accent: '#45B7E8', title: 'Build a real recovery block into the week', body: `Average readiness ran ${m.avgReadiness}/100 this month. A protected recovery day pays back in output.` });
 
   // Dead-feature surfacing (a surface barely opened).
   if (m.usageSorted.length >= 3) {
@@ -75,12 +75,12 @@ function buildProposals(m) {
     if (least[1] <= 2) out.push({ id: `retire-${least[0]}`, accent: '#8A8A95', title: `Rethink the ${SURFACE_NAMES[least[0]] || least[0]} surface`, body: `You opened ${SURFACE_NAMES[least[0]] || least[0]} only ${least[1]}x in 30 days. Either it needs a reason to exist, or it's clutter worth hiding.` });
   }
 
-  if (m.staleFolders.length >= 2) out.push({ id: 'prune-folders', accent: '#FF3CC8', title: 'Prune or seed your empty folders', body: `${m.staleFolders.length} Create folders are empty. Give each a first project, or archive it to keep the workspace sharp.` });
+  if (m.staleFolders.length >= 2) out.push({ id: 'prune-folders', accent: '#FF8A4C', title: 'Prune or seed your empty folders', body: `${m.staleFolders.length} Create folders are empty. Give each a first project, or archive it to keep the workspace sharp.` });
 
-  if (!m.hasFocus) out.push({ id: 'weekly-ritual', accent: '#B14CFF', title: 'Lock in the Sunday Weekly Review', body: 'You haven\'t been setting a weekly focus. The 10-minute Sunday review is the highest-leverage ritual in LifeOS.' });
+  if (!m.hasFocus) out.push({ id: 'weekly-ritual', accent: '#2DD4BF', title: 'Lock in the Sunday Weekly Review', body: 'You haven\'t been setting a weekly focus. The 10-minute Sunday review is the highest-leverage ritual in LifeOS.' });
 
   // Always give him something forward-looking if data is thin.
-  if (out.length < 2) out.push({ id: 'capture-more', accent: '#00D4FF', title: 'Capture more, decide less in the moment', body: 'The more you dump into capture, the more LifeOS can organize for you. Build the one-tap capture reflex.' });
+  if (out.length < 2) out.push({ id: 'capture-more', accent: '#45B7E8', title: 'Capture more, decide less in the moment', body: 'The more you dump into capture, the more LifeOS can organize for you. Build the one-tap capture reflex.' });
 
   return out;
 }
@@ -152,7 +152,7 @@ export function MonthlyUpgrade({ open, onClose }) {
         {/* AI / data note */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <div className="eyebrow">This month</div>
-          <div className="pressable" onClick={reflect} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, background: 'rgba(177,76,255,0.12)', border: '1px solid rgba(177,76,255,0.4)', color: 'var(--violet)', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700 }}>
+          <div className="pressable" onClick={reflect} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.4)', color: 'var(--violet)', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700 }}>
             <IconSparkles size={13} /> {loading ? 'THINKING…' : 'AI REFLECT'}
           </div>
         </div>

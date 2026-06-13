@@ -23,13 +23,13 @@ function readJSON(key, fb) {
 
 // One intelligence, different hats.
 const MODES = [
-  { id: 'partner',   name: 'Partner',   color: '#B14CFF', hint: 'whole-life thinking partner' },
-  { id: 'chief',     name: 'Chief',     color: '#00D4FF', hint: 'runs your day & priorities' },
-  { id: 'coach',     name: 'Coach',     color: '#B6FF3C', hint: 'training & recovery' },
-  { id: 'creative',  name: 'Creative',  color: '#FF3CC8', hint: 'content & brands' },
-  { id: 'ona',       name: 'ONA',       color: '#FF0033', hint: 'gym operations' },
-  { id: 'podium',    name: 'Podium',    color: '#FFD23C', hint: 'equipment & builds' },
-  { id: 'architect', name: 'Architect', color: '#FF8A3C', hint: 'improves your systems' },
+  { id: 'partner',   name: 'Partner',   color: '#2DD4BF', hint: 'whole-life thinking partner' },
+  { id: 'chief',     name: 'Chief',     color: '#45B7E8', hint: 'runs your day & priorities' },
+  { id: 'coach',     name: 'Coach',     color: '#34D399', hint: 'training & recovery' },
+  { id: 'creative',  name: 'Creative',  color: '#FF8A4C', hint: 'content & brands' },
+  { id: 'ona',       name: 'ONA',       color: '#FF6B5B', hint: 'gym operations' },
+  { id: 'podium',    name: 'Podium',    color: '#E9C46A', hint: 'equipment & builds' },
+  { id: 'architect', name: 'Architect', color: '#F4A261', hint: 'improves your systems' },
 ];
 
 const STARTERS = {
@@ -104,23 +104,23 @@ export function CompanionLauncher({ onOpen, onOpenVoice }) {
       style={{
         position: 'absolute', left: 18, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
         width: 52, height: 52, borderRadius: 18, zIndex: 50,
-        background: 'linear-gradient(135deg, #B14CFF 0%, #00D4FF 100%)',
+        background: 'linear-gradient(135deg, #2DD4BF 0%, #45B7E8 100%)',
         border: '1px solid rgba(255,255,255,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 10px 30px -8px rgba(177,76,255,0.6)',
+        boxShadow: '0 10px 30px -8px rgba(45,212,191,0.6)',
       }}
     >
-      <IconSparkles size={24} color="#06060A" stroke={2} style={{ position: 'relative' }} />
+      <IconSparkles size={24} color="#0A0B0D" stroke={2} style={{ position: 'relative' }} />
     </div>
   );
 }
 
 const ACTION_META = {
-  event: { Icon: IconCalendar, color: '#00D4FF', verb: 'Add to calendar' },
-  session: { Icon: IconActivity, color: '#B6FF3C', verb: 'Log session' },
-  capture: { Icon: IconPlus, color: '#FFD23C', verb: 'Save' },
-  focus: { Icon: IconTarget, color: '#FF0033', verb: 'Set focus' },
-  email: { Icon: IconSend, color: '#B14CFF', verb: 'Draft email' },
+  event: { Icon: IconCalendar, color: '#45B7E8', verb: 'Add to calendar' },
+  session: { Icon: IconActivity, color: '#34D399', verb: 'Log session' },
+  capture: { Icon: IconPlus, color: '#E9C46A', verb: 'Save' },
+  focus: { Icon: IconTarget, color: '#FF6B5B', verb: 'Set focus' },
+  email: { Icon: IconSend, color: '#2DD4BF', verb: 'Draft email' },
 };
 
 // ── The conversation ──
@@ -218,18 +218,18 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
     <Sheet open={open} onClose={onClose} maxHeight="92%">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 11, background: `linear-gradient(135deg, ${activeMode.color}, #00D4FF)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconSparkles size={19} /></div>
+          <div style={{ width: 34, height: 34, borderRadius: 11, background: `linear-gradient(135deg, ${activeMode.color}, #45B7E8)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconSparkles size={19} /></div>
           <div>
             <div className="eyebrow" style={{ color: activeMode.color }}>{activeMode.hint}</div>
-            <div className="display" style={{ fontSize: 20, marginTop: 1 }}>LIFEOS INTELLIGENCE</div>
+            <div className="display" style={{ fontSize: 20, marginTop: 1 }}>JAM INTELLIGENCE</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {ttsSupported() && (
             <div className="pressable mono" onClick={() => { if (voiceOn) { stopSpeaking(); setSpeaking(false); } setVoiceOn(!voiceOn); }} style={{
               fontSize: 9, letterSpacing: '0.1em', fontWeight: 700, padding: '5px 9px', borderRadius: 999,
-              background: voiceOn ? 'rgba(182,255,60,0.14)' : 'rgba(255,255,255,0.05)',
-              border: `1px solid ${voiceOn ? 'rgba(182,255,60,0.5)' : 'var(--line)'}`,
+              background: voiceOn ? 'rgba(52,211,153,0.14)' : 'rgba(255,255,255,0.05)',
+              border: `1px solid ${voiceOn ? 'rgba(52,211,153,0.5)' : 'var(--line)'}`,
               color: voiceOn ? 'var(--lime)' : 'var(--muted)',
             }}>{voiceOn ? '🔊 VOICE ON' : '🔇 VOICE'}</div>
           )}
@@ -271,7 +271,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
         {messages.map((m, i) => {
           if (m.role === 'user') {
             return (
-              <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '86%', padding: '9px 13px', borderRadius: 16, borderBottomRightRadius: 4, background: 'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(177,76,255,0.18))', border: '1px solid rgba(177,76,255,0.3)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.45 }}>{m.text}</div>
+              <div key={i} style={{ alignSelf: 'flex-end', maxWidth: '86%', padding: '9px 13px', borderRadius: 16, borderBottomRightRadius: 4, background: 'linear-gradient(135deg, rgba(69,183,232,0.18), rgba(45,212,191,0.18))', border: '1px solid rgba(45,212,191,0.3)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.45 }}>{m.text}</div>
             );
           }
           const mMode = MODES.find((x) => x.id === m.mode) || MODES[0];
@@ -286,13 +286,13 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
                 {m.actions && m.actions.length > 0 && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
                     {m.actions.map((a, ai) => {
-                      const meta = ACTION_META[a.type] || { Icon: IconSparkles, color: '#B14CFF' };
+                      const meta = ACTION_META[a.type] || { Icon: IconSparkles, color: '#2DD4BF' };
                       const label = a.label || meta.verb;
                       return (
                         <div key={ai} className="pressable" onClick={() => !a.done && doAction(i, ai, a)} style={{
                           display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 999,
-                          background: a.done ? 'rgba(182,255,60,0.14)' : `${meta.color}1a`,
-                          border: `1px solid ${a.done ? 'rgba(182,255,60,0.5)' : meta.color + '66'}`,
+                          background: a.done ? 'rgba(52,211,153,0.14)' : `${meta.color}1a`,
+                          border: `1px solid ${a.done ? 'rgba(52,211,153,0.5)' : meta.color + '66'}`,
                           color: a.done ? 'var(--lime)' : meta.color, fontSize: 12, fontWeight: 700, opacity: a.done ? 0.85 : 1,
                         }}>
                           <meta.Icon size={13} /> {a.done ? `✓ ${label}` : label}
@@ -324,7 +324,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <div style={{
           flex: 1, background: 'rgba(255,255,255,0.04)',
-          border: `1px solid ${listening ? 'rgba(255,0,51,0.6)' : `${activeMode.color}55`}`,
+          border: `1px solid ${listening ? 'rgba(255,107,91,0.6)' : `${activeMode.color}55`}`,
           borderRadius: 14, padding: '12px 14px', display: 'flex', alignItems: 'center', transition: 'border-color 200ms',
         }}>
           <input
@@ -338,15 +338,15 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
         {voiceSupported() && (
           <div className="pressable" onClick={() => (listening ? stopListening() : startListening())} style={{
             width: 50, borderRadius: 14,
-            background: listening ? 'rgba(255,0,51,0.18)' : 'rgba(255,255,255,0.05)',
-            border: `1px solid ${listening ? 'rgba(255,0,51,0.6)' : 'var(--line-strong)'}`,
+            background: listening ? 'rgba(255,107,91,0.18)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${listening ? 'rgba(255,107,91,0.6)' : 'var(--line-strong)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: listening ? 'var(--ona-red)' : 'var(--text)', transition: 'all 200ms',
           }}>
             <IconMic size={20} className={listening ? 'blink' : ''} />
           </div>
         )}
-        <div className="pressable" onClick={() => send()} style={{ width: 50, borderRadius: 14, background: input.trim() ? `linear-gradient(135deg, ${activeMode.color}, #00D4FF)` : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#06060A' : 'var(--dim)' }}>
+        <div className="pressable" onClick={() => send()} style={{ width: 50, borderRadius: 14, background: input.trim() ? `linear-gradient(135deg, ${activeMode.color}, #45B7E8)` : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: input.trim() ? '#0A0B0D' : 'var(--dim)' }}>
           <IconSend size={19} stroke={2.2} />
         </div>
       </div>

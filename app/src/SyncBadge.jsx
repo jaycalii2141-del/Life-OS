@@ -40,14 +40,14 @@ export function SyncBadge() {
           padding: '5px 12px',
           borderRadius: 999,
           background: 'rgba(11,11,18,0.82)',
-          border: '1px solid rgba(182,255,60,0.4)',
+          border: '1px solid rgba(52,211,153,0.4)',
           backdropFilter: 'blur(14px) saturate(180%)',
           WebkitBackdropFilter: 'blur(14px) saturate(180%)',
           boxShadow: '0 6px 22px rgba(0,0,0,0.45)',
         }}
       >
-        <IconCheck size={12} color="#B6FF3C" stroke={3} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', color: '#B6FF3C' }}>
+        <IconCheck size={12} color="#34D399" stroke={3} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', color: '#34D399' }}>
           SAVED
         </span>
       </div>

@@ -247,7 +247,7 @@ function IOSDevice({
           width: '100vw',
           height: '100dvh',
           overflow: 'hidden',
-          background: dark ? '#06060A' : '#F2F2F7',
+          background: dark ? '#0A0B0D' : '#F2F2F7',
           fontFamily: '-apple-system, system-ui, sans-serif',
           WebkitFontSmoothing: 'antialiased',
         }}

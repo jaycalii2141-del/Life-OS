@@ -6,21 +6,21 @@
 // ─────────────────────────────────────────────────────────
 
 const BRANDS = [
-  { id: 'jaymuvs',  name: 'JAYMUVS',     bgCls: 'brand-jaymuvs',    color: '#FF0033', status: 'On Track',   weeklyGoal: '7 posts',  pct: 71, posted: 5 },
-  { id: 'motionmob',name: 'MOTION MOB',  bgCls: 'brand-motionmob',  color: '#0055FF', status: 'Hot',        weeklyGoal: '5 reels',  pct: 60, posted: 3 },
-  { id: 'ona',      name: 'ONA ELITE',   bgCls: 'brand-ona-elite',  color: '#B6FF3C', status: 'Steady',     weeklyGoal: '6 posts',  pct: 83, posted: 5 },
-  { id: 'jk',       name: 'JK ACRO',     bgCls: 'brand-jk-acro',    color: '#B14CFF', status: 'Cold',       weeklyGoal: '3 posts',  pct: 33, posted: 1 },
-  { id: 'wooks',    name: 'ACRO WOOKS',  bgCls: 'brand-acro-wooks', color: '#FF8A3C', status: 'Building',   weeklyGoal: '4 posts',  pct: 50, posted: 2 },
+  { id: 'jaymuvs',  name: 'JAYMUVS',     bgCls: 'brand-jaymuvs',    color: '#FF6B5B', status: 'On Track',   weeklyGoal: '7 posts',  pct: 71, posted: 5 },
+  { id: 'motionmob',name: 'MOTION MOB',  bgCls: 'brand-motionmob',  color: '#1E6F9F', status: 'Hot',        weeklyGoal: '5 reels',  pct: 60, posted: 3 },
+  { id: 'ona',      name: 'ONA ELITE',   bgCls: 'brand-ona-elite',  color: '#34D399', status: 'Steady',     weeklyGoal: '6 posts',  pct: 83, posted: 5 },
+  { id: 'jk',       name: 'JK ACRO',     bgCls: 'brand-jk-acro',    color: '#2DD4BF', status: 'Cold',       weeklyGoal: '3 posts',  pct: 33, posted: 1 },
+  { id: 'wooks',    name: 'ACRO WOOKS',  bgCls: 'brand-acro-wooks', color: '#F4A261', status: 'Building',   weeklyGoal: '4 posts',  pct: 50, posted: 2 },
   { id: 'ppp',      name: 'PPP',         bgCls: 'brand-ppp',        color: '#F5F5F7', status: 'Paused',     weeklyGoal: '2 posts',  pct: 50, posted: 1 },
 ];
 
 const PIPELINE_STAGES = [
   { id: 'idea',     label: 'Idea',     count: 14, color: '#8A8A95' },
-  { id: 'plan',     label: 'Plan',     count: 7,  color: '#00D4FF' },
-  { id: 'shoot',    label: 'Shoot',    count: 4,  color: '#FFD23C' },
-  { id: 'edit',     label: 'Edit',     count: 3,  color: '#FF8A3C' },
-  { id: 'schedule', label: 'Schedule', count: 5,  color: '#B14CFF' },
-  { id: 'posted',   label: 'Posted',   count: 23, color: '#B6FF3C' },
+  { id: 'plan',     label: 'Plan',     count: 7,  color: '#45B7E8' },
+  { id: 'shoot',    label: 'Shoot',    count: 4,  color: '#E9C46A' },
+  { id: 'edit',     label: 'Edit',     count: 3,  color: '#F4A261' },
+  { id: 'schedule', label: 'Schedule', count: 5,  color: '#2DD4BF' },
+  { id: 'posted',   label: 'Posted',   count: 23, color: '#34D399' },
 ];
 
 const HOOKS = [
@@ -33,12 +33,12 @@ const HOOKS = [
 ];
 
 const DISCIPLINES = [
-  { id: 'gymnastics',   name: 'Gymnastics',   color: '#FFD23C', icon: '◐' },
-  { id: 'tricking',     name: 'Tricking',     color: '#FF0033', icon: '↻' },
-  { id: 'calisthenics', name: 'Calisthenics', color: '#B6FF3C', icon: '⊞' },
-  { id: 'acro',         name: 'Acro',         color: '#B14CFF', icon: '∞' },
-  { id: 'parkour',      name: 'Parkour',      color: '#00D4FF', icon: '▲' },
-  { id: 'ninja',        name: 'Ninja',        color: '#FF8A3C', icon: '◆' },
+  { id: 'gymnastics',   name: 'Gymnastics',   color: '#E9C46A', icon: '◐' },
+  { id: 'tricking',     name: 'Tricking',     color: '#FF6B5B', icon: '↻' },
+  { id: 'calisthenics', name: 'Calisthenics', color: '#34D399', icon: '⊞' },
+  { id: 'acro',         name: 'Acro',         color: '#2DD4BF', icon: '∞' },
+  { id: 'parkour',      name: 'Parkour',      color: '#45B7E8', icon: '▲' },
+  { id: 'ninja',        name: 'Ninja',        color: '#F4A261', icon: '◆' },
 ];
 
 // ─────────────────────────────────────────────────────────
@@ -141,12 +141,12 @@ const RADAR_GOAL    = [90, 90, 95, 85, 85, 80];
 
 // Today's timeline
 const TIMELINE = [
-  { time: '06:30', label: 'Mobility flow + cold plunge',  color: '#00D4FF', kind: 'Body' },
-  { time: '08:00', label: 'Deep work — JayMuvs B-twist edit', color: '#FF0033', kind: 'Create' },
-  { time: '10:30', label: 'Ninja session @ ONA',           color: '#FF8A3C', kind: 'Train' },
-  { time: '13:00', label: 'Coach review w/ Riley',         color: '#B6FF3C', kind: 'ONA' },
-  { time: '16:00', label: 'Content shoot — B-twist tutorial', color: '#FF3CC8', kind: 'Create' },
-  { time: '19:00', label: 'Acro practice w/ Chelsea',      color: '#B14CFF', kind: 'Acro' },
+  { time: '06:30', label: 'Mobility flow + cold plunge',  color: '#45B7E8', kind: 'Body' },
+  { time: '08:00', label: 'Deep work — JayMuvs B-twist edit', color: '#FF6B5B', kind: 'Create' },
+  { time: '10:30', label: 'Ninja session @ ONA',           color: '#F4A261', kind: 'Train' },
+  { time: '13:00', label: 'Coach review w/ Riley',         color: '#34D399', kind: 'ONA' },
+  { time: '16:00', label: 'Content shoot — B-twist tutorial', color: '#FF8A4C', kind: 'Create' },
+  { time: '19:00', label: 'Acro practice w/ Chelsea',      color: '#2DD4BF', kind: 'Acro' },
 ];
 
 // 14-day momentum heatmap (0..4 intensity). Today = last cell.
@@ -156,25 +156,25 @@ const MOMENTUM = [3, 4, 2, 4, 3, 0, 4, 4, 3, 4, 4, 2, 4, 4];
 const ONA_STATS = { members: 248, mrr: 38450, nps: 72 };
 
 const SALES_STAGES = [
-  { id: 'leads',    label: 'Leads',       count: 27, color: '#00D4FF', stale: 5 },
-  { id: 'trials',   label: 'Trials',      count: 11, color: '#FFD23C', stale: 0 },
-  { id: 'closing',  label: 'Closing',     count: 6,  color: '#FF8A3C', stale: 2 },
-  { id: 'new',      label: 'New Members', count: 9,  color: '#B6FF3C', stale: 0 },
+  { id: 'leads',    label: 'Leads',       count: 27, color: '#45B7E8', stale: 5 },
+  { id: 'trials',   label: 'Trials',      count: 11, color: '#E9C46A', stale: 0 },
+  { id: 'closing',  label: 'Closing',     count: 6,  color: '#F4A261', stale: 2 },
+  { id: 'new',      label: 'New Members', count: 9,  color: '#34D399', stale: 0 },
 ];
 
 const COACHES = [
-  { id: 'riley',  name: 'Riley',     plPrice: 110, grade: 'A',  role: 'Head Coach',  active: true,  initial: 'R', color: '#FF0033' },
-  { id: 'luke',   name: 'Luke',      plPrice: 95,  grade: 'A',  role: 'Ninja Lead',  active: true,  initial: 'L', color: '#FF8A3C' },
-  { id: 'jay-l',  name: 'Jay Lache', plPrice: 90,  grade: 'A-', role: 'Tricking',    active: true,  initial: 'J', color: '#00D4FF' },
-  { id: 'avery',  name: 'Avery',     plPrice: 80,  grade: 'B+', role: 'Gymnastics',  active: true,  initial: 'A', color: '#B14CFF' },
-  { id: 'eric',   name: 'Eric',      plPrice: 75,  grade: 'B',  role: 'Strength',    active: true,  initial: 'E', color: '#B6FF3C' },
+  { id: 'riley',  name: 'Riley',     plPrice: 110, grade: 'A',  role: 'Head Coach',  active: true,  initial: 'R', color: '#FF6B5B' },
+  { id: 'luke',   name: 'Luke',      plPrice: 95,  grade: 'A',  role: 'Ninja Lead',  active: true,  initial: 'L', color: '#F4A261' },
+  { id: 'jay-l',  name: 'Jay Lache', plPrice: 90,  grade: 'A-', role: 'Tricking',    active: true,  initial: 'J', color: '#45B7E8' },
+  { id: 'avery',  name: 'Avery',     plPrice: 80,  grade: 'B+', role: 'Gymnastics',  active: true,  initial: 'A', color: '#2DD4BF' },
+  { id: 'eric',   name: 'Eric',      plPrice: 75,  grade: 'B',  role: 'Strength',    active: true,  initial: 'E', color: '#34D399' },
 ];
 
 const BENCH = [
-  { id: 'myra',   name: 'Myra',   initial: 'M', color: '#FF3CC8' },
-  { id: 'ava',    name: 'Ava',    initial: 'A', color: '#FFD23C' },
-  { id: 'jordan', name: 'Jordan', initial: 'J', color: '#00D4FF' },
-  { id: 'billy',  name: 'Billy',  initial: 'B', color: '#FF8A3C' },
+  { id: 'myra',   name: 'Myra',   initial: 'M', color: '#FF8A4C' },
+  { id: 'ava',    name: 'Ava',    initial: 'A', color: '#E9C46A' },
+  { id: 'jordan', name: 'Jordan', initial: 'J', color: '#45B7E8' },
+  { id: 'billy',  name: 'Billy',  initial: 'B', color: '#F4A261' },
 ];
 
 const INITIATIVES = [
@@ -203,23 +203,23 @@ const TODAY = {
 // weekly attention-allocation view.
 // ─────────────────────────────────────────────────────────
 const LIFE_DOMAINS = [
-  { id: 'ona',      name: 'ONA',          emoji: '🥷', color: '#FF0033' },
-  { id: 'podium',   name: 'Podium',       emoji: '🏆', color: '#FFD23C' },
-  { id: 'movement', name: 'Movement',     emoji: '🤸', color: '#B6FF3C' },
-  { id: 'social',   name: '@jayy',        emoji: '🎬', color: '#FF3CC8' },
-  { id: 'wife',     name: 'Wife & I',     emoji: '💛', color: '#B14CFF' },
-  { id: 'self',     name: 'Self',         emoji: '🧭', color: '#00D4FF' },
+  { id: 'ona',      name: 'ONA',          emoji: '🥷', color: '#FF6B5B' },
+  { id: 'podium',   name: 'Podium',       emoji: '🏆', color: '#E9C46A' },
+  { id: 'movement', name: 'Movement',     emoji: '🤸', color: '#34D399' },
+  { id: 'social',   name: '@jayy',        emoji: '🎬', color: '#FF8A4C' },
+  { id: 'wife',     name: 'Wife & I',     emoji: '💛', color: '#2DD4BF' },
+  { id: 'self',     name: 'Self',         emoji: '🧭', color: '#45B7E8' },
 ];
 
 // Seed folders for the Create workspace. Each carries a `domain` so
 // triaged captures from Mind route into the right folder reliably.
 const SEED_FOLDERS = [
-  { id: 1, name: 'ONA',            domain: 'ona',      color: '#FF0033', emoji: '🥷', pinned: true,  notes: [], projects: [] },
-  { id: 2, name: 'Podium',         domain: 'podium',   color: '#FFD23C', emoji: '🏆', pinned: false, notes: [], projects: [] },
-  { id: 3, name: 'Movement',       domain: 'movement', color: '#B6FF3C', emoji: '🤸', pinned: false, notes: [], projects: [] },
-  { id: 4, name: '@jayy_martinez', domain: 'social',   color: '#00D4FF', emoji: '📱', pinned: false, notes: [], projects: [] },
-  { id: 5, name: 'Wife & I',       domain: 'wife',     color: '#FF3CC8', emoji: '❤️', pinned: false, notes: [], projects: [] },
-  { id: 6, name: 'Self',           domain: 'self',     color: '#00D4FF', emoji: '🧭', pinned: false, notes: [], projects: [] },
+  { id: 1, name: 'ONA',            domain: 'ona',      color: '#FF6B5B', emoji: '🥷', pinned: true,  notes: [], projects: [] },
+  { id: 2, name: 'Podium',         domain: 'podium',   color: '#E9C46A', emoji: '🏆', pinned: false, notes: [], projects: [] },
+  { id: 3, name: 'Movement',       domain: 'movement', color: '#34D399', emoji: '🤸', pinned: false, notes: [], projects: [] },
+  { id: 4, name: '@jayy_martinez', domain: 'social',   color: '#45B7E8', emoji: '📱', pinned: false, notes: [], projects: [] },
+  { id: 5, name: 'Wife & I',       domain: 'wife',     color: '#FF8A4C', emoji: '❤️', pinned: false, notes: [], projects: [] },
+  { id: 6, name: 'Self',           domain: 'self',     color: '#45B7E8', emoji: '🧭', pinned: false, notes: [], projects: [] },
 ];
 
 // Name aliases used to match an already-saved folder to a domain when it

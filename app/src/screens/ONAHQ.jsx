@@ -109,15 +109,15 @@ function CoachAvatar({ coach, size = 36 }) {
       width: size, height: size, borderRadius: size,
       background: `linear-gradient(135deg, ${coach.color}, ${coach.color}50)`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#06060A', fontWeight: 800, fontSize: size * 0.42, flexShrink: 0,
+      color: '#0A0B0D', fontWeight: 800, fontSize: size * 0.42, flexShrink: 0,
       border: '1px solid rgba(255,255,255,0.15)', boxShadow: `0 0 14px -4px ${coach.color}`,
     }}>{coach.initial || (coach.name || '?')[0].toUpperCase()}</div>
   );
 }
 
 const GRADES = ['A', 'A-', 'B+', 'B', 'B-', 'C'];
-const gradeColor = (g) => (g?.startsWith('A') ? '#B6FF3C' : g?.startsWith('B') ? '#FFD23C' : '#FF8A3C');
-const COACH_COLORS = ['#FF0033', '#FF8A3C', '#00D4FF', '#B14CFF', '#B6FF3C', '#FF3CC8', '#FFD23C'];
+const gradeColor = (g) => (g?.startsWith('A') ? '#34D399' : g?.startsWith('B') ? '#E9C46A' : '#F4A261');
+const COACH_COLORS = ['#FF6B5B', '#F4A261', '#45B7E8', '#2DD4BF', '#34D399', '#FF8A4C', '#E9C46A'];
 
 function CoachRow({ coach, onUpdate, onDelete }) {
   const [open, setOpen] = useState(false);
@@ -147,7 +147,7 @@ function CoachRow({ coach, onUpdate, onDelete }) {
             <Stepper onClick={() => onUpdate({ plPrice: Math.max(0, coach.plPrice - 5) })}>−</Stepper>
             <span className="mono" style={{ fontSize: 12, color: 'var(--text)', minWidth: 44, textAlign: 'center' }}>${coach.plPrice}</span>
             <Stepper onClick={() => onUpdate({ plPrice: coach.plPrice + 5 })}>+</Stepper>
-            <div className="pressable" onClick={() => onUpdate({ active: coach.active === false })} style={{ marginLeft: 'auto', padding: '5px 10px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', background: coach.active === false ? 'rgba(255,255,255,0.04)' : 'rgba(182,255,60,0.12)', border: `1px solid ${coach.active === false ? 'var(--line)' : 'rgba(182,255,60,0.4)'}`, color: coach.active === false ? 'var(--muted)' : 'var(--lime)' }}>
+            <div className="pressable" onClick={() => onUpdate({ active: coach.active === false })} style={{ marginLeft: 'auto', padding: '5px 10px', borderRadius: 999, fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', background: coach.active === false ? 'rgba(255,255,255,0.04)' : 'rgba(52,211,153,0.12)', border: `1px solid ${coach.active === false ? 'var(--line)' : 'rgba(52,211,153,0.4)'}`, color: coach.active === false ? 'var(--muted)' : 'var(--lime)' }}>
               {coach.active === false ? 'INACTIVE' : 'ACTIVE'}
             </div>
           </div>
@@ -159,7 +159,7 @@ function CoachRow({ coach, onUpdate, onDelete }) {
                 <div key={g} className="pressable" onClick={() => onUpdate({ grade: g })} style={{ padding: '4px 9px', borderRadius: 999, fontFamily: 'var(--font-display)', fontSize: 13, background: on ? `${gradeColor(g)}20` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? gradeColor(g) : 'var(--line)'}`, color: on ? gradeColor(g) : 'var(--muted)' }}>{g}</div>
               );
             })}
-            <div className="pressable" onClick={onDelete} style={{ marginLeft: 'auto', width: 30, height: 30, borderRadius: 8, background: 'rgba(255,0,51,0.12)', border: '1px solid rgba(255,0,51,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}><IconClose size={15} /></div>
+            <div className="pressable" onClick={onDelete} style={{ marginLeft: 'auto', width: 30, height: 30, borderRadius: 8, background: 'rgba(255,107,91,0.12)', border: '1px solid rgba(255,107,91,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}><IconClose size={15} /></div>
           </div>
         </div>
       )}
@@ -182,7 +182,7 @@ function CoachRoster({ coaches, onAdd, onUpdate, onDelete }) {
           <div className="eyebrow">Roster · {active} active · {BENCH.length} bench</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>COACHES</div>
         </div>
-        <div className="pressable" onClick={addCoach} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}>
+        <div className="pressable" onClick={addCoach} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}>
           <IconPlus size={16} />
         </div>
       </div>
@@ -212,8 +212,8 @@ function CoachRoster({ coaches, onAdd, onUpdate, onDelete }) {
 // Initiatives — full CRUD, cloud-synced
 // ─────────────────────────────────────────────────────────
 const PRIORITIES = ['P0', 'P1', 'P2'];
-const priColor = { P0: '#FF0033', P1: '#FFD23C', P2: '#00D4FF' };
-const priBg = { P0: 'rgba(255,0,51,0.12)', P1: 'rgba(255,210,60,0.12)', P2: 'rgba(0,212,255,0.12)' };
+const priColor = { P0: '#FF6B5B', P1: '#E9C46A', P2: '#45B7E8' };
+const priBg = { P0: 'rgba(255,107,91,0.12)', P1: 'rgba(233,196,106,0.12)', P2: 'rgba(69,183,232,0.12)' };
 
 function InitiativeRow({ it, onUpdate, onDelete }) {
   const [open, setOpen] = useState(false);
@@ -248,7 +248,7 @@ function InitiativeRow({ it, onUpdate, onDelete }) {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input value={it.due} onChange={(e) => onUpdate({ due: e.target.value })} placeholder="Due (e.g. Jun 14)" style={{ ...inp, flex: 1 }} />
-            <div className="pressable" onClick={onDelete} style={{ width: 44, borderRadius: 10, background: 'rgba(255,0,51,0.12)', border: '1px solid rgba(255,0,51,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}><IconClose size={16} /></div>
+            <div className="pressable" onClick={onDelete} style={{ width: 44, borderRadius: 10, background: 'rgba(255,107,91,0.12)', border: '1px solid rgba(255,107,91,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}><IconClose size={16} /></div>
           </div>
         </div>
       )}
@@ -278,13 +278,13 @@ function InitiativeList({ items, onAdd, onUpdate, onDelete }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Pill variant="red">{p0} · P0</Pill>
-          <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
+          <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(69,183,232,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(69,183,232,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
         </div>
       </div>
       {adding && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="New initiative…" style={{ ...inp, flex: 1 }} />
-          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconCheck size={16} stroke={2.4} /></div>
+          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconCheck size={16} stroke={2.4} /></div>
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -329,7 +329,7 @@ function LiveOnaCard({ live }) {
   if (!present.length) return null;
   const fmt = (v, f) => `${f.prefix || ''}${typeof v === 'number' ? v.toLocaleString() : v}`;
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(182,255,60,0.25)', position: 'relative' }}>
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(52,211,153,0.25)', position: 'relative' }}>
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -384,7 +384,7 @@ function ONAHQ({ embedded = false }) {
             <div className="eyebrow">Obstacle Ninja Academy · Orlando</div>
             <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1, color: 'var(--ona-red)' }}>ONA · HQ</div>
           </div>
-          <Pill variant="red" dot="#FF0033">LIVE</Pill>
+          <Pill variant="red" dot="#FF6B5B">LIVE</Pill>
         </div>
         <div style={{ display: 'flex', gap: 14 }}>
           <ONAStat label="Members" value={stats.members} color="var(--text)" trend="tap to edit" onChange={(v) => setStat('members', v)} />

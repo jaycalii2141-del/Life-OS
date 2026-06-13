@@ -9,10 +9,10 @@ import { HUDTicks } from './atoms.jsx';
 // ─────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'today',   label: 'Today',   Icon: IconTarget,  color: '#00D4FF' },
-  { id: 'life',    label: 'Life',    Icon: IconBrain,   color: '#FFD23C' },
-  { id: 'perform', label: 'Perform', Icon: IconBolt,    color: '#B6FF3C' },
-  { id: 'build',   label: 'Build',   Icon: IconTrendUp, color: '#FF0033' },
+  { id: 'today',   label: 'Command', Icon: IconTarget,  color: '#45B7E8' },
+  { id: 'life',    label: 'Map',     Icon: IconBrain,   color: '#E9C46A' },
+  { id: 'perform', label: 'Move',    Icon: IconBolt,    color: '#34D399' },
+  { id: 'build',   label: 'Build',   Icon: IconTrendUp, color: '#FF6B5B' },
 ];
 
 function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
@@ -44,7 +44,7 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'linear-gradient(180deg, transparent 0%, rgba(6,6,10,0.7) 38%, #06060A 70%)',
+        background: 'linear-gradient(180deg, transparent 0%, rgba(6,6,10,0.7) 38%, #0A0B0D 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -102,11 +102,11 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
                   minWidth: 15, height: 15, padding: '0 4px',
                   borderRadius: 999,
                   background: t.color,
-                  color: '#06060A',
+                  color: '#0A0B0D',
                   fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 800,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: `0 0 8px ${t.color}`,
-                  border: '1.5px solid #0B0B12',
+                  border: '1.5px solid #101214',
                 }}>{badges[t.id] > 9 ? '9+' : badges[t.id]}</span>
               )}
               <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
@@ -135,16 +135,16 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
           right: 18, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
           width: 54, height: 54,
           borderRadius: 18,
-          background: 'linear-gradient(135deg, #00D4FF 0%, #B14CFF 100%)',
+          background: 'linear-gradient(135deg, #45B7E8 0%, #2DD4BF 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#06060A',
+          color: '#0A0B0D',
           pointerEvents: 'auto',
           border: '1px solid rgba(255,255,255,0.2)',
         }}
       >
-        <IconPlus size={26} stroke={2.4} color="#06060A" />
+        <IconPlus size={26} stroke={2.4} color="#0A0B0D" />
       </div>
     </div>
   );

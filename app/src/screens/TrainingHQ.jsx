@@ -27,17 +27,17 @@ function Stepper({ children, onClick }) {
 }
 
 const TIER_COLORS = {
-  Foundation: '#B6FF3C',
-  Developing: '#00D4FF',
-  Advanced: '#FFD23C',
-  Elite: '#FF0033',
+  Foundation: '#34D399',
+  Developing: '#45B7E8',
+  Advanced: '#E9C46A',
+  Elite: '#FF6B5B',
 };
 
 // Tap-to-cycle tracker for any drill or fundamental: todo → working → done.
 const TRACK_STATES = {
   todo:    { label: 'TRACK',   bg: 'rgba(255,255,255,0.05)', border: 'var(--line-strong)', color: 'var(--muted)' },
-  working: { label: 'WORKING', bg: 'rgba(0,212,255,0.16)',   border: 'rgba(0,212,255,0.6)', color: '#00D4FF' },
-  done:    { label: '✓ GOT IT', bg: 'rgba(182,255,60,0.16)', border: 'rgba(182,255,60,0.6)', color: '#B6FF3C' },
+  working: { label: 'WORKING', bg: 'rgba(69,183,232,0.16)',   border: 'rgba(69,183,232,0.6)', color: '#45B7E8' },
+  done:    { label: '✓ GOT IT', bg: 'rgba(52,211,153,0.16)', border: 'rgba(52,211,153,0.6)', color: '#34D399' },
 };
 function TrackBtn({ status = 'todo', onClick }) {
   const s = TRACK_STATES[status] || TRACK_STATES.todo;
@@ -84,8 +84,8 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
       <svg width={size} height={size} style={{ overflow: 'visible' }}>
         <defs>
           <radialGradient id="radar-glow" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%" stopColor="#00D4FF" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#00D4FF" stopOpacity="0" />
+            <stop offset="0%" stopColor="#45B7E8" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#45B7E8" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -126,8 +126,8 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
         {/* goal polygon (dashed violet) */}
         <polygon
           points={goalPts}
-          fill="rgba(177, 76, 255, 0.04)"
-          stroke="#B14CFF"
+          fill="rgba(45, 212, 191, 0.04)"
+          stroke="#2DD4BF"
           strokeWidth="1.2"
           strokeDasharray="3 4"
           style={{ transition: 'all 1100ms cubic-bezier(0.2,0.7,0.2,1)' }}
@@ -136,11 +136,11 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
         {/* current polygon */}
         <polygon
           points={currentPts}
-          fill="rgba(0, 212, 255, 0.18)"
-          stroke="#00D4FF"
+          fill="rgba(69, 183, 232, 0.18)"
+          stroke="#45B7E8"
           strokeWidth="2"
           style={{
-            filter: 'drop-shadow(0 0 8px rgba(0, 212, 255, 0.6))',
+            filter: 'drop-shadow(0 0 8px rgba(69, 183, 232, 0.6))',
             transition: 'all 1100ms cubic-bezier(0.2,0.7,0.2,1)',
           }}
         />
@@ -152,9 +152,9 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
             <circle
               key={i}
               cx={x} cy={y} r="3"
-              fill="#00D4FF"
+              fill="#45B7E8"
               style={{
-                filter: 'drop-shadow(0 0 6px rgba(0, 212, 255, 0.8))',
+                filter: 'drop-shadow(0 0 6px rgba(69, 183, 232, 0.8))',
                 transition: 'all 1100ms cubic-bezier(0.2,0.7,0.2,1)',
               }}
             />
@@ -206,10 +206,29 @@ function BodyRadar({ size = 260, values = RADAR_CURRENT }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Progression Engine hero — the campaign view of all 6 trees.
-// Level = mastered skills; shows the closest breakthrough and
-// what's about to unlock, so the tree feels like a quest line.
+// MOVEMENT IDENTITY — "How close am I to the athlete I want
+// to become?" Each discipline carries a target identity; the
+// hero shows the distance to World-Class Hybrid Athlete.
 // ─────────────────────────────────────────────────────────
+const IDENTITY_TARGETS = {
+  gymnastics:   'Elite Gymnast',
+  tricking:     'Advanced Tricker',
+  calisthenics: 'Elite Calisthenics Athlete',
+  acro:         'Elite Acrobat',
+  parkour:      'Advanced Parkour Athlete',
+  ninja:        'Elite Ninja Athlete',
+};
+
+export function identityScores(skills) {
+  return DISCIPLINES.map((d) => {
+    const list = skills[d.id] || [];
+    const pct = list.length
+      ? Math.round(list.reduce((s, x) => s + (x.status === 'done' ? 100 : (x.pct || 0)), 0) / list.length)
+      : 0;
+    return { disc: d, target: IDENTITY_TARGETS[d.id] || `Elite ${d.name}`, pct };
+  });
+}
+
 function ProgressionHero({ skills, readiness, onCoach }) {
   let mastered = 0, total = 0, pctSum = 0;
   DISCIPLINES.forEach((d) => (skills[d.id] || []).forEach((s) => {
@@ -220,16 +239,18 @@ function ProgressionHero({ skills, readiness, onCoach }) {
   const overall = total ? Math.round(pctSum / total) : 0;
   const edge = nextBreakthrough(skills);
   const unlocks = upcomingUnlocks(skills, 2);
+  const identities = identityScores(skills);
+  const [showIdentity, setShowIdentity] = useState(false);
 
   return (
     <div className="hud glass-strong mesh-train" style={{ padding: 16, borderRadius: 20 }}>
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
-          <div className="eyebrow">Progression engine</div>
-          <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>LEVEL {mastered}</div>
+          <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Movement identity</div>
+          <div className="display" style={{ fontSize: 26, marginTop: 2, lineHeight: 1.05 }}>HYBRID ATHLETE</div>
           <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 5 }}>
-            {mastered}/{total} SKILLS MASTERED · {overall}% OVERALL
+            LEVEL {mastered} · {overall}% TOWARD WORLD-CLASS
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -241,10 +262,29 @@ function ProgressionHero({ skills, readiness, onCoach }) {
         <ProgressBar value={overall} color="var(--cyan)" height={5} />
       </div>
 
+      {/* identity meters — distance to each target identity */}
+      <div className="pressable" onClick={() => setShowIdentity((x) => !x)} style={{ marginTop: 10 }}>
+        <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.14em' }}>
+          {showIdentity ? '▾' : '▸'} WHO I'M BECOMING · {identities.length} IDENTITIES
+        </div>
+        {showIdentity && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 10 }}>
+            {identities.map(({ disc, target, pct }) => (
+              <div key={disc.id} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ width: 16, textAlign: 'center', color: disc.color, fontSize: 12, flexShrink: 0 }}>{disc.icon}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--muted)', width: 150, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{target}</span>
+                <div style={{ flex: 1 }}><ProgressBar value={pct} color={disc.color} height={3} /></div>
+                <span className="mono" style={{ fontSize: 10, color: disc.color, width: 30, textAlign: 'right', flexShrink: 0 }}>{pct}%</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {edge && (
         <div className="pressable" onClick={onCoach} style={{
           marginTop: 12, padding: '10px 12px', borderRadius: 12,
-          background: 'rgba(0,212,255,0.07)', border: '1px solid rgba(0,212,255,0.35)',
+          background: 'rgba(69,183,232,0.07)', border: '1px solid rgba(69,183,232,0.35)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
           <span style={{ fontSize: 16 }}>⚡</span>
@@ -267,6 +307,75 @@ function ProgressionHero({ skills, readiness, onCoach }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// MOVEMENT PYRAMID — the four layers of the athlete and how
+// they stack: Foundations → Capabilities → Disciplines → Skills.
+// Capabilities are inferred from the disciplines that train them.
+// ─────────────────────────────────────────────────────────
+function MovementPyramid({ skills, radar }) {
+  const [open, setOpen] = useState(false);
+  const ids = identityScores(skills);
+  const get = (id) => ids.find((x) => x.disc.id === id)?.pct ?? 0;
+  const avg = (...vals) => Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
+
+  const foundations = RADAR_AXES.map((label, i) => ({ label, value: radar[i] ?? 0 }))
+    .filter((f) => f.label !== 'Skill');
+  const capabilities = [
+    { label: 'Coordination',      value: avg(get('acro'), get('calisthenics')) },
+    { label: 'Balance',           value: avg(get('acro'), get('ninja')) },
+    { label: 'Air awareness',     value: avg(get('gymnastics'), get('tricking')) },
+    { label: 'Spatial awareness', value: avg(get('parkour'), get('tricking')) },
+    { label: 'Rhythm & flow',     value: avg(get('tricking'), get('acro'), get('parkour')) },
+  ];
+  let mastered = 0, total = 0;
+  DISCIPLINES.forEach((d) => (skills[d.id] || []).forEach((s) => { total += 1; if (s.status === 'done') mastered += 1; }));
+
+  const LAYERS = [
+    { n: 'L4', name: 'Skills', width: 58, color: '#FF6B5B', items: [{ label: `${mastered} mastered of ${total}`, value: total ? Math.round((mastered / total) * 100) : 0 }] },
+    { n: 'L3', name: 'Disciplines', width: 72, color: '#E9C46A', items: ids.map((x) => ({ label: x.disc.name, value: x.pct })) },
+    { n: 'L2', name: 'Capabilities', width: 86, color: '#2DD4BF', items: capabilities },
+    { n: 'L1', name: 'Foundations', width: 100, color: '#45B7E8', items: foundations },
+  ];
+
+  return (
+    <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
+      <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span className="eyebrow">Movement pyramid</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{open ? 'HIDE' : '4 LAYERS'}</span>
+      </div>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, alignItems: 'center' }}>
+          {LAYERS.map((layer) => {
+            const layerAvg = Math.round(layer.items.reduce((s, x) => s + x.value, 0) / layer.items.length);
+            return (
+              <div key={layer.n} style={{
+                width: `${layer.width}%`, padding: '9px 12px', borderRadius: 12,
+                background: `${layer.color}0d`, border: `1px solid ${layer.color}40`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span className="mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: layer.color }}>{layer.n} · {layer.name.toUpperCase()}</span>
+                  <span className="display" style={{ fontSize: 15, color: layer.color }}>{layerAvg}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {layer.items.map((it) => (
+                    <div key={it.label} title={`${it.label} ${it.value}`} style={{ flex: 1 }}>
+                      <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                        <div style={{ width: `${it.value}%`, height: '100%', background: layer.color }} />
+                      </div>
+                      <div className="mono" style={{ fontSize: 6.5, color: 'var(--dim)', letterSpacing: '0.04em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label.toUpperCase()}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          <div className="eyebrow" style={{ color: 'var(--dim)', textAlign: 'center' }}>each layer feeds the one above it</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Skill node (3 states: done, active, locked) — tap to edit
 function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTrack, prereq, readiness, onCoach }) {
   const [editing, setEditing] = useState(false);
@@ -277,17 +386,17 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
       bg: `${color}20`,
       border: `${color}80`,
       iconBg: color,
-      icon: <IconCheck size={11} color="#06060A" stroke={3} />,
+      icon: <IconCheck size={11} color="#0A0B0D" stroke={3} />,
       label: 'MASTERED',
       pctColor: color,
     },
     active: {
-      bg: 'rgba(0, 212, 255, 0.10)',
-      border: 'rgba(0, 212, 255, 0.5)',
-      iconBg: '#00D4FF',
-      icon: <span style={{ width: 6, height: 6, borderRadius: 99, background: '#06060A' }} />,
+      bg: 'rgba(69, 183, 232, 0.10)',
+      border: 'rgba(69, 183, 232, 0.5)',
+      iconBg: '#45B7E8',
+      icon: <span style={{ width: 6, height: 6, borderRadius: 99, background: '#0A0B0D' }} />,
       label: 'IN PROGRESS',
-      pctColor: '#00D4FF',
+      pctColor: '#45B7E8',
     },
     locked: {
       bg: 'rgba(255,255,255,0.025)',
@@ -407,7 +516,7 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
             <div className="pressable" onClick={(e) => { e.stopPropagation(); onCoach(); }} style={{
               padding: '5px 9px', borderRadius: 999,
               fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
-              background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.45)', color: 'var(--cyan)',
+              background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.45)', color: 'var(--cyan)',
             }}>✦ COACH ME</div>
           )}
           {skill.status === 'active' && (
@@ -495,7 +604,7 @@ function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
   );
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(0,212,255,0.22)' }}>
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(69,183,232,0.22)' }}>
       <HUDTicks />
       <div style={{ marginBottom: total ? 8 : 0 }}>
         <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Your current edges</div>
@@ -511,7 +620,7 @@ function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
               right={<span className="display" style={{ fontSize: 15, color: s.disc.color }}>{s.pct}%</span>} />
           ))}
           {working.map((w) => (
-            <Row key={w.key} color={w.disc?.color || '#00D4FF'} name={w.name}
+            <Row key={w.key} color={w.disc?.color || '#45B7E8'} name={w.name}
               meta={`${(w.disc?.name || '').toUpperCase()} · ${w.type.toUpperCase()}${w.tier ? ' · ' + w.tier : ''}`}
               right={<TrackBtn status="working" onClick={() => onCycleTrack?.(w.key)} />} />
           ))}
@@ -530,8 +639,16 @@ function SkillTree({ discipline, skills, onUpdate, track = {}, onCycleTrack, rea
   const [showMastered, setShowMastered] = useState({});
   const indexed = skills.map((skill, idx) => ({ skill, idx }));
 
+  // Biggest limiter — the first untrained fundamental for this discipline.
+  const limiter = fundamentalsFor(discipline.id).find((f) => track[`f|${discipline.id}|${f.name}`] !== 'done');
+
   return (
     <div className="glass" style={{ borderRadius: 16, padding: '12px 12px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {limiter && (
+        <div className="mono" style={{ fontSize: 9, color: 'var(--gold)', letterSpacing: '0.1em', padding: '2px 2px 0' }}>
+          ⚠ BIGGEST LIMITER: {limiter.name.toUpperCase()} — TRAIN IT IN FUNDAMENTALS ↓
+        </div>
+      )}
       <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} track={track} onCycleTrack={onCycleTrack} />
 
       {TIERS.map((tier) => {
@@ -730,8 +847,8 @@ function LogSessionSheet({ open, onClose, onLog }) {
                     padding: '10px 0',
                     textAlign: 'center',
                     borderRadius: 10,
-                    background: duration === m ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${duration === m ? 'rgba(0,212,255,0.6)' : 'var(--line)'}`,
+                    background: duration === m ? 'rgba(69,183,232,0.15)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${duration === m ? 'rgba(69,183,232,0.6)' : 'var(--line)'}`,
                     color: duration === m ? 'var(--cyan)' : 'var(--muted)',
                     fontFamily: 'var(--font-mono)',
                     fontSize: 12,
@@ -798,7 +915,7 @@ function LogSessionSheet({ open, onClose, onLog }) {
                 background: `linear-gradient(135deg, ${d.color}, ${d.color}80)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: 8,
-                color: '#06060A',
+                color: '#0A0B0D',
                 fontWeight: 700,
                 fontSize: 14,
                 letterSpacing: '0.12em',
@@ -879,21 +996,23 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
         {/* one clean action row — coach a session, log one, plan the week */}
         <div style={{ display: 'flex', gap: 8 }}>
           {[
-            { label: 'Coach', Icon: IconActivity, onClick: () => setCoachOpen(true), grad: 'linear-gradient(135deg, #00D4FF, #B6FF3C)' },
-            { label: 'Log', Icon: IconCheck, onClick: () => setLogOpen(true), grad: 'linear-gradient(135deg, #B6FF3C, #FFD23C)' },
-            { label: 'Week', Icon: IconCalendar, onClick: () => setWeekOpen(true), grad: 'linear-gradient(135deg, #B14CFF, #00D4FF)' },
+            { label: 'Coach', Icon: IconActivity, onClick: () => setCoachOpen(true), grad: 'linear-gradient(135deg, #45B7E8, #34D399)' },
+            { label: 'Log', Icon: IconCheck, onClick: () => setLogOpen(true), grad: 'linear-gradient(135deg, #34D399, #E9C46A)' },
+            { label: 'Week', Icon: IconCalendar, onClick: () => setWeekOpen(true), grad: 'linear-gradient(135deg, #2DD4BF, #45B7E8)' },
           ].map((b) => (
             <div key={b.label} className="pressable" onClick={b.onClick} style={{
               flex: 1, height: 48, borderRadius: 14,
               background: b.grad,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              color: '#06060A', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: '#0A0B0D', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
             }}>
               <b.Icon size={16} stroke={2.4} />
               {b.label}
             </div>
           ))}
         </div>
+
+        <MovementPyramid skills={skills} radar={radar} />
 
         {/* skill trees — the flagship. One discipline in focus at a time. */}
         <div>
@@ -985,10 +1104,10 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
             </div>
             <div style={{ display: 'flex', gap: 10, fontSize: 9, alignItems: 'center' }}>
               <div className="mono" style={{ color: 'var(--cyan)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 8, height: 2, background: '#00D4FF' }} /> NOW
+                <span style={{ width: 8, height: 2, background: '#45B7E8' }} /> NOW
               </div>
               <div className="mono" style={{ color: 'var(--violet)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 8, height: 2, background: '#B14CFF', borderTop: '1px dashed #B14CFF' }} /> GOAL
+                <span style={{ width: 8, height: 2, background: '#2DD4BF', borderTop: '1px dashed #2DD4BF' }} /> GOAL
               </div>
               <span className="pressable mono" onClick={() => setEditRadar((e) => !e)} style={{ color: editRadar ? 'var(--lime)' : 'var(--muted)', letterSpacing: '0.12em', padding: '2px 4px' }}>
                 {editRadar ? 'DONE' : 'EDIT'}

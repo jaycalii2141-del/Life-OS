@@ -13,7 +13,7 @@ import { TodayScreen } from './screens/TodayScreen.jsx';
 // Everything else is split into its own chunk, loaded on demand.
 const PerformScreen = lazy(() => import('./screens/TrainingHQ.jsx').then((m) => ({ default: m.PerformScreen })));
 const BuildScreen = lazy(() => import('./screens/BuildScreen.jsx').then((m) => ({ default: m.BuildScreen })));
-const LifeScreen = lazy(() => import('./screens/LifeScreen.jsx').then((m) => ({ default: m.LifeScreen })));
+const LifeMapScreen = lazy(() => import('./screens/LifeMapScreen.jsx').then((m) => ({ default: m.LifeMapScreen })));
 const WeeklyReview = lazy(() => import('./WeeklyReview.jsx').then((m) => ({ default: m.WeeklyReview })));
 const MonthlyUpgrade = lazy(() => import('./MonthlyUpgrade.jsx').then((m) => ({ default: m.MonthlyUpgrade })));
 const Settings = lazy(() => import('./Settings.jsx').then((m) => ({ default: m.Settings })));
@@ -50,17 +50,17 @@ export default function App() {
           <div style={{ position: 'relative', width: 84, height: 84 }}>
             <div className="orb-spin" style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'conic-gradient(from 0deg, #00D4FF, #B14CFF, #00D4FF)',
+              background: 'conic-gradient(from 0deg, #45B7E8, #2DD4BF, #45B7E8)',
               WebkitMask: 'radial-gradient(circle, transparent 60%, #000 62%)',
               mask: 'radial-gradient(circle, transparent 60%, #000 62%)',
             }} />
             <div style={{
               position: 'absolute', inset: '34%', borderRadius: '50%',
-              background: '#00D4FF',
+              background: '#45B7E8',
             }} />
           </div>
           <span className="display" style={{ fontSize: 22, letterSpacing: '0.1em', color: 'var(--text)' }}>
-            LIFE OS
+            JAM HQ
           </span>
         </div>
       </IOSDevice>
@@ -178,7 +178,7 @@ function MainApp() {
     if (!a || !a.type) return;
     if (a.type === 'event') {
       const time = a.time || '12:00';
-      setMissionState((s) => ({ ...s, timeline: [...(s.timeline ?? TIMELINE), { time, label: a.title || a.label || 'Block', kind: 'Focus', color: '#B14CFF' }].sort((x, y) => x.time.localeCompare(y.time)) }));
+      setMissionState((s) => ({ ...s, timeline: [...(s.timeline ?? TIMELINE), { time, label: a.title || a.label || 'Block', kind: 'Focus', color: '#2DD4BF' }].sort((x, y) => x.time.localeCompare(y.time)) }));
       openExternal(googleCalendarUrl({ title: a.title || a.label || 'Block', time, durationMin: a.durationMin || 60, details: a.details }));
     } else if (a.type === 'email') {
       openExternal(mailtoUrl({ to: a.to || '', subject: a.subject || a.label || '', body: a.body || '' }));
@@ -186,7 +186,7 @@ function MainApp() {
       logSession({ id: Date.now(), discipline: a.discipline || 'mixed', disciplineName: a.disciplineName || a.discipline || 'Mixed', duration: a.duration || 60, intensity: a.intensity || 7, date: new Date().toISOString() });
     } else if (a.type === 'capture') {
       const now = Date.now();
-      addCapture({ id: now, ts: now, text: a.text || a.label || '', tag: a.tag || 'idea', color: '#00D4FF', status: 'inbox', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+      addCapture({ id: now, ts: now, text: a.text || a.label || '', tag: a.tag || 'idea', color: '#45B7E8', status: 'inbox', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
     } else if (a.type === 'focus') {
       setMissionState((s) => ({ ...s, oneThing: a.text || a.label || '' }));
     }
@@ -224,7 +224,7 @@ function MainApp() {
   let screen;
   switch (tab) {
     case 'life':
-      screen = <LifeScreen captures={captures} setCaptures={setCaptures} readiness={todayReadiness} trend={trend} history={history} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} />;
+      screen = <LifeMapScreen captures={captures} setCaptures={setCaptures} readiness={todayReadiness} trend={trend} history={history} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} onGoTab={changeTab} />;
       break;
     case 'perform':
       screen = <PerformScreen sessions={sessions} onLogSession={logSession} readiness={todayReadiness} />;
@@ -318,7 +318,7 @@ function ScreenLoading() {
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="orb-spin" style={{
         width: 40, height: 40, borderRadius: '50%',
-        background: 'conic-gradient(from 0deg, #00D4FF, #B14CFF, #00D4FF)',
+        background: 'conic-gradient(from 0deg, #45B7E8, #2DD4BF, #45B7E8)',
         WebkitMask: 'radial-gradient(circle, transparent 58%, #000 60%)',
         mask: 'radial-gradient(circle, transparent 58%, #000 60%)',
       }} />

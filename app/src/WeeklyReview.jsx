@@ -178,7 +178,7 @@ export function WeeklyReview({ open, onClose }) {
           <div className="eyebrow">Reflection</div>
           <div className="pressable" onClick={reflect} style={{
             display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999,
-            background: 'rgba(177,76,255,0.12)', border: '1px solid rgba(177,76,255,0.4)', color: 'var(--violet)',
+            background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.4)', color: 'var(--violet)',
             fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
           }}><IconSparkles size={13} /> {loading ? 'THINKING…' : 'AI REFLECT'}</div>
         </div>
@@ -193,8 +193,8 @@ export function WeeklyReview({ open, onClose }) {
         <div className="eyebrow" style={{ marginBottom: 8 }}>One focus for next week</div>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14,
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,212,255,0.4)', marginBottom: 18,
-          boxShadow: '0 0 30px -12px rgba(0,212,255,0.5)',
+          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(69,183,232,0.4)', marginBottom: 18,
+          boxShadow: '0 0 30px -12px rgba(69,183,232,0.5)',
         }}>
           <IconCompass size={18} color="var(--cyan)" />
           <input
@@ -210,7 +210,7 @@ export function WeeklyReview({ open, onClose }) {
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
           {focus.trim() && (
             <div className="pressable" onClick={() => openExternal(googleCalendarUrl({ title: focus.trim(), date: tomorrow9(), time: '09:00', durationMin: 90, details: "This week's focus, from your LifeOS review." }))}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 13px', borderRadius: 999, background: 'rgba(0,212,255,0.14)', border: '1px solid rgba(0,212,255,0.5)', color: 'var(--cyan)', fontSize: 12, fontWeight: 700 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 13px', borderRadius: 999, background: 'rgba(69,183,232,0.14)', border: '1px solid rgba(69,183,232,0.5)', color: 'var(--cyan)', fontSize: 12, fontWeight: 700 }}>
               <IconCalendar size={13} /> Block focus time
             </div>
           )}

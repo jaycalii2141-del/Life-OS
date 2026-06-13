@@ -11,18 +11,18 @@ import { useSyncedState } from '../useSyncedState.js';
 const STATUS_OPTIONS = ['Hot', 'On Track', 'Steady', 'Building', 'Cold', 'Paused'];
 
 const statusColors = {
-  'Hot':       { bg: 'rgba(255,0,51,0.85)', fg: '#fff' },
-  'On Track':  { bg: 'rgba(0, 212, 255, 0.85)', fg: '#06060A' },
-  'Steady':    { bg: 'rgba(182, 255, 60, 0.85)', fg: '#06060A' },
-  'Cold':      { bg: 'rgba(0, 85, 255, 0.6)', fg: '#fff' },
-  'Building':  { bg: 'rgba(255, 210, 60, 0.85)', fg: '#06060A' },
-  'Paused':    { bg: 'rgba(138, 138, 149, 0.85)', fg: '#06060A' },
+  'Hot':       { bg: 'rgba(255,107,91,0.85)', fg: '#fff' },
+  'On Track':  { bg: 'rgba(69, 183, 232, 0.85)', fg: '#0A0B0D' },
+  'Steady':    { bg: 'rgba(52, 211, 153, 0.85)', fg: '#0A0B0D' },
+  'Cold':      { bg: 'rgba(30, 111, 159, 0.6)', fg: '#fff' },
+  'Building':  { bg: 'rgba(233, 196, 106, 0.85)', fg: '#0A0B0D' },
+  'Paused':    { bg: 'rgba(138, 138, 149, 0.85)', fg: '#0A0B0D' },
 };
 
 // Brand tile (2-column grid) — tap to select for editing
 function BrandTile({ brand, selected, onSelect }) {
   const isLight = brand.id === 'ppp' || brand.id === 'ona';
-  const fg = isLight ? '#06060A' : '#fff';
+  const fg = isLight ? '#0A0B0D' : '#fff';
   const sub = isLight ? 'rgba(6,6,10,0.6)' : 'rgba(255,255,255,0.7)';
   const s = statusColors[brand.status] || statusColors['Steady'];
 
@@ -70,7 +70,7 @@ function BrandTile({ brand, selected, onSelect }) {
         }}>
           <div style={{
             width: `${brand.pct}%`, height: '100%',
-            background: isLight ? '#06060A' : '#fff',
+            background: isLight ? '#0A0B0D' : '#fff',
             boxShadow: isLight ? 'none' : '0 0 6px rgba(255,255,255,0.5)',
             transition: 'width 900ms cubic-bezier(0.2,0.7,0.2,1)',
           }} />
@@ -235,7 +235,7 @@ function ContentItemRow({ item, brands, onUpdate, onDelete }) {
               })}
             </div>
           </div>
-          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE</div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE</div>
         </div>
       )}
     </div>
@@ -274,8 +274,8 @@ function ContentPipeline({ items, brands, onAdd, onUpdate, onDelete }) {
         </div>
         <div className="pressable" onClick={() => setAdding((a) => !a)} style={{
           width: 30, height: 30, borderRadius: 9,
-          background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)',
-          border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`,
+          background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(69,183,232,0.12)',
+          border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(69,183,232,0.4)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)',
         }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
       </div>
@@ -298,7 +298,7 @@ function ContentPipeline({ items, brands, onAdd, onUpdate, onDelete }) {
               );
             })}
           </div>
-          <div className="pressable" onClick={submit} style={{ height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <div className="pressable" onClick={submit} style={{ height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#0A0B0D', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             <IconPlus size={15} stroke={2.4} /> Add to pipeline
           </div>
         </div>
@@ -346,8 +346,8 @@ function HookBank({ hooks, onAdd, onUpdate, onDelete }) {
         </div>
         <div className="pressable" onClick={() => setAdding((a) => !a)} style={{
           width: 30, height: 30, borderRadius: 9,
-          background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(177,76,255,0.14)',
-          border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(177,76,255,0.4)'}`,
+          background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(45,212,191,0.14)',
+          border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(45,212,191,0.4)'}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--violet)',
         }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
       </div>
@@ -357,7 +357,7 @@ function HookBank({ hooks, onAdd, onUpdate, onDelete }) {
           <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submitNew()} placeholder="New hook…" style={{ ...hkInp, flex: 1 }} />
           <div className="pressable" onClick={submitNew} style={{
-            width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #B14CFF, #FF3CC8)',
+            width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #2DD4BF, #FF8A4C)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
           }}><IconCheck size={16} stroke={2.4} /></div>
         </div>
@@ -373,11 +373,11 @@ function HookBank({ hooks, onAdd, onUpdate, onDelete }) {
                 <input value={hook.text} onChange={(e) => onUpdate(hook.id, { text: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && setEditingId(null)} autoFocus style={{ ...hkInp, flex: 1 }} />
                 <div className="pressable" onClick={() => onDelete(hook.id)} style={{
-                  width: 40, borderRadius: 10, background: 'rgba(255,0,51,0.12)', border: '1px solid rgba(255,0,51,0.4)',
+                  width: 40, borderRadius: 10, background: 'rgba(255,107,91,0.12)', border: '1px solid rgba(255,107,91,0.4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)',
                 }}><IconClose size={15} /></div>
                 <div className="pressable" onClick={() => setEditingId(null)} style={{
-                  width: 40, borderRadius: 10, background: 'rgba(182,255,60,0.12)', border: '1px solid rgba(182,255,60,0.4)',
+                  width: 40, borderRadius: 10, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.4)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--lime)',
                 }}><IconCheck size={15} stroke={2.4} /></div>
               </div>
@@ -386,8 +386,8 @@ function HookBank({ hooks, onAdd, onUpdate, onDelete }) {
           return (
             <div key={hook.id} style={{
               padding: '10px 12px',
-              background: isCopied ? 'rgba(182,255,60,0.10)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isCopied ? 'rgba(182,255,60,0.5)' : 'var(--line)'}`,
+              background: isCopied ? 'rgba(52,211,153,0.10)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${isCopied ? 'rgba(52,211,153,0.5)' : 'var(--line)'}`,
               borderRadius: 10, display: 'flex', alignItems: 'flex-start', gap: 10, transition: 'all 240ms',
             }}>
               <span className="mono" style={{ fontSize: 10, color: isCopied ? 'var(--lime)' : 'var(--dim)', flexShrink: 0, fontWeight: 700, marginTop: 2 }}>
@@ -415,7 +415,7 @@ const hkInp = {
 };
 
 // 7-day calendar strip — real current week, tap a day to schedule posts
-const POST_PALETTE = ['#FF0033', '#0055FF', '#B6FF3C', '#FF8A3C', '#B14CFF', '#FF3CC8'];
+const POST_PALETTE = ['#FF6B5B', '#1E6F9F', '#34D399', '#F4A261', '#2DD4BF', '#FF8A4C'];
 
 function ckey(d) {
   const p = (x) => String(x).padStart(2, '0');
@@ -454,10 +454,10 @@ function PostingCalendar({ calendar = {}, onCycle }) {
           return (
             <div key={day.key} className="pressable" onClick={() => onCycle(day.key)} style={{
               flex: 1, minHeight: 88, borderRadius: 10, padding: '8px 4px',
-              background: day.today ? 'rgba(0, 212, 255, 0.08)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${day.today ? 'rgba(0, 212, 255, 0.5)' : 'var(--line)'}`,
+              background: day.today ? 'rgba(69, 183, 232, 0.08)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${day.today ? 'rgba(69, 183, 232, 0.5)' : 'var(--line)'}`,
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-              boxShadow: day.today ? '0 0 18px -6px rgba(0,212,255,0.6)' : 'none',
+              boxShadow: day.today ? '0 0 18px -6px rgba(69,183,232,0.6)' : 'none',
             }}>
               <span className="mono" style={{ fontSize: 8, letterSpacing: '0.12em', color: day.today ? 'var(--cyan)' : 'var(--dim)', fontWeight: 700 }}>{day.d}</span>
               <span className="display" style={{ fontSize: 18, color: day.today ? 'var(--cyan)' : 'var(--text)', lineHeight: 1 }}>{day.n}</span>
@@ -494,7 +494,7 @@ function StepRow({ step, onToggle, onText, onDelete, onUp, onDown, canUp, canDow
         background: step.done ? 'var(--lime)' : 'transparent',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        {step.done && <IconCheck size={13} color="#06060A" stroke={3} />}
+        {step.done && <IconCheck size={13} color="#0A0B0D" stroke={3} />}
       </div>
       <input value={step.text} onChange={(e) => onText(e.target.value)} placeholder="Step"
         style={{ ...ctInp, flex: 1, padding: '7px 9px', fontSize: 13, textDecoration: step.done ? 'line-through' : 'none', opacity: step.done ? 0.6 : 1 }} />
@@ -526,7 +526,7 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
   const done = steps.filter((s) => s.done).length;
   const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
   const brand = brands.find((b) => b.id === project.brandId);
-  const color = brand?.color || '#00D4FF';
+  const color = brand?.color || '#45B7E8';
   const nextStep = steps.find((s) => !s.done);
   const di = dueInfo(project.due);
 
@@ -575,7 +575,7 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input value={newStep} onChange={(e) => setNewStep(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addStep()} placeholder="Add a step…" style={{ ...ctInp, flex: 1 }} />
-            <div className="pressable" onClick={addStep} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconPlus size={16} stroke={2.4} /></div>
+            <div className="pressable" onClick={addStep} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconPlus size={16} stroke={2.4} /></div>
           </div>
 
           <div className="eyebrow">Due date</div>
@@ -607,7 +607,7 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
             </>
           )}
 
-          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE PROJECT</div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE PROJECT</div>
         </div>
       )}
     </div>
@@ -627,13 +627,13 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
           <div className="eyebrow">{projects.length} active · tap to manage</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>PROJECTS</div>
         </div>
-        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
+        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(69,183,232,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(69,183,232,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
       </div>
 
       {adding && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="New project or idea…" style={{ ...ctInp, flex: 1 }} />
-          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconCheck size={16} stroke={2.4} /></div>
+          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconCheck size={16} stroke={2.4} /></div>
         </div>
       )}
 
@@ -650,7 +650,7 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
 // ─────────────────────────────────────────────────────────
 // Folders / Spaces — one per brand or life area
 // ─────────────────────────────────────────────────────────
-const FOLDER_COLORS = ['#FF0033', '#FFD23C', '#B6FF3C', '#00D4FF', '#FF3CC8', '#FF8A3C', '#B14CFF'];
+const FOLDER_COLORS = ['#FF6B5B', '#E9C46A', '#34D399', '#45B7E8', '#FF8A4C', '#F4A261', '#2DD4BF'];
 const FOLDER_EMOJIS = ['🥷', '💪', '🤸', '🏆', '🎬', '🎥', '📱', '📈', '🔥', '⚡', '🎯', '❤️', '🏋️', '🧗', '🌀', '✨', '💡', '📁'];
 
 function getCaptures() {
@@ -672,7 +672,7 @@ function NoteCard({ note, onUpdate, onDelete }) {
           <input autoFocus value={note.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Title" style={ctInp} />
           <textarea value={note.body} onChange={(e) => onUpdate({ body: e.target.value })} placeholder="Write it down…" rows={5}
             style={{ ...ctInp, resize: 'vertical', lineHeight: 1.5 }} />
-          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE NOTE</div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE NOTE</div>
         </div>
       )}
     </div>
@@ -730,8 +730,8 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
         </div>
         <div className="pressable" onClick={() => onUpdate({ pinned: !folder.pinned })} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, marginBottom: 18,
-          background: folder.pinned ? 'rgba(255,210,60,0.14)' : 'rgba(255,255,255,0.04)',
-          border: `1px solid ${folder.pinned ? 'rgba(255,210,60,0.5)' : 'var(--line)'}`,
+          background: folder.pinned ? 'rgba(233,196,106,0.14)' : 'rgba(255,255,255,0.04)',
+          border: `1px solid ${folder.pinned ? 'rgba(233,196,106,0.5)' : 'var(--line)'}`,
           color: folder.pinned ? 'var(--gold)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', fontWeight: 700,
         }}>{folder.pinned ? '★ PINNED' : '☆ PIN TO TOP'}</div>
 
@@ -740,9 +740,9 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
           <div className="section-title" style={{ fontSize: 18 }}>NOTES</div>
           <div style={{ display: 'flex', gap: 8 }}>
             {captures.length > 0 && (
-              <div className="pressable mono" onClick={() => setShowCaptures((s) => !s)} style={{ display: 'flex', alignItems: 'center', padding: '0 10px', height: 30, borderRadius: 9, background: showCaptures ? 'rgba(255,255,255,0.06)' : 'rgba(177,76,255,0.14)', border: `1px solid ${showCaptures ? 'var(--line-strong)' : 'rgba(177,76,255,0.4)'}`, color: showCaptures ? 'var(--muted)' : 'var(--violet)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>CAPTURES</div>
+              <div className="pressable mono" onClick={() => setShowCaptures((s) => !s)} style={{ display: 'flex', alignItems: 'center', padding: '0 10px', height: 30, borderRadius: 9, background: showCaptures ? 'rgba(255,255,255,0.06)' : 'rgba(45,212,191,0.14)', border: `1px solid ${showCaptures ? 'var(--line-strong)' : 'rgba(45,212,191,0.4)'}`, color: showCaptures ? 'var(--muted)' : 'var(--violet)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>CAPTURES</div>
             )}
-            <div className="pressable" onClick={addNote} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}><IconPlus size={16} /></div>
+            <div className="pressable" onClick={addNote} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)' }}><IconPlus size={16} /></div>
           </div>
         </div>
 
@@ -752,7 +752,7 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
               {captures.slice(0, 20).map((c) => (
                 <div key={c.id} className="pressable" onClick={() => importCapture(c)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 999, background: c.color || '#00D4FF', flexShrink: 0 }} />
+                  <span style={{ width: 6, height: 6, borderRadius: 999, background: c.color || '#45B7E8', flexShrink: 0 }} />
                   <span style={{ flex: 1, fontSize: 13, color: 'var(--text)', lineHeight: 1.3 }}>{c.text}</span>
                   <IconPlus size={14} color="var(--cyan)" />
                 </div>
@@ -773,7 +773,7 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
 
         {/* Delete folder */}
         <div className="pressable" onClick={() => { if (window.confirm(`Delete the "${folder.name}" folder and everything in it?`)) onDelete(); }}
-          style={{ marginTop: 16, textAlign: 'center', padding: '10px', borderRadius: 12, background: 'rgba(255,0,51,0.08)', border: '1px solid rgba(255,0,51,0.3)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', fontWeight: 700 }}>
+          style={{ marginTop: 16, textAlign: 'center', padding: '10px', borderRadius: 12, background: 'rgba(255,107,91,0.08)', border: '1px solid rgba(255,107,91,0.3)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', fontWeight: 700 }}>
           DELETE FOLDER
         </div>
         <div style={{ height: 8 }} />
@@ -796,13 +796,13 @@ function FoldersSection({ folders, onAdd, onOpen }) {
   return (
     <div>
       <SectionHead eyebrow="Tap a folder to open it" title="WORKSPACE" trailing={
-        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
+        <div className="pressable" onClick={() => setAdding((a) => !a)} style={{ width: 30, height: 30, borderRadius: 9, background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(69,183,232,0.12)', border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(69,183,232,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: adding ? 'var(--muted)' : 'var(--cyan)' }}>{adding ? <IconClose size={15} /> : <IconPlus size={16} />}</div>
       } />
 
       {adding && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} placeholder="New folder (brand or life area)…" style={{ ...ctInp, flex: 1 }} />
-          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A' }}><IconCheck size={16} stroke={2.4} /></div>
+          <div className="pressable" onClick={submit} style={{ width: 44, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconCheck size={16} stroke={2.4} /></div>
         </div>
       )}
 
@@ -875,7 +875,7 @@ function ContentStudio({ embedded = false }) {
               {folders.length} FOLDERS · {totalProjects} PROJECTS
             </div>
           </div>
-          <Pill variant="violet" dot="#B14CFF">LIVE</Pill>
+          <Pill variant="violet" dot="#2DD4BF">LIVE</Pill>
         </div>
       </div>
 

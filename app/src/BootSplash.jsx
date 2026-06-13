@@ -19,8 +19,8 @@ export function BootSplash({ onDone }) {
         <div className="boot-orb-ring2 orb-spin-fast" />
         <div className="boot-orb-core" />
       </div>
-      <div className="boot-word">LIFE OS</div>
-      <div className="boot-tag">The operating system for an extraordinary life</div>
+      <div className="boot-word">JAM HQ</div>
+      <div className="boot-tag">Mission control for an extraordinary life</div>
     </div>
   );
 }

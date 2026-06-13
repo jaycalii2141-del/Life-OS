@@ -17,7 +17,7 @@ function readinessScore() {
   return Math.round(((d.energy + d.focus + d.body + d.mood) / 40) * 100);
 }
 
-const IMPACT_COLOR = { high: '#FF0033', med: '#FFD23C', low: '#00D4FF', recovery: '#B14CFF', rest: 'var(--muted)' };
+const IMPACT_COLOR = { high: '#FF6B5B', med: '#E9C46A', low: '#45B7E8', recovery: '#2DD4BF', rest: 'var(--muted)' };
 
 function buildContext(skills, days, priorityId) {
   const r = readinessScore();
@@ -57,7 +57,7 @@ export function WeekPlanSheet({ open, onClose, skills }) {
     setLoading(false);
   };
 
-  const focusChips = [{ id: 'all', name: 'Balanced', color: '#00D4FF' }, ...DISCIPLINES];
+  const focusChips = [{ id: 'all', name: 'Balanced', color: '#45B7E8' }, ...DISCIPLINES];
 
   return (
     <Sheet open={open} onClose={onClose} maxHeight="90%">
@@ -75,8 +75,8 @@ export function WeekPlanSheet({ open, onClose, skills }) {
           {[3, 4, 5, 6].map((n) => (
             <div key={n} className="pressable" onClick={() => setDays(n)} style={{
               flex: 1, padding: '9px 0', textAlign: 'center', borderRadius: 10,
-              background: days === n ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${days === n ? 'rgba(0,212,255,0.6)' : 'var(--line)'}`,
+              background: days === n ? 'rgba(69,183,232,0.15)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${days === n ? 'rgba(69,183,232,0.6)' : 'var(--line)'}`,
               color: days === n ? 'var(--cyan)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700,
             }}>{n}</div>
           ))}
@@ -97,10 +97,10 @@ export function WeekPlanSheet({ open, onClose, skills }) {
         </div>
 
         <div className="pressable" onClick={generate} style={{
-          height: 50, borderRadius: 14, background: 'linear-gradient(135deg, #B14CFF 0%, #00D4FF 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A',
+          height: 50, borderRadius: 14, background: 'linear-gradient(135deg, #2DD4BF 0%, #45B7E8 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#0A0B0D',
           fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: loading ? 0.6 : 1,
-          boxShadow: '0 10px 30px -10px rgba(177,76,255,0.5)',
+          boxShadow: '0 10px 30px -10px rgba(45,212,191,0.5)',
         }}>
           <IconSparkles size={18} />{loading ? 'Planning…' : 'Personalize with AI'}
         </div>

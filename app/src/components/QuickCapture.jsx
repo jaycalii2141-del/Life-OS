@@ -9,10 +9,10 @@ import { voiceSupported, createListener } from '../lib/voice.js';
 // ─────────────────────────────────────────────────────────
 
 const CAPTURE_TAGS = [
-  { id: 'idea',  label: 'IDEA',  color: '#00D4FF' },
-  { id: 'ona',   label: 'ONA',   color: '#FF0033' },
-  { id: 'dream', label: 'DREAM', color: '#B14CFF' },
-  { id: 'task',  label: 'TASK',  color: '#B6FF3C' },
+  { id: 'idea',  label: 'IDEA',  color: '#45B7E8' },
+  { id: 'ona',   label: 'ONA',   color: '#FF6B5B' },
+  { id: 'dream', label: 'DREAM', color: '#2DD4BF' },
+  { id: 'task',  label: 'TASK',  color: '#34D399' },
 ];
 
 function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
@@ -84,12 +84,12 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: 999,
-              background: 'rgba(182, 255, 60, 0.15)',
-              border: '1px solid rgba(182, 255, 60, 0.4)',
+              background: 'rgba(52, 211, 153, 0.15)',
+              border: '1px solid rgba(52, 211, 153, 0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 40px -10px rgba(182,255,60,0.6)',
+              boxShadow: '0 0 40px -10px rgba(52,211,153,0.6)',
             }}>
-              <IconCheck size={28} color="#B6FF3C" stroke={2.5} />
+              <IconCheck size={28} color="#34D399" stroke={2.5} />
             </div>
             <div className="display" style={{ fontSize: 24, color: 'var(--lime)' }}>CAPTURED</div>
             <div className="eyebrow">saved to your inbox · triage in Life</div>
@@ -160,13 +160,13 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
                 style={{
                   width: 48,
                   borderRadius: 14,
-                  background: recording ? 'rgba(255,0,51,0.18)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${recording ? 'rgba(255,0,51,0.5)' : 'var(--line-strong)'}`,
+                  background: recording ? 'rgba(255,107,91,0.18)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${recording ? 'rgba(255,107,91,0.5)' : 'var(--line-strong)'}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: recording ? 'var(--ona-red)' : 'var(--text)',
-                  boxShadow: recording ? '0 0 24px -6px rgba(255,0,51,0.6)' : 'none',
+                  boxShadow: recording ? '0 0 24px -6px rgba(255,107,91,0.6)' : 'none',
                   transition: 'all 200ms',
                 }}
               >
@@ -181,8 +181,8 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
                 marginBottom: 12,
                 padding: '8px 12px',
                 borderRadius: 10,
-                background: 'rgba(255,0,51,0.08)',
-                border: '1px solid rgba(255,0,51,0.25)',
+                background: 'rgba(255,107,91,0.08)',
+                border: '1px solid rgba(255,107,91,0.25)',
               }}>
                 <span style={{
                   width: 6, height: 6, borderRadius: 999,
@@ -245,7 +245,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
                 background: `linear-gradient(135deg, ${tagColor} 0%, ${tagColor}80 100%)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: 8,
-                color: '#06060A',
+                color: '#0A0B0D',
                 fontWeight: 700,
                 fontSize: 15,
                 letterSpacing: '0.08em',

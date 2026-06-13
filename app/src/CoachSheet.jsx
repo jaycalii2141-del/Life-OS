@@ -160,7 +160,7 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
         {/* Focus */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>Focus</div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-          {[{ id: 'all', name: 'Mixed', color: '#00D4FF' }, ...DISCIPLINES].map((d) => {
+          {[{ id: 'all', name: 'Mixed', color: '#45B7E8' }, ...DISCIPLINES].map((d) => {
             const on = focus === d.id;
             return (
               <div key={d.id} className="pressable" onClick={() => setFocus(d.id)} style={{
@@ -178,18 +178,18 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
           {[30, 45, 60, 90, 120].map((m) => (
             <div key={m} className="pressable" onClick={() => setDuration(m)} style={{
               flex: 1, padding: '9px 0', textAlign: 'center', borderRadius: 10,
-              background: duration === m ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${duration === m ? 'rgba(0,212,255,0.6)' : 'var(--line)'}`,
+              background: duration === m ? 'rgba(69,183,232,0.15)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${duration === m ? 'rgba(69,183,232,0.6)' : 'var(--line)'}`,
               color: duration === m ? 'var(--cyan)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700,
             }}>{m}</div>
           ))}
         </div>
 
         <div className="pressable" onClick={generate} style={{
-          height: 50, borderRadius: 14, background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A',
+          height: 50, borderRadius: 14, background: 'linear-gradient(135deg, #45B7E8 0%, #34D399 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#0A0B0D',
           fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: loading ? 0.6 : 1,
-          boxShadow: '0 10px 30px -10px rgba(0,212,255,0.5)',
+          boxShadow: '0 10px 30px -10px rgba(69,183,232,0.5)',
         }}>
           <IconActivity size={18} stroke={2.4} />
           {loading ? 'Coaching…' : plan ? 'Regenerate' : 'Build session'}
@@ -197,7 +197,7 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
 
         {/* Blindspots — what your coach is watching, always on */}
         {blindspots.length > 0 && (
-          <div className="hud glass" style={{ marginTop: 16, padding: 14, borderRadius: 14, border: '1px solid rgba(255,210,60,0.22)' }}>
+          <div className="hud glass" style={{ marginTop: 16, padding: 14, borderRadius: 14, border: '1px solid rgba(233,196,106,0.22)' }}>
             <div className="pressable" onClick={() => setBsOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <IconWarn size={15} color="var(--gold)" />
@@ -231,7 +231,7 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
               {usedAI ? '● COACHED BY AI · FROM YOUR DATA' : '○ BUILT FROM YOUR SKILL TREE'}
             </div>
             <div className="pressable" onClick={logIt} style={{
-              marginTop: 10, height: 46, borderRadius: 12, background: 'rgba(182,255,60,0.12)', border: '1px solid rgba(182,255,60,0.4)',
+              marginTop: 10, height: 46, borderRadius: 12, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--lime)',
               fontWeight: 700, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>

@@ -79,8 +79,8 @@ export function CalendarSheet({ open, onClose, icalUrl }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <div className="pressable" onClick={() => setAdding((a) => !a)} style={{
               width: 32, height: 32, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(0,212,255,0.14)',
-              border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(0,212,255,0.4)'}`,
+              background: adding ? 'rgba(255,255,255,0.06)' : 'rgba(69,183,232,0.14)',
+              border: `1px solid ${adding ? 'var(--line-strong)' : 'rgba(69,183,232,0.4)'}`,
               color: adding ? 'var(--muted)' : 'var(--cyan)',
             }}>{adding ? <IconClose size={16} /> : <IconPlus size={17} />}</div>
             <div className="pressable" onClick={onClose} style={{
@@ -108,9 +108,9 @@ export function CalendarSheet({ open, onClose, icalUrl }) {
               <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} style={{ ...inp, flex: 1 }} />
             </div>
             <div className="pressable" onClick={quickAdd} style={{
-              height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)',
+              height: 42, borderRadius: 12, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              color: '#06060A', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: '#0A0B0D', fontWeight: 700, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
             }}>
               <IconCheck size={15} stroke={2.4} /> Create in Google Calendar
             </div>

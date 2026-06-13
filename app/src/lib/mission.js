@@ -46,10 +46,10 @@ export function snapshot() {
 // and a base mastery-time estimate used for "~N weeks left".
 // ─────────────────────────────────────────────────────────
 export const TIER_META = {
-  Foundation: { gate: 40, weeks: 4,  color: '#B6FF3C' },
-  Developing: { gate: 55, weeks: 8,  color: '#00D4FF' },
-  Advanced:   { gate: 65, weeks: 16, color: '#FFD23C' },
-  Elite:      { gate: 75, weeks: 30, color: '#FF0033' },
+  Foundation: { gate: 40, weeks: 4,  color: '#34D399' },
+  Developing: { gate: 55, weeks: 8,  color: '#45B7E8' },
+  Advanced:   { gate: 65, weeks: 16, color: '#E9C46A' },
+  Elite:      { gate: 75, weeks: 30, color: '#FF6B5B' },
 };
 
 export function masteryEstimate(skill) {

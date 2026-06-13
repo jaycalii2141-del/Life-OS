@@ -48,7 +48,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <div>
             <div className="eyebrow">Settings</div>
-            <div className="display" style={{ fontSize: 26, marginTop: 2 }}>YOUR LIFE OS</div>
+            <div className="display" style={{ fontSize: 26, marginTop: 2 }}>YOUR HEADQUARTERS</div>
           </div>
           <div className="pressable" onClick={onClose} style={{
             width: 32, height: 32, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -69,7 +69,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
             </div>
             <div className="pressable" onClick={signOut} style={{
               ...rowStyle, marginBottom: 18, justifyContent: 'center',
-              border: '1px solid rgba(255,0,51,0.4)', background: 'rgba(255,0,51,0.08)',
+              border: '1px solid rgba(255,107,91,0.4)', background: 'rgba(255,107,91,0.08)',
             }}>
               <span className="mono" style={{ fontSize: 12, color: 'var(--ona-red)', letterSpacing: '0.14em', fontWeight: 700 }}>SIGN OUT</span>
             </div>
@@ -95,8 +95,8 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
               return (
                 <div key={v.id} className="pressable" onClick={() => onSetVibe?.(v.id)} style={{
                   padding: '7px 13px', borderRadius: 999,
-                  background: on ? 'rgba(0,212,255,0.14)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${on ? 'rgba(0,212,255,0.55)' : 'var(--line)'}`,
+                  background: on ? 'rgba(69,183,232,0.14)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${on ? 'rgba(69,183,232,0.55)' : 'var(--line)'}`,
                   color: on ? 'var(--cyan)' : 'var(--muted)',
                   fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
                 }}>{v.label}</div>
@@ -118,11 +118,11 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
             style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line)', borderRadius: 10, padding: '9px 11px', color: 'var(--text)', fontSize: 12, outline: 'none', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
           />
           <div style={{ display: 'flex', gap: 8 }}>
-            <div className="pressable" onClick={() => onSetIcal(cal.trim())} style={{ flex: 1, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #00D4FF, #B14CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#06060A', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div className="pressable" onClick={() => onSetIcal(cal.trim())} style={{ flex: 1, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#0A0B0D', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               <IconCheck size={14} stroke={2.4} /> {icalUrl ? 'Update' : 'Connect'}
             </div>
             {icalUrl && (
-              <div className="pressable" onClick={() => { onSetIcal(''); setCal(''); }} style={{ width: 44, borderRadius: 10, background: 'rgba(255,0,51,0.1)', border: '1px solid rgba(255,0,51,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}>
+              <div className="pressable" onClick={() => { onSetIcal(''); setCal(''); }} style={{ width: 44, borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}>
                 <IconClose size={15} />
               </div>
             )}
@@ -137,9 +137,9 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
         <div className="pressable" onClick={doExport} style={{ ...rowStyle, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              width: 34, height: 34, borderRadius: 10, background: 'rgba(0,212,255,0.12)', border: '1px solid rgba(0,212,255,0.4)',
+              width: 34, height: 34, borderRadius: 10, background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)',
-            }}>{exported ? <IconCheck size={16} color="#B6FF3C" stroke={2.6} /> : <IconDownload size={16} />}</div>
+            }}>{exported ? <IconCheck size={16} color="#34D399" stroke={2.6} /> : <IconDownload size={16} />}</div>
             <div>
               <div style={{ fontSize: 14, color: 'var(--text)' }}>{exported ? 'Backup downloaded' : 'Export my data'}</div>
               <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>JSON BACKUP OF EVERYTHING</div>
@@ -150,7 +150,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
         {/* About */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>About</div>
         <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-          <div className="display" style={{ fontSize: 20, letterSpacing: '0.06em' }}>LIFE OS</div>
+          <div className="display" style={{ fontSize: 20, letterSpacing: '0.06em' }}>JAM HQ</div>
           <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
             Move with purpose. Create with passion. Live in motion.
           </div>
