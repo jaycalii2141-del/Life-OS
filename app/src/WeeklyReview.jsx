@@ -114,6 +114,7 @@ export function WeeklyReview({ open, onClose }) {
       w.avgReadiness != null ? `Avg readiness: ${w.avgReadiness}/100.` : '',
       `Training: ${w.wkSessions} sessions, ${w.minutes} min. ${Object.entries(w.discCount).map(([k, v]) => `${k} x${v}`).join(', ')}.`,
       `Attention (captures routed): ${Object.entries(w.byDomain).map(([k, v]) => `${(LIFE_DOMAINS.find((d) => d.id === k) || {}).name || k} x${v}`).join(', ') || 'none routed'}.`,
+      `Domain balance: ${LIFE_DOMAINS.filter((d) => w.byDomain[d.id]).length}/${LIFE_DOMAINS.length} lit. Dark this week: ${LIFE_DOMAINS.filter((d) => !w.byDomain[d.id]).map((d) => d.name).join(', ') || 'none'}.`,
       `Inbox left: ${w.inboxLeft}.`,
       `App surface opens: ${w.usageSorted.map(([k, v]) => `${SURFACE_NAMES[k] || k} ${v}`).join(', ') || 'n/a'}.`,
     ].filter(Boolean).join('\n');
@@ -172,6 +173,41 @@ export function WeeklyReview({ open, onClose }) {
           ))}
           <div className="eyebrow" style={{ marginTop: 4, opacity: 0.7 }}>captured thoughts routed this week</div>
         </div>
+
+        {/* Domain balance check — which domains went dark this week */}
+        {(() => {
+          const dark = domains.filter((d) => d.n === 0);
+          const lit = domains.length - dark.length;
+          const ok = dark.length === 0;
+          const warn = '#FF8A4C';
+          return (
+            <>
+              <div className="eyebrow" style={{ marginBottom: 8 }}>Domain balance check</div>
+              <div className="hud glass" style={{ padding: 14, borderRadius: 14, marginBottom: 14, border: `1px solid ${ok ? 'rgba(52,211,153,0.4)' : 'rgba(255,138,76,0.4)'}` }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: ok ? 0 : 10 }}>
+                  <span className="display" style={{ fontSize: 20, color: ok ? 'var(--lime)' : warn }}>{lit}/{domains.length}</span>
+                  <span className="eyebrow">domains lit this week</span>
+                </div>
+                {ok ? (
+                  <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5 }}>Every domain got at least one touch. Balanced week.</div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 10 }}>
+                      {dark.length === 1 ? 'One domain went dark — possible blind spot:' : `${dark.length} domains went dark — possible blind spots:`}
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {dark.map((d) => (
+                        <span key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 999, background: `${d.color}1a`, border: `1px solid ${d.color}55`, color: d.color, fontSize: 11.5, fontWeight: 700 }}>
+                          {d.emoji} {d.name}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          );
+        })()}
 
         {/* Reflection */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
