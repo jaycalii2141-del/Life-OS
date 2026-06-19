@@ -14,7 +14,8 @@ import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalenda
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
-import { SEED_QUESTS, questProgress, nextMilestone, alignmentScore, recentWins } from '../lib/quests.js';
+import { SEED_QUESTS, questProgress, nextMilestone, alignmentScore, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
+import { GoalDecomposer } from '../GoalDecomposer.jsx';
 import { useSyncedState } from '../useSyncedState.js';
 import { TIMELINE } from '../data.js';
 
@@ -183,15 +184,20 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
 // MISSIONS — the long campaigns (quest system). Each breaks into
 // milestones; checking one off is a real win, not a task tick.
 // ─────────────────────────────────────────────────────────
-function MissionsCard({ quests, onToggleMilestone }) {
+function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
   const [openId, setOpenId] = useState(null);
   const active = quests.filter((q) => questProgress(q) < 100);
 
   return (
     <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <span className="eyebrow" style={{ color: 'var(--gold)' }}>Missions</span>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{active.length} ACTIVE CAMPAIGNS</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{active.length} CAMPAIGNS</span>
+          <div className="pressable" onClick={onNewGoal} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 999, background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)', color: 'var(--cyan)', fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
+            <IconSparkles size={11} /> NEW GOAL
+          </div>
+        </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {active.map((q) => {
@@ -475,6 +481,10 @@ export function TodayScreen({
     }
   )));
 
+  // Goal decomposition — name a goal, AI breaks it into a campaign.
+  const [goalOpen, setGoalOpen] = useState(false);
+  const addQuest = (q) => setQuests((list) => [q, ...list]);
+
   // Life Alignment + wins — computed fresh each open (cheap, local).
   const [alignment, setAlignment] = useState(null);
   const [wins, setWins] = useState([]);
@@ -524,7 +534,9 @@ export function TodayScreen({
 
       <AskBar onOpen={onOpenCompanion} />
 
-      <MissionsCard quests={quests} onToggleMilestone={toggleMilestone} />
+      <MissionsCard quests={quests} onToggleMilestone={toggleMilestone} onNewGoal={() => setGoalOpen(true)} />
+
+      <GoalDecomposer open={goalOpen} onClose={() => setGoalOpen(false)} onAddQuest={addQuest} />
 
       <CheckInCard state={state} onMeter={setMeter} readiness={readiness} trend={trend} onOpenSettings={onOpenSettings} />
 
