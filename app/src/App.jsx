@@ -4,7 +4,7 @@
 // The Mission Engine lives here so every screen can feed it.
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture.
 // ─────────────────────────────────────────────────────────
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
@@ -22,9 +22,9 @@ const CalendarSheet = lazy(() => import('./CalendarSheet.jsx').then((m) => ({ de
 import { logEvent } from './lib/telemetry.js';
 import { googleCalendarUrl, mailtoUrl, openExternal } from './lib/actions.js';
 import { TIMELINE } from './data.js';
-import { generateMissions } from './lib/mission.js';
 import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
+import { useMissionEngine } from './lib/useMissionEngine.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
@@ -109,88 +109,11 @@ function MainApp() {
   // Daily state — meters, one thing, timeline. Per-day, cloud-synced.
   const [missionState, setMissionState] = useSyncedState(`lifeos:daily:${today}`, freshDailyDefault(today));
 
-  // ── The Mission Engine ──
-  // Generated once per day from every data source; regenerable; Build's
-  // Action Center can push extra missions in. Done-state survives re-plans.
-  const [missionDoc, setMissionDoc] = useSyncedState(`lifeos:mission:${today}`, { items: null, doneIds: [] });
-  useEffect(() => {
-    if (!missionDoc.items) {
-      const items = generateMissions();
-      setMissionDoc((d) => (d.items ? d : { ...d, items, doneIds: d.doneIds || [] }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionDoc.items]);
-
-  const missions = missionDoc.items || [];
-  const doneIds = missionDoc.doneIds || [];
-
-  // Keep the One Thing and the mission list in lockstep.
-  useEffect(() => {
-    if (!missionDoc.items) return;
-    const idx = missionDoc.items.findIndex((m) => m.id === 'one-thing');
-    if (missionState.oneThing && idx === -1) {
-      setMissionDoc((d) => ({
-        ...d,
-        items: [{ id: 'one-thing', kind: 'focus', icon: '🎯', title: missionState.oneThing, why: 'Your One Thing — the single win that makes today a success.', est: 90, go: 'today' }, ...d.items].slice(0, 5),
-      }));
-    } else if (missionState.oneThing && idx !== -1 && missionDoc.items[idx].title !== missionState.oneThing) {
-      setMissionDoc((d) => ({ ...d, items: d.items.map((m) => (m.id === 'one-thing' ? { ...m, title: missionState.oneThing } : m)) }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionState.oneThing, missionDoc.items]);
-
-  // ── Adaptive re-rank ──
-  // When readiness crosses a threshold after check-in, swap the training
-  // mission to match the moment (push → technique → recovery) — preserving
-  // order, the other missions, and completion. The cockpit re-plans itself.
-  const lastBucketRef = useRef(null);
-  useEffect(() => {
-    if (!missionDoc.items || !missionState.checkedIn) return;
-    const r = Math.round(((missionState.energy + missionState.focus + missionState.body + missionState.mood) / 40) * 100);
-    const bucket = r >= 60 ? 'push' : r >= 45 ? 'tech' : 'recover';
-    if (lastBucketRef.current === null) { lastBucketRef.current = bucket; return; }
-    if (bucket === lastBucketRef.current) return;
-    lastBucketRef.current = bucket;
-    const freshTrain = generateMissions().find((m) => m.kind === 'train');
-    if (!freshTrain) return;
-    setMissionDoc((d) => {
-      const oldTrain = (d.items || []).find((m) => m.kind === 'train');
-      if (!oldTrain || oldTrain.id === freshTrain.id) return d;
-      const items = (d.items || []).map((m) => (m.kind === 'train' ? freshTrain : m));
-      let doneIds = d.doneIds || [];
-      if (doneIds.includes(oldTrain.id)) doneIds = [...doneIds.filter((x) => x !== oldTrain.id), freshTrain.id];
-      return { ...d, items, doneIds, adaptedAt: Date.now() };
-    });
-    logEvent('mission', 'adapt', bucket);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionState.energy, missionState.focus, missionState.body, missionState.mood, missionState.checkedIn, missionDoc.items]);
-
-  const toggleMission = (id) => {
-    setMissionDoc((d) => {
-      const done = (d.doneIds || []).includes(id);
-      const doneIdsNext = done ? d.doneIds.filter((x) => x !== id) : [...(d.doneIds || []), id];
-      return { ...d, doneIds: doneIdsNext };
-    });
-    if (id === 'one-thing') {
-      setMissionState((s) => ({ ...s, oneThingDone: !doneIds.includes(id) }));
-    }
-    logEvent('mission', 'toggle', id);
-  };
-
-  const regenerateMissions = () => {
-    const items = generateMissions();
-    setMissionDoc((d) => ({ ...d, items, doneIds: (d.doneIds || []).filter((id) => items.some((m) => m.id === id)) }));
-    logEvent('mission', 'regenerate');
-  };
-
-  // Build's Action Center → "do today" pushes a move into the mission.
-  const addMission = (rec) => {
-    setMissionDoc((d) => {
-      const items = d.items || [];
-      if (items.some((m) => m.id === rec.id)) return d;
-      return { ...d, items: [...items, { ...rec, kind: rec.kind || 'build', go: rec.go || 'build' }] };
-    });
-  };
+  // ── The Mission Engine ── (see lib/useMissionEngine.js)
+  // Generates the day's missions, keeps the One Thing in lockstep, and
+  // adaptively re-ranks training to readiness. Build can push moves in.
+  const { missions, doneIds, adaptedAt, toggleMission, regenerateMissions, addMission } =
+    useMissionEngine(today, missionState, setMissionState);
 
   // Captures — a synced log across all days, newest first.
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);
@@ -267,7 +190,7 @@ function MainApp() {
           setState={setMissionState}
           missions={missions}
           doneIds={doneIds}
-          adaptedAt={missionDoc.adaptedAt}
+          adaptedAt={adaptedAt}
           onToggleMission={toggleMission}
           onRegenerate={regenerateMissions}
           momentum={momentum}
