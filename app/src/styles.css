@@ -8,11 +8,14 @@
   --bg-1: #101214;
   --bg-2: #16191C;
   --text: #F5F5F7;
-  --muted: #8A8A95;
-  --dim: #5A5A66;
+  --text-2: #A7ADBA;
+  --text-3: #6B7280;
+  --muted: #9AA0AC;
+  --dim: #6B7280;
   --line: rgba(255, 255, 255, 0.06);
-  --line-strong: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.11);
   --glass: rgba(255, 255, 255, 0.035);
+  --top-hi: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
   --ona-red: #FF6B5B;
   --ona-blue: #1E6F9F;
@@ -216,19 +219,47 @@ html, body {
    ───────────────────────────────────────────────────────── */
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid var(--line);
   border-radius: 18px;
+  box-shadow: var(--top-hi);
   position: relative;
 }
 
 .glass-strong {
   background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
   border: 1px solid var(--line-strong);
   border-radius: 20px;
+  box-shadow: var(--top-hi);
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Material tiers — depth from hairline + inset top highlight,
+   not drop-shadow glow. Canvas (recessed) < panel (flat) < hero.
+   ───────────────────────────────────────────────────────── */
+.glass-canvas {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  position: relative;
+}
+.panel {
+  background: rgba(255, 255, 255, 0.022);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: var(--top-hi);
+  position: relative;
+}
+.glass-hero {
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  border: 1px solid var(--line-strong);
+  border-radius: 22px;
+  box-shadow: var(--top-hi), 0 24px 60px -32px rgba(0, 0, 0, 0.7);
   position: relative;
 }
 
@@ -253,15 +284,15 @@ html, body {
    ───────────────────────────────────────────────────────── */
 .mesh-readiness {
   background:
-    radial-gradient(ellipse 70% 80% at 15% 20%, rgba(69, 183, 232, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 70% at 90% 10%, rgba(45, 212, 191, 0.16) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 70% at 50% 100%, rgba(255, 107, 91, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 80% at 15% 20%, rgba(69, 183, 232, 0.13) 0%, transparent 58%),
+    radial-gradient(ellipse 60% 70% at 90% 10%, rgba(45, 212, 191, 0.11) 0%, transparent 58%),
+    radial-gradient(ellipse 80% 70% at 50% 100%, rgba(255, 107, 91, 0.10) 0%, transparent 58%),
     linear-gradient(140deg, #101214 0%, #16191C 100%);
 }
 .mesh-train {
   background:
-    radial-gradient(ellipse 65% 70% at 80% 20%, rgba(69, 183, 232, 0.22) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 20% 90%, rgba(52, 211, 153, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 70% at 80% 20%, rgba(69, 183, 232, 0.16) 0%, transparent 58%),
+    radial-gradient(ellipse 70% 60% at 20% 90%, rgba(52, 211, 153, 0.08) 0%, transparent 58%),
     linear-gradient(140deg, #101214 0%, #16191C 100%);
 }
 .mesh-content {
@@ -286,11 +317,11 @@ html, body {
 /* ─────────────────────────────────────────────────────────
    Glow utilities
    ───────────────────────────────────────────────────────── */
-.glow-red    { box-shadow: 0 0 80px -16px rgba(255, 107, 91, 0.55), 0 0 0 1px rgba(255, 107, 91, 0.25) inset; }
-.glow-cyan   { box-shadow: 0 0 70px -16px rgba(69, 183, 232, 0.45); }
-.glow-violet { box-shadow: 0 0 70px -16px rgba(45, 212, 191, 0.45); }
-.glow-lime   { box-shadow: 0 0 70px -16px rgba(52, 211, 153, 0.35); }
-.glow-gold   { box-shadow: 0 0 60px -16px rgba(233, 196, 106, 0.40); }
+.glow-red    { box-shadow: var(--top-hi), 0 0 64px -22px rgba(255, 107, 91, 0.40), 0 0 0 1px rgba(255, 107, 91, 0.16) inset; }
+.glow-cyan   { box-shadow: var(--top-hi), 0 0 56px -22px rgba(69, 183, 232, 0.30); }
+.glow-violet { box-shadow: var(--top-hi), 0 0 56px -22px rgba(45, 212, 191, 0.30); }
+.glow-lime   { box-shadow: var(--top-hi), 0 0 56px -22px rgba(52, 211, 153, 0.24); }
+.glow-gold   { box-shadow: var(--top-hi), 0 0 48px -22px rgba(233, 196, 106, 0.28); }
 
 /* ─────────────────────────────────────────────────────────
    Brand gradients

@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LIFE OS — Fable Design Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ───────────────────────────── LIFE OS · DESIGN TOKENS ───────────────────────────── */
+:root{
+  --bg0:#06060A; --bg1:#0B0B12; --bg2:#11111A;
+  --text:#F5F5F7; --muted:#8A8A95; --dim:#5A5A66;
+  --line:rgba(255,255,255,.06); --line2:rgba(255,255,255,.12);
+  --glass:rgba(255,255,255,.035);
+  --cyan:#00D4FF; --violet:#B14CFF; --magenta:#FF3CC8; --lime:#B6FF3C;
+  --gold:#FFD23C; --red:#FF0033; --orange:#FF8A3C; --blue:#0055FF;
+  --fd:'Bebas Neue',sans-serif; --fb:'Inter',-apple-system,system-ui,sans-serif; --fm:'JetBrains Mono',Menlo,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1); --spring:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*::-webkit-scrollbar{display:none} *{scrollbar-width:none}
+html,body{margin:0;height:100%;background:#000;color:var(--text);font-family:var(--fb);-webkit-font-smoothing:antialiased;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 800px 600px at 18% 8%,rgba(0,85,255,.07) 0%,transparent 60%),
+             radial-gradient(ellipse 700px 540px at 82% 92%,rgba(177,76,255,.06) 0%,transparent 60%),#000}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:48px 48px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,#000 30%,transparent 80%);
+  mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,#000 30%,transparent 80%)}
+
+/* ── Device frame ── */
+.device{position:relative;width:393px;height:852px;background:var(--bg0);border-radius:54px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 0 0 10px #0a0a0e,0 0 0 11px rgba(255,255,255,.07),0 50px 120px -20px rgba(0,0,0,.9),0 0 140px -40px rgba(0,212,255,.18)}
+@media(max-width:480px),(max-height:900px){.device{width:100vw;height:100dvh;border-radius:0;border:none;box-shadow:none}}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:118px;height:34px;border-radius:20px;background:#000;z-index:90;border:1px solid rgba(255,255,255,.05)}
+.statusbar{position:absolute;top:0;left:0;right:0;height:54px;z-index:80;display:flex;align-items:center;justify-content:space-between;padding:14px 30px 0;
+  font-family:var(--fm);font-size:12.5px;font-weight:600;letter-spacing:.04em;pointer-events:none}
+.statusbar .sigs{display:flex;gap:6px;align-items:center}
+.batt{width:22px;height:11px;border:1px solid rgba(255,255,255,.5);border-radius:3px;position:relative}
+.batt::after{content:'';position:absolute;inset:1.5px;right:5px;background:var(--lime);border-radius:1px}
+
+/* ── Screen scroller ── */
+.scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:74px 0 150px;-webkit-overflow-scrolling:touch}
+.content{padding:0 16px;display:flex;flex-direction:column;gap:14px}
+.content>*{animation:cardIn 520ms var(--ease) both}
+.content>*:nth-child(1){animation-delay:30ms}.content>*:nth-child(2){animation-delay:80ms}
+.content>*:nth-child(3){animation-delay:130ms}.content>*:nth-child(4){animation-delay:180ms}
+.content>*:nth-child(5){animation-delay:230ms}.content>*:nth-child(6){animation-delay:280ms}
+.content>*:nth-child(7){animation-delay:330ms}.content>*:nth-child(n+8){animation-delay:370ms}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* ── Type ── */
+.display{font-family:var(--fd);letter-spacing:.03em;line-height:.95}
+.mono{font-family:var(--fm)}
+.eyebrow{font-family:var(--fm);font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.h-screen{font-family:var(--fd);font-size:34px;letter-spacing:.03em;line-height:.95}
+.sec-title{font-family:var(--fd);font-size:21px;letter-spacing:.05em;color:var(--text)}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:6px 2px -4px}
+
+/* ── Glass + HUD ticks ── */
+.glass{background:var(--glass);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--line);border-radius:18px;position:relative}
+.glass-strong{background:rgba(255,255,255,.05);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--line2);border-radius:22px;position:relative}
+.tk{position:absolute;width:9px;height:9px;border:0 solid rgba(255,255,255,.28);pointer-events:none;z-index:2}
+.tk.tl{top:7px;left:7px;border-top-width:1px;border-left-width:1px}
+.tk.tr{top:7px;right:7px;border-top-width:1px;border-right-width:1px}
+.tk.bl{bottom:7px;left:7px;border-bottom-width:1px;border-left-width:1px}
+.tk.br{bottom:7px;right:7px;border-bottom-width:1px;border-right-width:1px}
+
+/* ── Mesh heroes ── */
+.mesh-today{background:radial-gradient(ellipse 70% 80% at 12% 18%,rgba(0,212,255,.17) 0%,transparent 55%),radial-gradient(ellipse 60% 70% at 92% 8%,rgba(177,76,255,.15) 0%,transparent 55%),radial-gradient(ellipse 80% 70% at 50% 105%,rgba(255,0,51,.10) 0%,transparent 55%),linear-gradient(140deg,#0B0B12,#11111A)}
+.mesh-train{background:radial-gradient(ellipse 65% 70% at 82% 14%,rgba(0,212,255,.20) 0%,transparent 55%),radial-gradient(ellipse 70% 60% at 14% 92%,rgba(182,255,60,.10) 0%,transparent 55%),linear-gradient(140deg,#0B0B12,#11111A)}
+.mesh-create{background:radial-gradient(ellipse 60% 70% at 16% 16%,rgba(255,60,200,.17) 0%,transparent 55%),radial-gradient(ellipse 70% 70% at 92% 100%,rgba(255,138,60,.14) 0%,transparent 55%),linear-gradient(140deg,#0B0B12,#11111A)}
+.mesh-ona{background:radial-gradient(ellipse 70% 70% at 8% 0%,rgba(255,0,51,.20) 0%,transparent 55%),radial-gradient(ellipse 70% 70% at 100% 100%,rgba(182,255,60,.09) 0%,transparent 55%),linear-gradient(140deg,#0B0B12,#11111A)}
+.mesh-mind{background:radial-gradient(ellipse 70% 70% at 85% 10%,rgba(0,212,255,.16) 0%,transparent 55%),radial-gradient(ellipse 60% 80% at 10% 95%,rgba(177,76,255,.14) 0%,transparent 55%),linear-gradient(140deg,#0B0B12,#11111A)}
+.mesh-ai{background:radial-gradient(ellipse 70% 70% at 50% 0%,rgba(177,76,255,.28) 0%,transparent 55%),radial-gradient(ellipse 70% 70% at 50% 105%,rgba(0,212,255,.18) 0%,transparent 55%),linear-gradient(140deg,#0B0B12,#11111A)}
+
+/* ── Pills / chips ── */
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-family:var(--fm);font-size:8.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--text);white-space:nowrap}
+.pdot{width:6px;height:6px;border-radius:99px;background:currentColor;box-shadow:0 0 8px currentColor}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:12px;font-size:12px;font-weight:600;border:1px solid var(--line2);background:rgba(255,255,255,.045);color:var(--text);cursor:pointer;white-space:nowrap}
+.chip.done{color:var(--lime);border-color:rgba(182,255,60,.4);background:rgba(182,255,60,.08)}
+
+/* ── Press ── */
+.pr{transition:transform 170ms var(--ease),box-shadow 170ms var(--ease),border-color 170ms,background 170ms;cursor:pointer;user-select:none;touch-action:manipulation}
+.pr:active{transform:scale(.96)}
+
+/* ── Bars ── */
+.bar{height:4px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;position:relative;flex:1}
+.bar>i{display:block;height:100%;border-radius:99px;background:var(--cyan);position:relative;transition:width 900ms var(--ease)}
+.bar>i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-100%);animation:shine 2.6s ease-in-out infinite}
+@keyframes shine{to{transform:translateX(100%)}}
+
+/* ── Tracker chip: TRACK → WORKING → GOT IT ── */
+.trk{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:.13em;padding:5px 10px;border-radius:99px;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--dim);cursor:pointer;white-space:nowrap;transition:all 180ms var(--ease)}
+.trk.w{color:var(--gold);border-color:rgba(255,210,60,.45);background:rgba(255,210,60,.09);box-shadow:0 0 14px -5px rgba(255,210,60,.6)}
+.trk.g{color:var(--lime);border-color:rgba(182,255,60,.5);background:rgba(182,255,60,.1);box-shadow:0 0 14px -4px rgba(182,255,60,.7)}
+
+/* ── Drill cards ── */
+.drill{border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);padding:11px 12px;display:flex;flex-direction:column;gap:8px}
+.drill .num{font-family:var(--fd);font-size:17px;color:var(--dim);min-width:18px;line-height:1.1}
+.callout{display:flex;gap:8px;padding:8px 10px;border-radius:10px;font-size:11px;line-height:1.45}
+.callout b{font-family:var(--fm);font-size:8px;letter-spacing:.16em;display:block;margin-bottom:2px;font-weight:700}
+.fault{background:rgba(255,0,51,.07);border:1px solid rgba(255,0,51,.22);color:#ffb3c2}
+.fault b{color:var(--red)}
+.gate{background:rgba(182,255,60,.06);border:1px solid rgba(182,255,60,.22);color:#dcffb0}
+.gate b{color:var(--lime)}
+
+/* ── Skill tree rows ── */
+.tier-block{border-left:2px solid;padding-left:12px;margin-left:5px;display:flex;flex-direction:column;gap:8px}
+.skill-row{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.025)}
+.skill-row.open{border-color:var(--line2);background:rgba(255,255,255,.045)}
+.sdot{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fm);font-size:8px;font-weight:700}
+
+/* ── Tab bar ── */
+.tabbar{position:absolute;left:12px;right:12px;bottom:14px;z-index:70;height:64px;border-radius:24px;display:flex;align-items:stretch;padding:0 6px;
+  background:rgba(10,10,16,.78);backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%);
+  border:1px solid var(--line2);box-shadow:0 18px 50px rgba(0,0,0,.7)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--dim);position:relative;border-radius:18px;transition:color 200ms}
+.tab span{font-family:var(--fm);font-size:7.5px;letter-spacing:.18em;font-weight:600}
+.tab.on{color:var(--text)}
+.tab.on::before{content:'';position:absolute;top:7px;width:18px;height:2px;border-radius:2px;background:var(--acc,var(--cyan));box-shadow:0 0 10px var(--acc,var(--cyan))}
+.tab .badge{position:absolute;top:8px;right:50%;margin-right:-20px;min-width:15px;height:15px;border-radius:8px;background:var(--gold);color:#06060A;font-family:var(--fm);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 12px rgba(255,210,60,.5)}
+
+/* ── FAB + Companion launcher ── */
+.fab{position:absolute;right:18px;bottom:94px;z-index:60;width:54px;height:54px;border-radius:19px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--cyan),#0090cc);color:#04222e;border:1px solid rgba(255,255,255,.25);
+  animation:fabGlow 2.6s ease-out infinite}
+@keyframes fabGlow{0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,.35),0 8px 26px rgba(0,212,255,.35)}50%{box-shadow:0 0 0 9px rgba(0,212,255,0),0 8px 26px rgba(0,212,255,.5)}}
+.orb-launch{position:absolute;left:18px;bottom:94px;z-index:60;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0B0B12;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px -6px rgba(177,76,255,.55)}
+
+/* ── Orb (conic, spinning) ── */
+.orb{position:relative;flex-shrink:0}
+.orb .r1{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,var(--cyan),var(--violet),var(--magenta),var(--gold),var(--cyan));
+  -webkit-mask:radial-gradient(circle,transparent 58%,#000 60%,#000 75%,transparent 77%);mask:radial-gradient(circle,transparent 58%,#000 60%,#000 75%,transparent 77%);
+  animation:spin 11s linear infinite}
+.orb .r2{position:absolute;inset:14%;border-radius:50%;background:conic-gradient(from 90deg,transparent 0deg,var(--cyan) 35deg,transparent 70deg,transparent 200deg,var(--violet) 235deg,transparent 270deg);
+  -webkit-mask:radial-gradient(circle,transparent 48%,#000 50%,#000 92%,transparent 94%);mask:radial-gradient(circle,transparent 48%,#000 50%,#000 92%,transparent 94%);
+  animation:spinR 6.5s linear infinite}
+.orb .core{position:absolute;inset:31%;border-radius:50%;background:radial-gradient(circle at 31% 30%,#fff 0%,var(--cyan) 32%,var(--violet) 72%,#06060A 100%);
+  box-shadow:0 0 26px rgba(0,212,255,.6),inset 0 0 12px rgba(255,255,255,.4);animation:corePulse 2.4s ease-in-out infinite}
+.orb .halo{position:absolute;inset:-22%;border-radius:50%;background:radial-gradient(circle,rgba(177,76,255,.35) 0%,transparent 62%);filter:blur(6px)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinR{to{transform:rotate(-360deg)}}
+@keyframes corePulse{0%,100%{box-shadow:0 0 22px rgba(0,212,255,.55),inset 0 0 12px rgba(255,255,255,.4)}50%{box-shadow:0 0 38px rgba(0,212,255,.85),inset 0 0 14px rgba(255,255,255,.6)}}
+
+/* ── Sheets ── */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:150;animation:fadeIn 240ms ease}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:160;background:var(--bg1);border-top:1px solid var(--line2);border-radius:30px 30px 0 0;
+  padding:12px 18px calc(env(safe-area-inset-bottom,0px) + 26px);max-height:88%;overflow-y:auto;
+  animation:sheetIn 420ms var(--spring);box-shadow:0 -24px 70px rgba(0,0,0,.65)}
+.sheet.tall{height:88%}
+@keyframes sheetIn{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.closing .sheet{animation:sheetOut 260ms cubic-bezier(.4,0,1,1) forwards}
+.closing.scrim,.closing .scrim{animation:fadeOut 240ms ease forwards}
+@keyframes sheetOut{to{transform:translateY(104%)}}
+@keyframes fadeOut{to{opacity:0}}
+.grab{width:38px;height:4px;border-radius:99px;background:rgba(255,255,255,.22);margin:2px auto 14px}
+
+/* ── Segmented ── */
+.seg{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg>div{flex:1;text-align:center;padding:8px 0;border-radius:9px;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--muted);cursor:pointer;transition:all 180ms}
+.seg>div.on{background:rgba(0,212,255,.14);color:var(--cyan);border:1px solid rgba(0,212,255,.35);box-shadow:0 0 16px -6px rgba(0,212,255,.6)}
+
+/* ── Skeleton ── */
+.skel{position:relative;overflow:hidden;background:rgba(255,255,255,.05);border-radius:8px}
+.skel::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);animation:skl 1.3s ease-in-out infinite}
+@keyframes skl{to{transform:translateX(100%)}}
+
+/* ── Confetti / toast ── */
+#fx{position:absolute;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+.cf{position:absolute;width:7px;height:13px;border-radius:2px;animation:burst 1150ms var(--ease) forwards}
+@keyframes burst{0%{transform:translate(-50%,-50%) rotate(0) scale(.6);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1);opacity:0}}
+.toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);z-index:320;padding:12px 22px;border-radius:16px;background:rgba(10,12,18,.92);border:1px solid rgba(182,255,60,.45);
+  font-family:var(--fm);font-size:11px;letter-spacing:.3em;color:var(--lime);box-shadow:0 0 40px -8px rgba(182,255,60,.5);animation:toastIn 260ms var(--spring),fadeOut 300ms ease 1300ms forwards}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* ── Boot splash ── */
+.boot{position:absolute;inset:0;z-index:400;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  background:radial-gradient(120% 80% at 50% 38%,#12121C 0%,#06060A 64%)}
+.boot.leaving{animation:bootOut 520ms cubic-bezier(.4,0,1,1) forwards}
+@keyframes bootOut{to{opacity:0;transform:scale(1.07);filter:blur(3px)}}
+.boot .orb{width:104px;height:104px;animation:orbIn 950ms var(--spring) both}
+@keyframes orbIn{0%{opacity:0;transform:scale(.45)}60%{opacity:1;transform:scale(1.09)}100%{transform:scale(1)}}
+.boot-word{font-family:var(--fd);font-size:50px;line-height:1;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--magenta));-webkit-background-clip:text;background-clip:text;color:transparent;animation:word 1050ms var(--spring) 340ms both}
+@keyframes word{0%{opacity:0;letter-spacing:.55em;transform:translateY(8px)}100%{opacity:1;letter-spacing:.07em;transform:none}}
+.boot-tag{font-size:12px;color:var(--muted);text-align:center;max-width:250px;line-height:1.55;animation:rise 800ms ease 820ms both}
+.boot-ver{position:absolute;bottom:46px;font-family:var(--fm);font-size:9px;letter-spacing:.3em;color:var(--dim);animation:rise 800ms ease 1100ms both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.95;transform:none}}
+
+/* ── Onboarding ── */
+.onb{position:absolute;inset:0;z-index:380;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px 40px;
+  background:radial-gradient(110% 70% at 50% 0%,#13131f 0%,#06060A 60%)}
+.onb .hero{position:absolute;top:11%;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:18px}
+.onb-card{display:flex;gap:13px;align-items:center;padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.035);animation:cardIn 520ms var(--ease) both}
+.onb .cta{margin-top:18px;padding:17px;border-radius:18px;text-align:center;font-family:var(--fd);font-size:21px;letter-spacing:.12em;color:#06121a;
+  background:linear-gradient(90deg,var(--cyan),var(--violet));box-shadow:0 14px 44px -10px rgba(0,212,255,.5);animation:cardIn 520ms var(--ease) .55s both}
+
+/* ── Misc ── */
+.blink{animation:blnk 1.5s ease-in-out infinite}
+@keyframes blnk{0%,100%{opacity:1}50%{opacity:.25}}
+.pulse{animation:pls 2.2s ease-out infinite}
+@keyframes pls{0%,100%{box-shadow:0 0 0 0 rgba(255,0,51,.5)}50%{box-shadow:0 0 0 7px rgba(255,0,51,0)}}
+.heat{width:100%;aspect-ratio:1;border-radius:5px}
+.dashed{border:1.5px dashed rgba(255,255,255,.14);border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;color:var(--dim);font-size:12px;font-weight:500}
+.bubble-u{align-self:flex-end;max-width:84%;padding:9px 13px;border-radius:15px 15px 4px 15px;background:linear-gradient(135deg,rgba(0,212,255,.16),rgba(177,76,255,.18));border:1px solid rgba(177,76,255,.3);font-size:13px;line-height:1.45}
+.bubble-a{align-self:flex-start;max-width:92%;padding:10px 13px;border-radius:15px 15px 15px 4px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:13px;line-height:1.5;white-space:pre-wrap}
+.acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+input,textarea{font-family:var(--fb);color:var(--text)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div class="device" id="device">
+  <div class="island"></div>
+  <div class="statusbar"><div>9:41</div><div class="sigs"><svg width="17" height="11" viewBox="0 0 17 11" fill="rgba(255,255,255,.85)"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg><div class="batt"></div></div></div>
+  <div class="scroll" id="scroll"><div class="content" id="content"></div></div>
+  <div class="tabbar" id="tabbar"></div>
+  <div class="fab pr" id="fab" onclick="App.openSheet('capture')"></div>
+  <div class="orb-launch pr" onclick="App.openSheet('companion')"><div class="orb" style="width:34px;height:34px"><div class="halo"></div><div class="r1"></div><div class="core"></div></div></div>
+  <div id="sheetHost"></div>
+  <div id="fx"></div>
+  <div id="overlayHost"></div>
+</div>
+<script>
+/* ════════════════ ICONS ════════════════ */
+const P_ICON={
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+zap:'<path d="M13 2L3 14h7l-1 8 11-12h-7l1-8z"/>',
+pen:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>',
+target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
+mind:'<circle cx="12" cy="5.5" r="2.4"/><circle cx="5" cy="16.5" r="2.4"/><circle cx="19" cy="16.5" r="2.4"/><path d="M10.7 7.6l-4 6.6M13.3 7.6l4 6.6M7.4 16.5h9.2"/>',
+bot:'<rect x="4" y="8" width="16" height="11" rx="4"/><circle cx="9" cy="13.5" r="1.2" fill="currentColor"/><circle cx="15" cy="13.5" r="1.2" fill="currentColor"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.2"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M18 6L6 18M6 6l12 12"/>',
+send:'<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>',
+mic:'<rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10v1a7 7 0 0014 0v-1M12 18v4"/>',
+check:'<path d="M20 6L9 17l-5-5"/>',
+lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',
+chev:'<path d="M6 9l6 6 6-6"/>',
+cal:'<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/>',
+flame:'<path d="M12 22c4.4 0 7-2.8 7-7 0-3.1-2.1-5.6-4-8-1 2-2 3-3 3 .5-3-1-6-3-8-1 4-6 7-6 13 0 4.2 2.6 7 7 7z"/>',
+spark:'<path d="M12 2.5l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z"/><path d="M19.5 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z"/>',
+warn:'<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0zM12 9v4M12 17h.01"/>',
+star:'<path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17l-6.1 3.6 1.4-6.8L2.2 9.1l6.9-.8L12 2z"/>',
+act:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+users:'<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2M16 3.1a4 4 0 010 7.8M21 21v-2a4 4 0 00-3-3.9"/>',
+arrow:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/>',
+slide:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+arch:'<rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v11a2 2 0 002 2h10a2 2 0 002-2V8M10 12h4"/>'};
+const I=(n,s=18,sw=2,st='')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" style="${st}">${P_ICON[n]||''}</svg>`;
+const T='<i class="tk tl"></i><i class="tk tr"></i><i class="tk bl"></i><i class="tk br"></i>';
+
+/* ════════════════ DATA — pulled from the real LifeOS app ════════════════ */
+const DISC=[
+ {id:'gymnastics',name:'Gymnastics',c:'#FFD23C',ic:'◐'},
+ {id:'tricking',name:'Tricking',c:'#FF0033',ic:'↻'},
+ {id:'calisthenics',name:'Calisthenics',c:'#B6FF3C',ic:'⊞'},
+ {id:'acro',name:'Acro',c:'#B14CFF',ic:'∞'},
+ {id:'parkour',name:'Parkour',c:'#00D4FF',ic:'▲'},
+ {id:'ninja',name:'Ninja',c:'#FF8A3C',ic:'◆'}];
+const TIERS=['Foundation','Developing','Advanced','Elite'];
+const TIER_C={Foundation:'#B6FF3C',Developing:'#00D4FF',Advanced:'#FFD23C',Elite:'#FF0033'};
+const SKILLS={
+gymnastics:[
+ {n:'Handstand',t:'Foundation',cue:'Stack shoulders over wrists, hollow body, push tall',st:'done',pct:100},
+ {n:'Bridge / backbend',t:'Foundation',cue:'Open shoulders & hip flexors; press to straight arms',st:'done',pct:100},
+ {n:'Cartwheel',t:'Foundation',cue:'Hand-hand-foot-foot, hips over shoulders, stay in plane',st:'done',pct:100},
+ {n:'Round-off',t:'Foundation',cue:'Fast hurdle, snap legs together, block & rebound',st:'done',pct:100},
+ {n:'Back handspring',t:'Developing',cue:'Sit & jump back, reach over, snap-down to feet',st:'done',pct:100},
+ {n:'Front handspring',t:'Developing',cue:'Block off the floor, hollow-to-arch, land tall',st:'active',pct:70},
+ {n:'Standing back tuck',t:'Developing',cue:'Jump UP first, set arms, then pull the knees',st:'done',pct:100},
+ {n:'RO–BHS–back tuck',t:'Advanced',cue:'Ride the rebound, set tall, tuck late',st:'active',pct:80},
+ {n:'Back layout',t:'Advanced',cue:'Stay straight & hollow — no early arch (twist prereq)',st:'active',pct:60},
+ {n:'Punch front layout',t:'Advanced',cue:'Block, lift the hips, spot the floor',st:'locked',pct:0},
+ {n:'Layout full twist',t:'Elite',cue:'Set straight first, initiate twist late from arms/hip',st:'active',pct:68},
+ {n:'Double full',t:'Elite',cue:'Bigger set, faster twist, hold the line',st:'locked',pct:0},
+ {n:'Double back (tuck)',t:'Elite',cue:'Huge set, early tight tuck, spot the second flip',st:'locked',pct:0}],
+tricking:[
+ {n:'Tornado kick',t:'Foundation',cue:'The first trick: 360 spin into a round kick',st:'done',pct:100},
+ {n:'Pop 360',t:'Foundation',cue:'Vertical 360 jump — sets the spin for everything',st:'done',pct:100},
+ {n:'Aerial (no-hand CW)',t:'Developing',cue:'Sideways flip; reach far, kick the legs over',st:'done',pct:100},
+ {n:'Raiz',t:'Developing',cue:'Capoeira base — parent of touchdown raiz, sideswipe',st:'active',pct:70},
+ {n:'Butterfly kick',t:'Developing',cue:'Horizontal flip, lead leg whips, stay flat',st:'done',pct:100},
+ {n:'Butterfly twist',t:'Advanced',cue:'Bkick + 360: set flat, THEN twist',st:'active',pct:82},
+ {n:'Gainer',t:'Advanced',cue:'Backflip off one leg moving forward (cork prereq)',st:'active',pct:55},
+ {n:'Cheat 720',t:'Advanced',cue:'Tornado set into a double-rotation kick',st:'locked',pct:0},
+ {n:'Cork',t:'Elite',cue:'Off-axis backflip + full twist; dive head, set low',st:'locked',pct:0},
+ {n:'Raiz family combos',t:'Elite',cue:'Touchdown raiz → sideswipe → gumbi flow',st:'locked',pct:0},
+ {n:'Double cork',t:'Elite',cue:'Two off-axis rotations — huge set, stack the twist',st:'locked',pct:0}],
+calisthenics:[
+ {n:'Hollow & arch holds',t:'Foundation',cue:'The core line behind every skill — own it first',st:'done',pct:100},
+ {n:'Pull-up / Dip base',t:'Foundation',cue:'Build capacity: 3×8–12 clean, full-range reps',st:'done',pct:100},
+ {n:'Freestanding handstand',t:'Foundation',cue:'Wall → balance; stack & breathe, shoulder flexion',st:'done',pct:100},
+ {n:'L-sit',t:'Developing',cue:'Compress, depress the shoulders, point the toes',st:'done',pct:100},
+ {n:'Tuck → straddle front lever',t:'Developing',cue:'Straight arms, pull the bar to your hips, lats on',st:'active',pct:72},
+ {n:'Back lever',t:'Developing',cue:'Tuck → full; needs shoulder-extension mobility',st:'active',pct:60},
+ {n:'Strict muscle-up',t:'Developing',cue:'False grip, explosive pull, fast transition over',st:'done',pct:100},
+ {n:'Full front lever',t:'Advanced',cue:'Horizontal, straight, scapula retracted',st:'active',pct:50},
+ {n:'Handstand push-up',t:'Advanced',cue:'Stack, control the descent, press to lockout',st:'locked',pct:0},
+ {n:'Tuck → straddle planche',t:'Advanced',cue:'Lean forward, protract, straight arms, wrist mobility',st:'locked',pct:0},
+ {n:'Human flag',t:'Advanced',cue:'Top arm pulls, bottom pushes, full-body tension',st:'locked',pct:0},
+ {n:'Full planche',t:'Elite',cue:'Target a clean 5-second hold',st:'locked',pct:0},
+ {n:'One-arm pull-up',t:'Elite',cue:'Peak relative strength — grease the groove',st:'locked',pct:0}],
+acro:[
+ {n:'Counterbalances',t:'Foundation',cue:'Shared tension; base straight legs, flyer hollow',st:'done',pct:100},
+ {n:'Foot-to-hand (throne)',t:'Foundation',cue:'Base stacks bones, flyer finds a tall line',st:'done',pct:100},
+ {n:'L-base hand-to-hand',t:'Developing',cue:'Base presses bones, flyer holds a straight handstand',st:'done',pct:100},
+ {n:'Washing machines',t:'Developing',cue:'Link transitions into a smooth repeating loop',st:'active',pct:65},
+ {n:'Pops (F2H → H2H)',t:'Developing',cue:'Time the dip-drive; flyer stays tight & patient',st:'active',pct:55},
+ {n:'Standing hand-to-hand',t:'Advanced',cue:'Standing base — huge balance, trust & alignment',st:'active',pct:40},
+ {n:'Icarian throws',t:'Advanced',cue:'Base legs throw, flyer flips and re-lands clean',st:'done',pct:100},
+ {n:'Standing whips/pitches',t:'Advanced',cue:'Dynamic throw to handstand — commit & spot',st:'active',pct:55},
+ {n:'Dynamic throws (cuddles)',t:'Elite',cue:'Flyer rotates, base catches — timing is everything',st:'locked',pct:0},
+ {n:'Standing H2H press',t:'Elite',cue:'Press to handstand standing — elite balance + strength',st:'locked',pct:0},
+ {n:'2-high & pitch combos',t:'Elite',cue:'Performance-level stacks and sequences',st:'locked',pct:0}],
+parkour:[
+ {n:'Landing & roll',t:'Foundation',cue:'Absorb soft, roll diagonally shoulder-to-hip',st:'done',pct:100},
+ {n:'Balance (rail)',t:'Foundation',cue:'Eyes ahead, arms wide, slow & deliberate',st:'done',pct:100},
+ {n:'Precision jump',t:'Foundation',cue:'Stick it quiet & still — no extra steps',st:'done',pct:100},
+ {n:'Safety & lazy vault',t:'Foundation',cue:'One hand/one foot; let the hips lead',st:'done',pct:100},
+ {n:'Speed vault',t:'Developing',cue:'Hand guides, run straight through the obstacle',st:'done',pct:100},
+ {n:'Kong / dash vault',t:'Developing',cue:'Dive hands, tuck knees through (kong)',st:'done',pct:100},
+ {n:'Cat leap (arm jump)',t:'Developing',cue:'Hands on top, feet on wall, absorb & stick',st:'done',pct:100},
+ {n:'Wall run',t:'Advanced',cue:'Plant high, drive up, grab the top edge',st:'active',pct:60},
+ {n:'Cat to climb-up',t:'Advanced',cue:'Explode the hips, press out fast',st:'active',pct:50},
+ {n:'Running precision',t:'Advanced',cue:'Carry speed into single-foot precise landings',st:'active',pct:55},
+ {n:'Underbar',t:'Advanced',cue:'Swing through, redirect momentum forward',st:'locked',pct:0},
+ {n:'Wall flip / palm flip',t:'Elite',cue:'Advanced flow — control before commitment',st:'locked',pct:0},
+ {n:'Running gap jumps',t:'Elite',cue:'Commit fully, sight the landing early',st:'locked',pct:0}],
+ninja:[
+ {n:'Grip base (dead hangs)',t:'Foundation',cue:'The #1 ninja skill — hangs, pinch & towel grip',st:'done',pct:100},
+ {n:'Pull-up strength',t:'Foundation',cue:'Foundation for every overhead obstacle',st:'done',pct:100},
+ {n:'Balance / quad steps',t:'Foundation',cue:'Explosive, light, quick footwork',st:'done',pct:100},
+ {n:'Lache (bar-to-bar)',t:'Developing',cue:'Build swing, release at the peak, catch tight',st:'active',pct:70},
+ {n:'Plyometric pull-ups',t:'Developing',cue:'Explosive pull, float, re-grip (salmon-ladder base)',st:'done',pct:100},
+ {n:'Cargo net / rope',t:'Developing',cue:'Leg-lock & efficient, economical pulls',st:'done',pct:100},
+ {n:'Salmon ladder',t:'Advanced',cue:'Explosive plyo pull, pop the bar up rung by rung',st:'done',pct:100},
+ {n:'Dynamic lache to catch',t:'Advanced',cue:'Longer gaps; absorb and lock the catch',st:'active',pct:50},
+ {n:'Devil steps / pegboard',t:'Advanced',cue:'Grip + control transferring on small holds',st:'active',pct:40},
+ {n:'Cliffhanger',t:'Elite',cue:'Brutal fingertip grip; stay close to the wall',st:'active',pct:45},
+ {n:'Warped wall (14ft)',t:'Elite',cue:'Sprint, one big push, reach high — start small',st:'active',pct:60},
+ {n:'Floating obstacles',t:'Elite',cue:'Elite grip + body control & momentum management',st:'locked',pct:0}]};
+
+const RADAR={axes:['Strength','Power','Skill','Mobility','Endurance','Recovery'],cur:[82,78,88,65,72,58],goal:[90,90,95,85,85,80]};
+const TIMELINE=[
+ {time:'06:30',label:'Mobility flow + cold plunge',c:'#00D4FF',k:'BODY'},
+ {time:'08:00',label:'Deep work — JayMuvs B-twist edit',c:'#FF0033',k:'CREATE'},
+ {time:'10:30',label:'Ninja session @ ONA',c:'#FF8A3C',k:'TRAIN'},
+ {time:'13:00',label:'Coach review w/ Riley',c:'#B6FF3C',k:'ONA'},
+ {time:'16:00',label:'Content shoot — B-twist tutorial',c:'#FF3CC8',k:'CREATE'},
+ {time:'19:00',label:'Acro practice w/ Chelsea',c:'#B14CFF',k:'ACRO'}];
+const MOMENTUM=[3,4,2,4,3,0,4,4,3,4,4,2,4,4];
+const ONA={members:248,mrr:38450,nps:72};
+const SALES=[
+ {label:'Leads',count:27,max:30,c:'#00D4FF',stale:5},
+ {label:'Trials',count:11,max:30,c:'#FFD23C',stale:0},
+ {label:'Closing',count:6,max:30,c:'#FF8A3C',stale:2},
+ {label:'New Members',count:9,max:30,c:'#B6FF3C',stale:0}];
+const COACHES=[
+ {name:'Riley',price:110,grade:'A',role:'Head Coach',ini:'R',c:'#FF0033'},
+ {name:'Luke',price:95,grade:'A',role:'Ninja Lead',ini:'L',c:'#FF8A3C'},
+ {name:'Jay Lache',price:90,grade:'A-',role:'Tricking',ini:'J',c:'#00D4FF'},
+ {name:'Avery',price:80,grade:'B+',role:'Gymnastics',ini:'A',c:'#B14CFF'},
+ {name:'Eric',price:75,grade:'B',role:'Strength',ini:'E',c:'#B6FF3C'}];
+const BENCH=[{ini:'M',c:'#FF3CC8'},{ini:'A',c:'#FFD23C'},{ini:'J',c:'#00D4FF'},{ini:'B',c:'#FF8A3C'}];
+const INITIATIVES=[
+ {title:'Launch Adult Ninja League — 8 wk pilot',pr:'P0',pct:68,due:'Jun 14',dc:'#FFD23C'},
+ {title:'Refit obstacle wall — Lane 3',pr:'P0',pct:40,due:'Jun 02',dc:'#FF0033'},
+ {title:'Migrate billing to Stripe Connect',pr:'P1',pct:85,due:'Jun 09',dc:'#FF0033'},
+ {title:'Re-shoot coach intro videos',pr:'P1',pct:22,due:'Jun 28',dc:'#B6FF3C'},
+ {title:'Audit member retention curve',pr:'P2',pct:10,due:'Jul 12',dc:'#B6FF3C'}];
+const FOLDERS=[
+ {name:'ONA',emoji:'🥷',c:'#FF0033',pin:true,notes:12,proj:3},
+ {name:'Podium',emoji:'🏆',c:'#FFD23C',pin:false,notes:7,proj:2},
+ {name:'Movement',emoji:'🤸',c:'#B6FF3C',pin:false,notes:18,proj:1},
+ {name:'@jayy_martinez',emoji:'📱',c:'#FF3CC8',pin:false,notes:9,proj:2},
+ {name:'Wife & I',emoji:'💛',c:'#B14CFF',pin:false,notes:5,proj:1},
+ {name:'Self',emoji:'🧭',c:'#00D4FF',pin:false,notes:11,proj:1}];
+const PIPE=[{l:'Idea',n:14,c:'#8A8A95'},{l:'Plan',n:7,c:'#00D4FF'},{l:'Shoot',n:4,c:'#FFD23C'},{l:'Edit',n:3,c:'#FF8A3C'},{l:'Schedule',n:5,c:'#B14CFF'},{l:'Posted',n:23,c:'#B6FF3C'}];
+const PROJECTS=[
+ {title:'B-Twist Tutorial — Full Breakdown',folder:'@jayy_martinez',fc:'#FF3CC8',done:4,total:7,due:'Jun 14',duek:'soon',next:'Cut the 3 fault-fix overlay clips'},
+ {title:'Adult Ninja League — launch assets',folder:'ONA',fc:'#FF0033',done:2,total:6,due:'Jun 02',duek:'overdue',next:'Film Riley\'s 30-sec league pitch'}];
+const HOOKS=[
+ 'I trained 6 disciplines for 10 years — here\'s what actually transferred.',
+ 'The reason your B-twist won\'t land (it\'s not your legs).',
+ 'Most people quit on day 17. Here\'s what day 18 looks like.'];
+const AGENTS=[
+ {id:'chief',name:'Chief of Staff',role:'Runs your day',c:'#B14CFF',ic:'compass',ph:'What should I focus on today?',quick:['Plan my day','Daily snapshot']},
+ {id:'coach',name:'Performance Coach',role:'Trains & recovers you',c:'#B6FF3C',ic:'act',ph:'Am I recovered? What should I train?',quick:['Am I recovered?','Plan a session']},
+ {id:'creative',name:'Creative Director',role:'Content & brands',c:'#FF3CC8',ic:'flame',ph:'Give me a hook or a shot list…',quick:['Write me a hook','Shot list']},
+ {id:'ona',name:'ONA Ops',role:'Gym operations',c:'#FF0033',ic:'target',ph:'How is ONA doing?',quick:['ONA pulse','Coach review']},
+ {id:'podium',name:'Podium Ops',role:'Equipment & builds',c:'#FFD23C',ic:'slide',ph:'What\'s next for Podium?',quick:['Podium focus','Order status']},
+ {id:'architect',name:'Systems Architect',role:'Improves your systems',c:'#00D4FF',ic:'spark',ph:'Where am I losing time?',quick:['Find friction','Monthly upgrade']}];
+const AGENT_REPLIES={
+ 'Plan my day':'Readiness 84/100 · E8 F7 B9 M8\n\nLock in first → Film the B-twist tutorial (16:00 shoot)\n\nToday\'s blocks:\n06:30 Mobility + cold plunge\n10:30 Ninja session @ ONA\n13:00 Coach review w/ Riley\n16:00 Content shoot',
+ 'Daily snapshot':'Readiness 84/100 · streak day 12.\nOne Thing → B-twist tutorial.\n3 thoughts to triage in Mind.\nONA: 2 P0 initiatives in flight.',
+ 'Am I recovered?':'Body 9/10 · Energy 8/10\n\nFully recovered — green light to push hard today. Front-load the gainer work while you\'re fresh; recovery score says yes.',
+ 'Plan a session':'Open Train → Build My Session for a full plan built from your skill tree, recent training, and readiness.',
+ 'Write me a hook':'From your Hook Bank:\n\n"The reason your B-twist won\'t land (it\'s not your legs)."\n\nOpen with this, pay it off in 3 seconds, loop the ending.',
+ 'Shot list':'Brands that need shots:\n• JK ACRO — Cold (3 posts)\n• ACRO WOOKS — Building (4 posts)\n\nFormula per clip: hook → demo → payoff. Batch 3 verticals back-to-back.',
+ 'ONA pulse':'Members 248 · MRR $38,450 · NPS 72\n\nP0 priorities:\n• Adult Ninja League pilot (68%)\n• Refit obstacle wall — Lane 3 (40%, due Jun 02 ⚠)',
+ 'Coach review':'Riley · Head Coach · grade A · $110/hr\n\nRoster: 5 active, avg private lesson $90/hr. Protect your A-graders\' schedules.',
+ 'Podium focus':'This week: the 14ft warped-wall panel order moves revenue — ship it. Protect a CNC/build block on the calendar.',
+ 'Order status':'2 builds in queue: warped-wall panels (cutting Fri) + cliffhanger ledge set (awaiting hardware). No blockers.',
+ 'Find friction':'3 thoughts sit untriaged — clear them in Mind to cut mental load.\n\nYou open Plan Week 4× less than Build My Session — consider merging them.',
+ 'Monthly upgrade':'Open Mind → Monthly Upgrade for the full system review. One proposal is waiting for your accept/dismiss.'};
+
+/* ── DRILLS — ordered teaching sequences per discipline → tier (cue / ⚠ fault / ✓ gate) ── */
+const DRILLS={
+gymnastics:{
+Foundation:[
+ {n:'Body-line holds: hollow → arch',cue:'Hollow: pelvis tilted, low back glued down, ribs in, arms by ears. Arch: glutes on, reach long. These two shapes ARE gymnastics.',gate:'30s clean hollow + 30s arch, no breaks.',fault:'Low back peels off the floor in hollow → tilt the pelvis, press the back flat.'},
+ {n:'Hollow & arch rocks',cue:'Hold one rigid shape and rock from the shoulders/heels — the line never changes.',gate:'20 controlled reps each, line held.',fault:'Breaking at the hips mid-rock → keep the shape locked; rock from the extremities.'},
+ {n:'Wrist & shoulder prep',cue:'Wrist CARs + flexor/extensor loading, scap push-ups, dislocates — bulletproof the joints you\'re about to load.',gate:'Pain-free loaded wrist extension; full overhead reach.',fault:'Skipping prep → wrist/elbow tendinopathy that stalls everything. Never skip this.'},
+ {n:'Chest-to-wall handstand',cue:'Stomach to wall, walk the feet up, push tall, ribs down, hips stacked over hands.',gate:'60s chest-to-wall, ears covered.',fault:'Banana — hips piked away → squeeze glutes, posterior tilt, drive tall.'},
+ {n:'Back-to-wall HS + shoulder taps',cue:'Kick up near the wall, find the balance line, alternate light controlled taps.',gate:'10 controlled taps each shoulder.',fault:'Falling into the wall / over-arching → stack shoulders over hands, don\'t dump the hips.'},
+ {n:'Kick-up to balance + pirouette bail',cue:'Kick to vertical only, claw the fingers; learn to turn out when you overbalance.',gate:'5s freestanding from a kick-up + confident bail.',fault:'Kicking too hard and falling flat → kick only to vertical; if you go over, turn out.'}],
+Developing:[
+ {n:'Freestanding HS balance (toe pulls)',cue:'Balance from the fingertips: press to stop a forward fall, release to stop a backward one.',gate:'30s freestanding handstand.',fault:'Correcting from the hips (banana) → all micro-corrections come from the hands.'},
+ {n:'Cartwheel → round-off technique',cue:'Hand-hand-foot-foot; snap heels together under the hips, finish tall and square.',gate:'Powerful round-off rebound to two feet, chest up.',fault:'Lands wide, loose, chest-down → snap legs together fast, block through the shoulders.'},
+ {n:'Round-off rebound (block)',cue:'Punch the floor through locked arms, rebound up AND slightly back, arms by the ears.',gate:'Tall rebound, hips open, stuck.',fault:'Collapsing forward → block off the hands, stay hollow and tall.'},
+ {n:'Bridge mobility → kick-over',cue:'Shift the shoulders past the hands, open the thoracic.',gate:'Straight-arm bridge, shoulders open over hands.',fault:'Bending only from the low back → push through shoulders and mid-back.'},
+ {n:'Straddle/pike press negatives',cue:'Lower slowly from handstand — lean shoulders forward, compress tight, straight arms.',gate:'5 slow controlled press negatives.',fault:'Swinging down → slow eccentric only; the lean and compression do the work.'}],
+Advanced:[
+ {n:'Front & back walkovers',cue:'Split the legs early, lead with the chest, push the shoulders open through the bridge.',gate:'Controlled walkover both directions.',fault:'No split, dumping the low back → split early, lead with the chest.'},
+ {n:'BHS prep: sit → jump back over barrel',cue:'Sit BACK like into a chair, jump backward (not up), delay the head, blind reach, snap down.',gate:'Back handspring over a barrel solo.',fault:'Jumping up and throwing the head early → sit back first, head neutral until hands reach.'},
+ {n:'Standing BHS → connection',cue:'Set tall, hands hit, block through the shoulders, snap the feet down under the hips.',gate:'Standing BHS stuck, no spot.',fault:'Piking down on landing → chest up, block hard, feet land under you.'},
+ {n:'Straddle → pike press to handstand',cue:'Straight arms, hips lead; compression + forward shoulder lean drive it — zero swing.',gate:'Straddle press to handstand.',fault:'Bending the arms or jumping → straight arms only; earn it with compression.'},
+ {n:'Planche lean → tuck planche',cue:'Protract hard, lean the shoulders well past the wrists, lock the elbows.',gate:'10s tuck planche.',fault:'Shoulders behind the wrists → protract and lean further; the lean IS the strength.'}],
+Elite:[
+ {n:'Back tuck: set + jump off raised mat',cue:'Full tall arm-set and a backward jump BEFORE you tuck — height first, then rotation.',gate:'Back tuck into pit/resi, consistent.',fault:'Tucking before setting → complete the tall set first, then snap the tuck.'},
+ {n:'Standing back tuck on flat',cue:'Same set; commit, snap knees to chest, open to spot the landing, stick it.',gate:'Standing back tuck stuck on flat.',fault:'Throwing back from fear and under-rotating → commit and set vertical.'},
+ {n:'Whip → layout line drills',cue:'Hollow–arch–hollow; drive the hips, straight legs, delay the open.',gate:'Whip-back with a tight, traveling line.',fault:'Opening early and piking → delay the open, drive the hips through.'},
+ {n:'Twisting intro: late-twist drills',cue:'Finish the set first, then initiate the twist LATE and tight from the shoulders/hips.',gate:'Clean half-twisting layout.',fault:'Twisting early kills rotation and height → set fully, twist late, stay tight.'},
+ {n:'One-arm HS: shifts → brief OAHS',cue:'Shift hips fully over the post hand, square the shoulders, correct from the fingers.',gate:'3–5s one-arm handstand.',fault:'Hips lagging behind the post arm → stack hips over the supporting hand first.'}]},
+tricking:{
+Foundation:[
+ {n:'Stance, weight transfer & base kicks',cue:'Chamber, snap, retract; stay tall over the base leg. Clean kicks are the alphabet of tricking.',gate:'Balanced controlled kicks both legs.',fault:'Leaning back / dropping the chest → stay tall over the base leg, snap from the chamber.'},
+ {n:'Tornado kick: pop 360 → 540',cue:'Vertical pop, spot early, late kick; land on the kicking leg.',gate:'Clean pop 540, landed in control.',fault:'Traveling and twisting flat/low → pop vertical first, then add the late kick.'},
+ {n:'Setups: cartwheel, RO, J-step',cue:'Master the entries cold — sloppy setups cap every flip you ever learn.',gate:'Consistent J-step / round-off into vertical.',fault:'Rushing sloppy setups → slow them down until automatic; speed is built last.'},
+ {n:'RO rebound / jump-back (flip engine)',cue:'Block off the hands, rebound tall and slightly back — this powers every backward flip.',gate:'Tall powerful rebound, hips open.',fault:'Throwing the head back instead of blocking up → punch the floor, rebound up first.'}],
+Developing:[
+ {n:'Aerial off a box → flat',cue:'Reach long over the lead leg, hollow body, kick-punch the legs through.',gate:'Aerial stuck on flat ground.',fault:'Putting a hand down or piking → commit to the reach, drive the kick-punch.'},
+ {n:'Bkick → butterfly twist, off elevation',cue:'Bkick for the shape, then the backside twist: set vertical, twist late and tight.',gate:'Btwist landed on flat.',fault:'Twisting before setting → establish takeoff and height first, then twist late.'},
+ {n:'Cheat 720 (twisting kick)',cue:'Cheat the setup, stay over the base, complete the rotation before landing.',gate:'Cheat 720 stuck on the kicking leg.',fault:'Opening the twist early → stay tight, finish the spin before reaching for the floor.'},
+ {n:'Swing-through / masterscoop',cue:'Momentum and rotation control — these feed your gainers and corks.',gate:'Smooth swing-through that sets up a flip.',fault:'No momentum control → drill the swing/scoop until the entry is effortless.'}],
+Advanced:[
+ {n:'Gainer off elevation → flat',cue:'Travel forward off one leg, flip backward; spot the takeoff foot.',gate:'Gainer landed on flat.',fault:'Jumping backward instead of traveling forward → commit forward off the one foot.'},
+ {n:'Cork: box → mat → flat',cue:'Hurdle, set LOW and diagonal, dump the head late, complete rotation before opening.',gate:'Cork landed feet-first on flat.',fault:'Setting too upright (becomes a btwist) → set low and diagonal, commit the off-axis dump.'},
+ {n:'Raiz / touchdown raiz',cue:'Inverted-cartwheel feel, snap the legs through, finish tall.',gate:'Raiz stuck, chest up.',fault:'Landing chest-down → snap the legs through fully, pull the chest up.'},
+ {n:'Full (full-twisting layout)',cue:'Set the layout fully, then a late, tight full twist.',gate:'Full twist landed and stuck.',fault:'Twisting early kills rotation and height → complete the set, twist late.'}],
+Elite:[
+ {n:'Cork variations (hook, swipe, shuriken)',cue:'Own the clean base cork before adding flavor; one variation at a time.',gate:'2–3 cork variations landed clean.',fault:'Flavoring before the base cork is clean → perfect the plain cork first.'},
+ {n:'Double cork: pit → resi → flat',cue:'Set higher off the single, two tight rotations, eyes find the floor early.',gate:'Double cork into soft, consistently.',fault:'Not setting higher → more height and a tighter first rotation, not more throw.'},
+ {n:'Double full / multi-twist layouts',cue:'Earn off the single full; set higher, two tight late twists, hold the line.',gate:'Double full landed.',fault:'Under-setting → more set and height, then twist late and tight.'},
+ {n:'Combos / linking under fatigue',cue:'Link only what is automatic; control landing one to launch trick two.',gate:'Clean 3-trick combo, controlled.',fault:'Linking before each trick is automatic → master the singles first.'}]},
+calisthenics:{
+Foundation:[
+ {n:'Scap pulls / pushups / dips',cue:'Move the shoulder blades FIRST — own protraction, retraction, depression.',gate:'10 controlled reps of each.',fault:'Moving from the elbows → isolate the shoulder blades; arms stay straight.'},
+ {n:'Full-ROM pull-ups, dips, rows',cue:'Build strict strength and BALANCE pushing with pulling from day one.',gate:'10 pull-ups · 15 dips · 20 pushups · 10 rows.',fault:'All push, little pull → match every pressing set with a pulling set.'},
+ {n:'Pistol squat + Nordic curls',cue:'Single-leg strength + hamstring eccentrics protect the knees.',gate:'Clean pistol each leg; ½-range Nordic.',fault:'Neglecting legs entirely → they power every jump and landing.'}],
+Developing:[
+ {n:'Tuck front-lever hold → raises',cue:'Straight arms, posterior pelvic tilt, pull the bar toward the hips.',gate:'10s tuck FL + 5 raises.',fault:'Bent arms / anterior tilt → lock the elbows, tuck the pelvis, pull from the lats.'},
+ {n:'Explosive pulls → negative MU → MU',cue:'Pull high to the navel, fast turnover, bar path tight.',gate:'3 clean bar muscle-ups.',fault:'Chicken-winging → pull higher and turn over faster; train the negative.'},
+ {n:'L-sit + wall HSPU',cue:'Active compression for the L-sit; full overhead range on the HSPU.',gate:'15s L-sit · 5 wall HSPU full ROM.',fault:'Half-range HSPU → full overhead lockout; actively lift the L-sit.'}],
+Advanced:[
+ {n:'Adv-tuck → straddle front lever',cue:'Open the tuck slowly; arms straight, body rigid-hollow throughout.',gate:'5s straddle front lever.',fault:'Opening too fast / bending arms → progress the lever arm gradually.'},
+ {n:'Planche: leans → tuck → straddle',cue:'Lean past the wrists, scapula protracted — tendons adapt slowly, be patient.',gate:'10s advanced-tuck planche.',fault:'Rushing volume → elbow tendon overuse; ramp slowly and deload.'},
+ {n:'Freestanding HSPU + human flag',cue:'Top arm pulls, bottom presses; stack and brace the whole body.',gate:'Freestanding HSPU; 5s flag.',fault:'Banana HSPU → keep a hollow line and full overhead lockout.'}],
+Elite:[
+ {n:'Full front lever → pulls',cue:'Rigid hollow line, pull from straight-arm lats.',gate:'Full FL 5s hold.',fault:'Hips sagging → squeeze the whole body into one rigid plank.'},
+ {n:'Full planche → planche pushups',cue:'Straight-arm strength is connective tissue — protect the elbow, ramp slowly.',gate:'Full planche 3s.',fault:'Jumping volume and tweaking the elbow → small loads, real recovery.'},
+ {n:'OAP: archer → weighted negatives',cue:'Build the elbow gradually; never rush connective tissue.',gate:'Controlled weighted OAP negative.',fault:'Yanking with the whole body → slow weighted negatives first.'}]},
+acro:{
+Foundation:[
+ {n:'Solo handstand line + endurance',cue:'Your handstand IS your base — own a long, quiet one before partner work.',gate:'45s freestanding straight HS.',fault:'Partner work on a shaky handstand → fix the solo HS first.'},
+ {n:'Bird / throne + counterbalances',cue:'Stack flyer over base hips, locked arms, load straight through the bones.',gate:'Stable 15s counterbalance / bird.',fault:'Loading through muscle instead of bone → stack and lock the skeleton.'},
+ {n:'Foot-to-hand setup (L-base)',cue:'Flyer rises tall and hollow; base locks arms and drives straight up.',gate:'Stable 10s foot-to-hand.',fault:'Flyer leaning / uneven press → flyer vertical, base drives evenly.'}],
+Developing:[
+ {n:'Shoulder stand → 2-high',cue:'Base braces overhead; flyer finds the line tall, quiet, patient.',gate:'10s stable 2-high.',fault:'Flyer rushing up → wait for the brace, then rise slow and quiet.'},
+ {n:'Whip-up to foot-to-hand',cue:'Time the dip-drive together; flyer stays hollow and waits for the line.',gate:'Consistent dynamic entry to F2H.',fault:'Mis-timed dip-drive → count it together; base drives on the agreed beat.'},
+ {n:'Low hand-to-hand (L-base)',cue:'Wrist-to-wrist, stacked bones, balance from the fingers — flyer hollow.',gate:'5s low H2H.',fault:'Gripping hard with unstacked wrists → stack bones, relax the grip.'}],
+Advanced:[
+ {n:'Hand-to-hand (H2H) static',cue:'Straight-arm base, flyer stacked over the base shoulders — breathe and hold.',gate:'10s H2H hold.',fault:'Bent base arms / flyer banana → lock arms, stack a straight line.'},
+ {n:'Pop-ups / partner press entries',cue:'Drive through the legs, sync the count, soft controlled catches.',gate:'Clean press entry to H2H.',fault:'Yanking the entry with the arms → drive through the legs, time the count.'},
+ {n:'Dynamic washing-machines',cue:'Continuous tension, smooth transitions, eyes up the whole rotation.',gate:'One full cycle, controlled.',fault:'Losing tension between positions → maintain it, keep the eyes up.'}],
+Elite:[
+ {n:'Standing hand-to-hand',cue:'Earned off bulletproof HS + low H2H; tiny constant corrections, calm.',gate:'Standing H2H 3–5s.',fault:'Tension and panic → tiny corrections, trust the accumulated reps.'},
+ {n:'Dynamic pitches & tempos',cue:'Commit fully, time the catch, control the landing arc.',gate:'Consistent caught pitch.',fault:'Half-committing the throw → commit fully; hesitation causes misses.'},
+ {n:'One-arm flag / one-arm work',cue:'Built on years of straight-arm and balance — patience over ego.',gate:'Held one-arm shape with base.',fault:'Chasing it early → build years of straight-arm work first.'}]},
+parkour:{
+Foundation:[
+ {n:'Landing mechanics + safety roll',cue:'Land quiet on the balls, absorb ankle→knee→hip; roll diagonally over the shoulder.',gate:'Silent drop landing + smooth roll both sides.',fault:'Landing stiff/loud or rolling on the spine → absorb softly; shoulder-to-opposite-hip.'},
+ {n:'Two-foot precision jumps',cue:'Arms set the balance, stick it dead on the rail — no wobble, no step.',gate:'10/10 stuck rail precisions.',fault:'Stepping out on landing → start lower, use the arms, stick it dead.'},
+ {n:'Balance, QM & basic vaults',cue:'Move efficiently — light hands, eyes ahead.',gate:'Clean safety/step/lazy vaults at pace.',fault:'Heavy hands and eyes down → light contact, look where you\'re going.'}],
+Developing:[
+ {n:'Kong vault — progressive distance',cue:'Dive early, push long off the hands, tuck the knees through.',gate:'Kong over a wide obstacle, controlled.',fault:'Diving late and clipping the knees → dive earlier, push long.'},
+ {n:'Cat leap → climb-up',cue:'Absorb on the wall, then pull and rotate over the top.',gate:'Controlled cat-to-top, no scramble.',fault:'Slamming and scrambling → absorb on contact, then pull smoothly.'},
+ {n:'Wall run (tac) height ladder',cue:'Attack the wall, drive the knee, reach tall.',gate:'Consistent tac to a high grab.',fault:'Running flat into the wall → drive the knee up, convert speed to height.'}],
+Advanced:[
+ {n:'Kong-precision: flat → gap',cue:'Control the float, spot the landing, stick it quiet.',gate:'Kong-pre over a gap, stuck silent.',fault:'Over-rotating → control the float, eyes on the landing.'},
+ {n:'Running & stride precisions',cue:'Rhythm and confidence; commit fully to the stick.',gate:'Stuck running precision to a rail.',fault:'Hesitating mid-stride → keep the rhythm, commit fully.'},
+ {n:'Underbars + larger gaps',cue:'Carry speed through technique; scout before you send.',gate:'Linked vault-to-cat at pace.',fault:'Losing speed through poor technique → flow it; scout the line first.'}],
+Elite:[
+ {n:'Wall flips / spins (matted first)',cue:'Earned off tricking flips + solid wall runs; commit, spot, land soft.',gate:'Wall flip stuck off a wall.',fault:'Sending un-matted or under-committing → mats first, then full commitment.'},
+ {n:'Gainers off walls / flips into lines',cue:'Spot the takeoff, control rotation, land in balance to keep flowing.',gate:'Flip linked into a moving line.',fault:'Landing off-balance and stopping → control rotation, keep moving.'},
+ {n:'Big high-consequence lines',cue:'Only send when every single move is 100% on the ground first.',gate:'Full line, every move pre-proven.',fault:'Sending un-proven moves at height → prove everything low first.'}]},
+ninja:{
+Foundation:[
+ {n:'Grip ladder: dead → towel → pinch',cue:'Grip is the gatekeeper — build hang time and finger tolerance; relax between holds.',gate:'60s dead hang · 30s towel hang.',fault:'Over-gripping and gassing the forearms → relax between holds, build gradually.'},
+ {n:'Active hang + strict pull-ups',cue:'A strong pull underlies every obstacle.',gate:'10 strict pull-ups; controlled active hang.',fault:'Passive dead-hanging only → train the active scap hang too.'},
+ {n:'Short lache to catch',cue:'Swing from the shoulders, release at the peak, catch soft.',gate:'Clean short lache, caught and controlled.',fault:'Releasing too early or late → release at the peak of the swing.'}],
+Developing:[
+ {n:'Lache distance ladder',cue:'Generate from the swing, release late, regrip soft and absorb.',gate:'Consistent long lache between bars.',fault:'Pulling with the arms instead of swinging → power comes from the swing.'},
+ {n:'Warped wall run-up',cue:'Attack the wall, last steps high, reach long at the top.',gate:'14 ft warped wall.',fault:'Slowing at the base → accelerate into it, keep the last steps high.'},
+ {n:'Grip transitions (cannonball, rings)',cue:'Smooth re-grips; conserve the forearms across holds.',gate:'Linked 3-obstacle grip transition.',fault:'Forearms blowing up → smooth, efficient re-grips; conserve grip.'}],
+Advanced:[
+ {n:'Cliffhanger / ledge traverse',cue:'Fingertip strength + body tension; move from the back and hips.',gate:'Traverse a cliffhanger ledge.',fault:'All arms, no body tension → engage back and core, save the fingers.'},
+ {n:'Salmon ladder',cue:'Explosive kip, drive both ends of the bar up together, control the catch.',gate:'Salmon ladder rung-to-rung ×3.',fault:'Driving the bar unevenly → kip explosively, pop both ends together.'},
+ {n:'Pegboard / dynamic grip moves',cue:'Tight core, deliberate placements, save the forearms.',gate:'Pegboard up-and-over.',fault:'Frantic placements → stay tight and deliberate; speed wastes grip.'}],
+Elite:[
+ {n:'Ultimate cliffhanger / floating boards',cue:'Max fingertip strength + lache precision under fatigue.',gate:'Dynamic fingertip move caught clean.',fault:'Grip gassing under fatigue → train fingertip moves while already tired.'},
+ {n:'Devil steps & comp obstacles',cue:'Train the full sequence, not just the single move.',gate:'Linked competition obstacle cluster.',fault:'Drilling only single moves → rehearse full sequences as in comp.'},
+ {n:'Competition-pace circuits',cue:'Grip endurance is the limiter — train it fresh AND fatigued; pace the course.',gate:'Full course pace, no grip blow-out.',fault:'Pacing too hot early → manage grip output across the whole course.'}]}};
+
+/* ── FUNDAMENTALS — the bedrock under the tricks (why / how / standard) ── */
+const FUNDS={
+tricking:[
+ {n:'Air awareness & spatial orientation',why:'The #1 separator. Your sense of where you are while inverted and twisting is TRAINED, never guessed — built through thousands of graded, low-consequence reps.',how:'Progressive exposure: vertical kicks → flips off elevation into mats; trampoline volume; add height only once the current level is automatic.',std:'Calm and oriented inverted, eyes finding the floor before you land.'},
+ {n:'The set — rotation is born at takeoff',why:'ALL angular momentum is generated during ground contact — none can be added in the air. A tall vertical set buys height = airtime = time to rotate. Most stalled trickers have a weak set, not a weak trick.',how:'Jump-set drills (full triple extension, arms lock by the ears), round-off rebound, standing set-and-spot, punch drills.',std:'A tall vertical set, arms locked overhead — height first, rotation second.'},
+ {n:'The block — speed into height',why:'The block redirects horizontal momentum into vertical lift via a stiff leg planted ~45° in front. It\'s the lever that gives running tricks their air.',how:'Round-off block, hurdle-step block, depth-jump stiffness, single-leg blocking off a run.',std:'Convert a run into a high vertical jump off one stiff leg.'},
+ {n:'Twisting mechanics — contact twist + tilt',why:'Tricking twists are mostly CONTACT-initiated: start on the ground with the whole body — arm-only twisting in the air is ~half as effective. Pulling in speeds the spin; opening slows it to land.',how:'Standing half/full-twist jumps, late-twist drills, arm-wrap timing, tilt-twist reps on the tramp.',std:'A clean full twist initiated at takeoff, tight in the air, opening on time.'},
+ {n:'Rotational & reactive power (RFD)',why:'Explosive ground contact and rate of force development create the height and snap; the stretch-shortening cycle is the engine of every set and block.',how:'Pogos, depth jumps, tuck jumps, single-leg bounds, triple-extension strength. Short crisp contacts; quality over fatigue.',std:'A big tuck jump and a strong single-leg bound off either leg.'},
+ {n:'Kicking base & dynamic flexibility',why:'Tricking grew out of martial arts — sharp kicks, full splits, and hip mobility underpin every setup and the lines that make tricks look elite.',how:'Technical kick reps, dynamic + static splits, hip CARs, slow balance holds.',std:'Full splits both sides; controlled head-height kicks on both legs.'},
+ {n:'Landing & deceleration (eccentrics)',why:'The most-skipped pillar and the #1 reason tricking careers end early. Absorbing rotational landings is what lets you train for decades.',how:'Depth & rotational landings, eccentric step-downs, Nordic curls, ankle/achilles prep, valgus control.',std:'Stick rotational landings quietly, knees tracking over toes.'},
+ {n:'Mobility for the set & clean lines',why:'A tall set needs overhead shoulders + thoracic extension; ankles need dorsiflexion; restriction leaks height and ruins lines.',how:'Shoulder dislocates, thoracic extension drills, ankle dorsiflexion, hip work. Prep before; develop on recovery days.',std:'Full pain-free overhead reach, open thoracic, solid dorsiflexion.'},
+ {n:'Core line & anti-rotation control',why:'Controlling tilt, twist, and the tuck/open requires a rigid, switchable trunk — the core holds the shape so physics works for you.',how:'Hollow & arch holds, V-ups, Pallof press, tuck-to-open control drills.',std:'Hold a tight line in the air and control the open on demand.'},
+ {n:'Practice method, fear & recovery',why:'Skills are learned by graded spatial overload, honest feedback, and managed fear — not by sending. Volume, tendon health and recovery decide your ceiling.',how:'Earn every trick off elevation first; film and self-correct; visualize; rest fully between max efforts; deload regularly.',std:'A repeatable, safe process for any new trick — and no chronic joint pain.'}],
+gymnastics:[
+ {n:'Body line & shape mastery',why:'Every skill is a precise sequence of shapes. The hollow and arch are the language; control them and tumbling, swinging and handstands all click.',how:'Hollow & arch holds and rocks, tight-body planks, crisp hollow↔arch switches on command.',std:'Hold and switch a crisp hollow and arch instantly, line never breaking.'},
+ {n:'The handstand as the universal position',why:'Balance, alignment, and straight-arm support transfer into presses, tumbling, and bars. A great handstand quietly upgrades everything.',how:'Chest-to-wall endurance, fingertip balance, pirouette bail, plumb-line alignment.',std:'30–60s straight freestanding handstand, balanced from the hands.'},
+ {n:'Straight-arm & active-shoulder strength',why:'Presses, levers, supports and safe hand-landings all need straight-arm strength and full scapular elevation — the slow-adapting tissue base.',how:'Scap shrugs in support, planche/lever leans, German hang, support holds.',std:'Full active-shoulder handstand; a solid tuck planche.'},
+ {n:'Tumbling mechanics: set, block & punch',why:'All rotation is created on the floor — round-off → block → punch converts speed into height, and a straight set precedes rotation.',how:'Round-off rebound, punch drills, BHS blocking, hollow set jumps.',std:'A powerful tall rebound and a blocked, traveling back handspring.'}],
+calisthenics:[
+ {n:'Straight-arm strength = connective tissue',why:'Planche and levers load tendons, and tendons adapt far slower than muscle. Patience here prevents the elbow injuries that stall almost everyone.',how:'Progressive leans and holds, frequent low-volume exposure, tempo work, deloads.',std:'Steadily ramped straight-arm progressions, zero elbow pain.'},
+ {n:'Scapular strength & control',why:'RTO support, protraction for planche, retraction for levers — the scapula drives every straight-arm skill.',how:'Scap work in support and hang, RTO holds, protracted planche leans.',std:'A strong RTO support and full controlled scapular range.'},
+ {n:'Hollow body & full-body tension',why:'Levers and planche are rigid planks — tension makes you light, aligned, and strong in the shape.',how:'Hollow holds and rocks, tuck-to-lever line drills, bracing under load.',std:'A rigid hollow line held under load.'},
+ {n:'Push / pull balance',why:'Most calisthenics shoulders get hurt from imbalance — match every press with a pull.',how:'Weighted pull-ups, dips, rows through full range; equal push/pull volume.',std:'Strong full-ROM basics with balanced push:pull volume.'}],
+acro:[
+ {n:'Your solo handstand IS your base',why:'Every partner position rides on a quiet, straight handstand. Acro problems are usually handstand problems in disguise.',how:'Handstand endurance, straight-arm overhead support holds, one-arm leans.',std:'45–60s straight quiet handstand before loading partner work.'},
+ {n:'Stacking through bone, not muscle',why:'Efficient acro loads the skeleton in a straight line — the secret to "effortless" balances.',how:'F2H and H2H alignment drills, locked-arm supports, plumb-line checks.',std:'Hold loads with straight, stacked, relaxed arms.'},
+ {n:'Base / flyer communication & timing',why:'Acro is a two-person sport — agreed counts and trust make or break every dynamic move. The best pairs out-communicate, not out-muscle.',how:'Shared counts, dip-drive timing reps, consistent verbal calls.',std:'Clean, synced entries and exits on a shared count.'},
+ {n:'Flyer body tension & line',why:'A rigid hollow flyer is light and stable; a loose flyer is unliftable and unsafe.',how:'Hollow holds, line drills under load, slow controlled lifts holding shape.',std:'Hold a rigid hollow line through an entire lift.'}],
+parkour:[
+ {n:'Landing mechanics & force absorption',why:'Everything in parkour ends in a landing. Absorbing force well protects your knees, ankles and spine for decades.',how:'Depth landings, safety rolls both sides, eccentric leg strength, varied surfaces.',std:'Silent, absorbed landings and clean rolls both directions.'},
+ {n:'Precision, balance & foot accuracy',why:'Control over exactly where your feet land is the core of safety on rails and edges. Accuracy beats power.',how:'Accuracy ladders, rail balance, single-leg stability, eyes-on-target practice.',std:'Stick precisions dead and balance rails calmly.'},
+ {n:'Spatial awareness & scouting',why:'Judging gaps accurately prevents the misjudgments that cause most parkour injuries. Scout, benchmark, then commit.',how:'Measured jumps, broad-jump benchmarking against known gaps, line scouting.',std:'Accurately judge gaps within your ability; commit only to those.'},
+ {n:'Reactive & eccentric leg strength',why:'Explosive take-offs and safe deceleration both come from strong, springy legs — the athletic engine of parkour.',how:'Plyometrics, single-leg strength, eccentric squats, calf/ankle resilience.',std:'A strong broad jump and a controlled single-leg landing off either leg.'}],
+ninja:[
+ {n:'Grip strength AND energy management',why:'Grip is the gatekeeper and the thing that fatigues first — managing grip output across a course decides competitions.',how:'Dead/towel/pinch hangs, varied rungs, grip-density circuits, relax-between-holds practice.',std:'Long varied hangs; pace grip across a full circuit.'},
+ {n:'Swing & momentum (lache) mechanics',why:'Efficient obstacles use momentum from the swing, not muscle — timing the release at the peak is the real skill.',how:'Lache distance ladders, swing-timing reps, release-at-peak drills, soft catches.',std:'Long, efficient laches with soft controlled catches.'},
+ {n:'Fingertip & forearm durability',why:'Cliffhangers, ledges and pegs load the fingers hard; tendon prep prevents the injuries that plague ninja athletes.',how:'Progressive fingertip loading, hangboard-style work, forearm/elbow prep.',std:'Pain-free fingertip loading and solid ledge holds.'},
+ {n:'Balance & footwork',why:'Many obstacles are footwork, not grip. Trickers and climbers neglect this and fail on the "easy" stuff.',how:'Balance drills, precise footwork on steps and ledges, reactive stepping.',std:'Confident balance and footwork obstacles at pace.'}]};
+
+/* ── Blindspots + weekly microcycle (periodization) ── */
+const BLINDSPOTS=[
+ {sev:'high',c:'#FF0033',t:'Shaky foundation in Tricking',d:'You\'re working Elite-tier corks while the gainer (55%) isn\'t locked. Re-earn the base — it removes the ceiling and the injury risk.'},
+ {sev:'med',c:'#FFD23C',t:'Neglecting Acro',d:'Active skills in Acro but no session in 3 weeks. Slot a short block with Chelsea this week to keep the progression alive.'},
+ {sev:'low',c:'#00D4FF',t:'Don\'t skip: Landing & eccentric control',d:'The most-skipped pillar and the #1 injury source. Depth landings · eccentric step-downs · roll mechanics.'}];
+const WEEK=[
+ {d:'Day 1 · Skill + Power (fresh)',f:'Your hardest, newest skill work while most rested',imp:'high'},
+ {d:'Day 2 · Strength + Straight-arm',f:'Lower-impact strength to support the skills',imp:'low'},
+ {d:'Day 3 · Skill — second discipline',f:'A contrasting discipline for all-around growth',imp:'med'},
+ {d:'Day 4 · Recovery + Mobility',f:'Down-week the load so adaptation happens',imp:'recovery'},
+ {d:'Day 5 · Power + Priority discipline',f:'Push your current priority / comp focus',imp:'high'},
+ {d:'Day 6 · Play + Flow + Flexibility',f:'Link what you own; keep it joyful',imp:'low'},
+ {d:'Day 7 · Full rest',f:'Complete rest — non-negotiable',imp:'rest'}];
+const IMP_META={high:{c:'#FF0033',l:'HIGH IMPACT'},med:{c:'#FFD23C',l:'MED IMPACT'},low:{c:'#00D4FF',l:'LOW IMPACT'},recovery:{c:'#B14CFF',l:'RECOVERY'},rest:{c:'#5A5A66',l:'REST'}};
+const PRINCIPLES=[
+ 'Learn new skills FRESH — early in the session, early in the week. Motor learning collapses under fatigue.',
+ 'Alternate high-impact days with low-impact days so the same tissue is never hammered twice in a row.',
+ 'Auto-regulate by readiness: green = push skills & power · yellow = technique, cap impact · red = recovery only.'];
+const ATTENTION=[
+ {n:'ONA',e:'🥷',c:'#FF0033',pct:34},{n:'Movement',e:'🤸',c:'#B6FF3C',pct:22},
+ {n:'@jayy',e:'🎬',c:'#FF3CC8',pct:18},{n:'Podium',e:'🏆',c:'#FFD23C',pct:11},
+ {n:'Wife & I',e:'💛',c:'#B14CFF',pct:9},{n:'Self',e:'🧭',c:'#00D4FF',pct:6}];
+const DOMAINS=[{id:'ona',n:'ONA',e:'🥷',c:'#FF0033'},{id:'podium',n:'Podium',e:'🏆',c:'#FFD23C'},{id:'movement',n:'Movement',e:'🤸',c:'#B6FF3C'},{id:'social',n:'@jayy',e:'🎬',c:'#FF3CC8'},{id:'wife',n:'Wife & I',e:'💛',c:'#B14CFF'},{id:'self',n:'Self',e:'🧭',c:'#00D4FF'}];
+
+/* ════════════════ STATE ════════════════ */
+const S={tab:'today',oneDone:false,inbox:[
+  {text:'Adult league needs a launch video — get Riley on camera this week',tag:'ona',meta:'TODAY · 08:14 · VOICE'},
+  {text:'Reel idea: "grip is the gatekeeper" — salmon ladder POV + 3 grip drills',tag:'social',meta:'TODAY · 07:51 · TYPED'},
+  {text:'Book Chelsea\'s anniversary dinner — Kadence or Capa?',tag:'wife',meta:'YESTERDAY · 21:30 · TYPED'}],
+ trk:{},openDisc:'tricking',skillKey:'tricking|5',fund:{tricking:true},
+ agent:'chief',achat:[],thinking:false,comp:[],compThink:false,
+ sheet:null,sess:{disc:'tricking',dur:60,phase:'pick'},week:{days:5,prio:'tricking'},upg:'pending',sheetClosing:false};
+const TABS=[{id:'today',l:'TODAY',ic:'sun',c:'var(--cyan)'},{id:'train',l:'TRAIN',ic:'zap',c:'var(--lime)'},{id:'create',l:'CREATE',ic:'pen',c:'var(--magenta)'},{id:'ona',l:'ONA',ic:'target',c:'var(--red)'},{id:'mind',l:'MIND',ic:'mind',c:'var(--gold)'},{id:'agents',l:'AGENTS',ic:'bot',c:'var(--violet)'}];
+const $=id=>document.getElementById(id);
+const hapt=(n=12)=>{try{navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* ════════════════ FX ════════════════ */
+function confetti(n=26){const fx=$('fx'),cols=['#00D4FF','#B14CFF','#FF3CC8','#B6FF3C','#FFD23C'];
+ for(let i=0;i<n;i++){const p=document.createElement('div');p.className='cf';
+  const a=Math.random()*Math.PI*2,d=70+Math.random()*150;
+  p.style.left='50%';p.style.top='42%';p.style.background=cols[i%5];
+  p.style.setProperty('--dx',Math.cos(a)*d+'px');p.style.setProperty('--dy',(Math.sin(a)*d-60)+'px');
+  p.style.setProperty('--rot',(Math.random()*640-320)+'deg');fx.appendChild(p);setTimeout(()=>p.remove(),1250)}hapt(24)}
+function toast(msg,color){const t=document.createElement('div');t.className='toast';if(color){t.style.borderColor=color+'66';t.style.color=color;t.style.boxShadow=`0 0 40px -8px ${color}55`}t.textContent=msg;$('device').appendChild(t);setTimeout(()=>t.remove(),1750)}
+
+/* ════════════════ SHARED PARTIALS ════════════════ */
+const orb=s=>`<div class="orb" style="width:${s}px;height:${s}px"><div class="halo"></div><div class="r1"></div><div class="r2"></div><div class="core"></div></div>`;
+const secHead=(eb,t,r='')=>`<div class="sec-head"><div><div class="eyebrow">${eb}</div><div class="sec-title" style="margin-top:3px">${t}</div></div>${r}</div>`;
+function ring(p){const C=2*Math.PI*46;return `<div style="position:relative;width:118px;height:118px;flex-shrink:0">
+<svg width="118" height="118" viewBox="0 0 118 118"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00D4FF"/><stop offset="1" stop-color="#B14CFF"/></linearGradient></defs>
+<circle cx="59" cy="59" r="46" stroke="rgba(255,255,255,.07)" stroke-width="8" fill="none"/>
+<circle cx="59" cy="59" r="46" stroke="url(#rg)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="${(C*p/100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 59 59)" style="filter:drop-shadow(0 0 9px rgba(0,212,255,.55))"/></svg>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<div class="display" style="font-size:40px">${p}</div><div class="eyebrow" style="font-size:7.5px">READINESS</div></div></div>`}
+function radarSVG(){const cx=86,cy=86,R=64,N=6;const pt=(i,v)=>{const a=(-90+i*60)*Math.PI/180,r=R*v/100;return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`};
+ let grid='';[33,66,100].forEach(g=>{grid+=`<polygon points="${RADAR.axes.map((_,i)=>pt(i,g)).join(' ')}" fill="none" stroke="rgba(255,255,255,.06)"/>`});
+ let ax='';RADAR.axes.forEach((a,i)=>{const ang=(-90+i*60)*Math.PI/180,lx=cx+(R+13)*Math.cos(ang),ly=cy+(R+13)*Math.sin(ang);
+  ax+=`<line x1="${cx}" y1="${cy}" x2="${cx+R*Math.cos(ang)}" y2="${cy+R*Math.sin(ang)}" stroke="rgba(255,255,255,.07)"/>
+  <text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1" fill="#8A8A95">${a.slice(0,3).toUpperCase()}</text>`});
+ return `<svg width="172" height="172" viewBox="0 0 172 172">${grid}${ax}
+ <polygon points="${RADAR.goal.map((v,i)=>pt(i,v)).join(' ')}" fill="none" stroke="rgba(255,255,255,.22)" stroke-dasharray="3 4"/>
+ <polygon points="${RADAR.cur.map((v,i)=>pt(i,v)).join(' ')}" fill="rgba(0,212,255,.15)" stroke="#00D4FF" stroke-width="1.6" style="filter:drop-shadow(0 0 6px rgba(0,212,255,.5))"/>
+ ${RADAR.cur.map((v,i)=>`<circle cx="${pt(i,v).split(',')[0]}" cy="${pt(i,v).split(',')[1]}" r="2.4" fill="#00D4FF"/>`).join('')}</svg>`}
+function trkChip(key){const v=S.trk[key]||0,cls=v===1?'w':v===2?'g':'',lbl=v===1?'WORKING':v===2?'✓ GOT IT':'TRACK';
+ return `<span class="trk pr ${cls}" onclick="event.stopPropagation();App.cycleTrk(this,'${key}')">${lbl}</span>`}
+
+/* ════════════════ SCREENS ════════════════ */
+function scrToday(){
+ const meters=[['ENERGY',8,'#00D4FF'],['FOCUS',7,'#B14CFF'],['BODY',9,'#B6FF3C'],['MOOD',8,'#FFD23C']];
+ return `
+ <div style="display:flex;justify-content:space-between;align-items:flex-end">
+  <div><div class="eyebrow">THU · JUN 12 · DAY 12 STREAK 🔥</div><div class="h-screen" style="margin-top:7px">GOOD MORNING,<br>JAY</div></div>
+  <div class="pill" style="color:var(--lime);margin-bottom:3px"><span class="pdot"></span>SHARP</div></div>
+ <div class="glass-strong mesh-today" style="padding:18px 16px">${T}
+  <div style="display:flex;gap:16px;align-items:center">${ring(84)}
+   <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+    ${meters.map(m=>`<div style="display:flex;align-items:center;gap:9px"><span class="mono" style="font-size:8px;letter-spacing:.16em;color:var(--muted);width:46px">${m[0]}</span><div class="bar"><i style="width:${m[1]*10}%;background:${m[2]}"></i></div><span class="mono" style="font-size:10px;color:${m[2]};width:14px;text-align:right">${m[1]}</span></div>`).join('')}
+   </div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+   <span class="mono" style="font-size:9px;color:var(--lime);letter-spacing:.14em">▲ +6 VS 7-DAY AVG</span>
+   <span class="eyebrow">TAP METERS TO RE-CALIBRATE</span></div></div>
+ <div class="glass" style="padding:15px 14px;border-color:rgba(177,76,255,.25)">${T}
+  <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">${orb(20)}<span class="eyebrow" style="color:var(--violet)">CHIEF OF STAFF — MORNING BRIEF</span></div>
+  <div style="font-size:13.5px;line-height:1.6;color:var(--text)">You're sharp today — readiness 84 and climbing. First up: <b>Ninja session @ ONA, 10:30</b>. Three thoughts wait in Mind. The wall refit is overdue — flag it with Riley at 13:00.<br><span style="color:var(--violet);font-weight:600">▸ Highest-leverage: film the B-twist tutorial at 16:00 while you're fresh — it feeds JayMuvs <i>and</i> the league launch.</span></div>
+  <div class="acts">
+   <span class="chip pr" onclick="App.briefChip(this,'Block scheduled')">${I('cal',13)} Plan a block</span>
+   <span class="chip pr" onclick="App.go('mind')">${I('mind',13)} Triage inbox · ${S.inbox.length}</span>
+   <span class="chip pr" onclick="App.go('train');setTimeout(()=>App.openSheet('session'),350)">${I('zap',13)} Build session</span></div></div>
+ <div class="glass pr" onclick="App.oneThing()" style="padding:15px 14px;display:flex;gap:13px;align-items:center;${S.oneDone?'border-color:rgba(182,255,60,.35)':''}">${T}
+  <div style="width:30px;height:30px;border-radius:99px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1.5px solid ${S.oneDone?'var(--lime)':'var(--line2)'};background:${S.oneDone?'rgba(182,255,60,.15)':'transparent'};color:var(--lime);transition:all 250ms">${S.oneDone?I('check',15,2.6):''}</div>
+  <div style="flex:1"><div class="eyebrow" style="color:${S.oneDone?'var(--lime)':'var(--gold)'}">${S.oneDone?'ONE THING — DONE':'THE ONE THING'}</div>
+  <div style="font-size:13.5px;font-weight:600;margin-top:3px;${S.oneDone?'text-decoration:line-through;color:var(--muted)':''}">Film the B-twist tutorial — full breakdown for JayMuvs</div></div></div>
+ <div class="glass" style="padding:14px">${T}
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+   <div style="display:flex;align-items:center;gap:7px;color:var(--orange)">${I('flame',15)}<span class="display" style="font-size:19px">12-DAY STREAK</span></div>
+   <span class="eyebrow">14-DAY MOMENTUM</span></div>
+  <div style="display:grid;grid-template-columns:repeat(14,1fr);gap:4px">
+   ${MOMENTUM.map((v,i)=>`<div class="heat" style="background:${v?`rgba(182,255,60,${(.16+v*.2).toFixed(2)})`:'rgba(255,255,255,.045)'};${i===13?'outline:1px solid rgba(182,255,60,.7)':''}"></div>`).join('')}</div></div>
+ <div>${secHead('MERGED WITH GOOGLE CALENDAR','TODAY\'S TIMELINE','<span class="eyebrow" style="color:var(--cyan)">6 BLOCKS</span>')}</div>
+ <div class="glass" style="padding:6px 14px">${T}
+  ${TIMELINE.map((e,i)=>`<div style="display:flex;gap:12px;align-items:center;padding:10px 0;${i<5?'border-bottom:1px solid var(--line)':''}">
+   <span class="mono" style="font-size:10.5px;color:var(--muted);width:38px">${e.time}</span>
+   <span style="width:7px;height:7px;border-radius:99px;background:${e.c};box-shadow:0 0 8px ${e.c};flex-shrink:0"></span>
+   <span style="flex:1;font-size:12.5px;font-weight:500">${e.label}</span>
+   <span class="mono" style="font-size:7.5px;letter-spacing:.14em;color:${e.c}">${e.k}</span></div>`).join('')}</div>
+ <div class="dashed pr" onclick="App.openSheet('capture')">${I('plus',14)} Quick-add a block</div>`}
+
+function discProgress(id){const l=SKILLS[id];return {done:l.filter(s=>s.st==='done').length,act:l.filter(s=>s.st==='active').length,tot:l.length}}
+function scrTrain(){
+ const active=[];DISC.forEach(d=>SKILLS[d.id].forEach((s,i)=>{if(s.st==='active')active.push({d,s,i})}));
+ return `
+ <div style="display:flex;justify-content:space-between;align-items:flex-end">
+  <div><div class="eyebrow">PHASE · SKILL ACQUISITION — WEEK 3 / 4</div><div class="h-screen" style="margin-top:7px">TRAIN</div></div>
+  <div class="pill" style="color:var(--lime);margin-bottom:3px"><span class="pdot"></span>COACH ONLINE</div></div>
+ <div class="glass-strong mesh-train" style="padding:14px 16px;display:flex;gap:8px;align-items:center">${T}
+  ${radarSVG()}
+  <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+   <div class="eyebrow">BODY RADAR</div>
+   ${RADAR.axes.map((a,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="mono" style="font-size:8.5px;letter-spacing:.12em;color:var(--muted)">${a.toUpperCase()}</span><span class="mono" style="font-size:10.5px;color:${RADAR.cur[i]>=RADAR.goal[i]-8?'var(--lime)':RADAR.cur[i]<65?'var(--gold)':'var(--text)'}">${RADAR.cur[i]}<span style="color:var(--dim)">/${RADAR.goal[i]}</span></span></div>`).join('')}
+   <div class="eyebrow" style="color:var(--dim);font-size:7.5px">DASHED = GOAL</div></div></div>
+ <div style="display:flex;gap:10px">
+  <div class="pr" onclick="App.openSheet('session')" style="flex:1.25;padding:15px 14px;border-radius:18px;background:linear-gradient(120deg,rgba(0,212,255,.92),rgba(177,76,255,.92));color:#06121a;box-shadow:0 14px 36px -10px rgba(0,212,255,.45)">
+   <div class="display" style="font-size:20px;letter-spacing:.06em">BUILD MY SESSION</div>
+   <div class="mono" style="font-size:8px;letter-spacing:.16em;margin-top:3px;opacity:.75">AI COACH · READS YOUR TREE</div></div>
+  <div class="pr glass" onclick="App.openSheet('week')" style="flex:1;padding:15px 14px;border:1px solid var(--line2)">
+   <div class="display" style="font-size:20px;letter-spacing:.06em">PLAN WEEK</div>
+   <div class="mono" style="font-size:8px;letter-spacing:.16em;margin-top:3px;color:var(--muted)">PERIODIZATION</div></div></div>
+ <div class="glass" style="padding:14px">${T}
+  ${secHead('EVERY ACTIVE SKILL, ONE LIST','WORKING ON',`<span class="eyebrow" style="color:var(--cyan)">${active.length} ACTIVE</span>`)}
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+   ${active.slice(0,7).map(({d,s})=>`<div style="display:flex;align-items:center;gap:10px">
+    <span style="width:22px;height:22px;border-radius:7px;background:${d.c}1c;border:1px solid ${d.c}44;color:${d.c};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${d.ic}</span>
+    <span style="font-size:12px;font-weight:600;width:142px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.n}</span>
+    <div class="bar"><i style="width:${s.pct}%;background:${d.c}"></i></div>
+    <span class="mono" style="font-size:9.5px;color:${d.c};width:30px;text-align:right">${s.pct}%</span></div>`).join('')}
+  </div></div>
+ ${secHead('FOUNDATION → DEVELOPING → ADVANCED → ELITE','SKILL TREES','<span class="eyebrow">6 DISCIPLINES</span>')}
+ ${DISC.map(d=>discCard(d)).join('')}`}
+
+function discCard(d){
+ const p=discProgress(d.id),open=S.openDisc===d.id;
+ let body='';
+ if(open){
+  const funds=FUNDS[d.id]||[];
+  body+=`<div style="padding:0 13px 6px">
+   <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 9px"><span class="eyebrow" style="color:${d.c}">FUNDAMENTALS — THE BEDROCK</span><span class="eyebrow">${funds.length} PILLARS</span></div>
+   <div style="display:flex;gap:9px;overflow-x:auto;margin:0 -13px;padding:0 13px 8px">
+   ${funds.map((f,i)=>`<div class="glass" style="flex-shrink:0;width:212px;padding:11px 12px;border-color:${d.c}26;display:flex;flex-direction:column;gap:7px">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><span style="font-size:11.5px;font-weight:700;line-height:1.3">${f.n}</span>${trkChip('f|'+d.id+'|'+i)}</div>
+    <div style="font-size:10px;color:var(--muted);line-height:1.5">${f.why}</div>
+    <div style="font-size:9.5px;color:var(--dim);line-height:1.45"><span class="mono" style="font-size:7.5px;letter-spacing:.14em;color:var(--muted)">HOW · </span>${f.how}</div>
+    <div style="font-size:10px;color:#dcffb0;line-height:1.4;border-top:1px solid var(--line);padding-top:7px"><span style="color:var(--lime)">✓ STANDARD</span> — ${f.std}</div></div>`).join('')}
+   </div></div>`;
+  body+=TIERS.map(t=>{
+   const list=SKILLS[d.id].map((s,i)=>({s,i})).filter(x=>x.s.t===t);
+   if(!list.length)return '';
+   return `<div style="padding:4px 13px 12px"><div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+    <span style="width:7px;height:7px;border-radius:2px;background:${TIER_C[t]};box-shadow:0 0 8px ${TIER_C[t]}"></span>
+    <span class="mono" style="font-size:9px;letter-spacing:.22em;color:${TIER_C[t]}">${t.toUpperCase()}</span>
+    <span class="eyebrow" style="margin-left:auto">${list.filter(x=>x.s.st==='done').length}/${list.length}</span></div>
+    <div class="tier-block" style="border-color:${TIER_C[t]}44">
+    ${list.map(({s,i})=>skillRow(d,s,i)).join('')}</div></div>`}).join('');
+ }
+ return `<div class="glass" style="overflow:hidden">${T}
+  <div class="pr" onclick="App.toggleDisc('${d.id}')" style="display:flex;align-items:center;gap:11px;padding:13px">
+   <span style="width:36px;height:36px;border-radius:11px;background:${d.c}1a;border:1px solid ${d.c}4d;color:${d.c};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;${open?`box-shadow:0 0 18px -4px ${d.c}`:''}">${d.ic}</span>
+   <div style="flex:1"><div class="display" style="font-size:18px">${d.name.toUpperCase()}</div>
+    <div class="mono" style="font-size:8px;letter-spacing:.14em;color:var(--muted);margin-top:2px">${p.done}/${p.tot} MASTERED · ${p.act} ACTIVE</div></div>
+   <div style="width:54px;display:flex;flex-direction:column;gap:5px;align-items:flex-end">
+    <div class="bar" style="width:54px;flex:none"><i style="width:${Math.round(p.done/p.tot*100)}%;background:${d.c}"></i></div>
+    <span style="color:var(--dim);transition:transform 250ms;transform:rotate(${open?'180deg':'0'})">${I('chev',14)}</span></div></div>
+  ${body}</div>`}
+
+function skillRow(d,s,i){
+ const key=d.id+'|'+i,open=S.skillKey===key,tc=TIER_C[s.t];
+ const dot=s.st==='done'?`<span class="sdot" style="background:rgba(182,255,60,.14);border:1px solid rgba(182,255,60,.4);color:var(--lime)">${I('check',12,2.6)}</span>`
+  :s.st==='active'?`<span class="sdot" style="background:${tc}14;border:1px solid ${tc}55;color:${tc}">${s.pct}</span>`
+  :`<span class="sdot" style="background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--dim)">${I('lock',11)}</span>`;
+ let drills='';
+ if(open){
+  const list=DRILLS[d.id]&&DRILLS[d.id][s.t]||[];
+  drills=`<div style="display:flex;flex-direction:column;gap:8px;padding:10px 2px 4px">
+   <div style="font-size:11px;color:var(--muted);line-height:1.5;padding:0 2px"><span class="mono" style="font-size:7.5px;letter-spacing:.16em;color:${tc}">CUE · </span>${s.cue}</div>
+   <div class="eyebrow" style="color:${tc};margin-top:2px">ORDERED DRILL PROGRESSION — ${s.t.toUpperCase()} TIER</div>
+   ${list.map((dr,j)=>`<div class="drill">
+    <div style="display:flex;align-items:flex-start;gap:9px">
+     <span class="num" style="color:${tc}">${j+1}</span>
+     <div style="flex:1"><div style="font-size:12px;font-weight:700;line-height:1.3">${dr.n}</div>
+     <div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:3px">${dr.cue}</div></div>
+     ${trkChip('d|'+d.id+'|'+s.t+'|'+j)}</div>
+    <div class="callout fault"><span>⚠</span><div><b>COMMON FAULT → FIX</b>${dr.fault}</div></div>
+    <div class="callout gate"><span style="color:var(--lime)">✓</span><div><b>READY WHEN</b>${dr.gate}</div></div></div>`).join('')}</div>`}
+ return `<div><div class="skill-row pr ${open?'open':''}" onclick="App.toggleSkill('${key}')">${dot}
+  <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:600;${s.st==='locked'?'color:var(--dim)':''}">${s.n}</div>
+  ${open?'':`<div style="font-size:9.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">${s.cue}</div>`}</div>
+  ${s.st==='active'?`<span class="mono" style="font-size:9px;color:${tc}">${s.pct}%</span>`:''}
+  <span style="color:var(--dim);transform:rotate(${open?'180deg':'0'});transition:transform 250ms">${I('chev',12)}</span></div>${drills}</div>`}
+
+function scrCreate(){return `
+ <div style="display:flex;justify-content:space-between;align-items:flex-end">
+  <div><div class="eyebrow">BRANDS · PROJECTS · IDEAS</div><div class="h-screen" style="margin-top:7px">CREATE</div></div>
+  <div class="pill" style="color:var(--magenta);margin-bottom:3px"><span class="pdot"></span>5 IN FLIGHT</div></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  ${FOLDERS.map(f=>`<div class="pr glass" style="padding:13px;background:linear-gradient(150deg,${f.c}24,rgba(255,255,255,.02) 70%);border-color:${f.c}33">${T}
+   <div style="display:flex;justify-content:space-between"><span style="font-size:21px">${f.emoji}</span>${f.pin?`<span style="color:var(--gold)">${I('star',13)}</span>`:''}</div>
+   <div class="display" style="font-size:17px;margin-top:9px">${f.name.toUpperCase()}</div>
+   <div class="mono" style="font-size:8px;letter-spacing:.13em;color:var(--muted);margin-top:3px">${f.notes} NOTES · ${f.proj} PROJECTS</div></div>`).join('')}</div>
+ <div class="glass" style="padding:13px 14px">${T}
+  <div class="eyebrow" style="margin-bottom:10px">CONTENT PIPELINE — THIS MONTH</div>
+  <div style="display:flex;align-items:center;justify-content:space-between">
+   ${PIPE.map((p,i)=>`<div style="text-align:center"><div class="display" style="font-size:21px;color:${p.c}">${p.n}</div><div class="mono" style="font-size:6.8px;letter-spacing:.12em;color:var(--muted)">${p.l.toUpperCase()}</div></div>${i<5?'<span style="color:var(--dim);font-size:10px">›</span>':''}`).join('')}</div></div>
+ ${secHead('REAL CHECKLISTS, REAL DEADLINES','PROJECTS','<span class="eyebrow" style="color:var(--magenta)">2 ACTIVE</span>')}
+ ${PROJECTS.map(p=>{const dc=p.duek==='overdue'?'var(--red)':p.duek==='soon'?'var(--gold)':'var(--lime)';return `
+  <div class="glass pr" style="padding:14px">${T}
+   <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+    <div style="flex:1"><div style="font-size:13px;font-weight:700;line-height:1.35">${p.title}</div>
+     <span class="pill" style="color:${p.fc};border-color:${p.fc}40;margin-top:7px">${p.folder.toUpperCase()}</span></div>
+    <span class="pill" style="color:${dc};border-color:${dc}45">${p.duek==='overdue'?'⚠ ':''}DUE ${p.due.toUpperCase()}</span></div>
+   <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+    <div class="bar"><i style="width:${Math.round(p.done/p.total*100)}%;background:${p.fc}"></i></div>
+    <span class="mono" style="font-size:9px;color:var(--muted)">${p.done}/${p.total} STEPS</span></div>
+   <div style="margin-top:10px;padding:9px 11px;border-radius:10px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);font-size:11.5px;color:var(--cyan)">▸ NEXT — ${p.next}</div></div>`}).join('')}
+ ${secHead('OPENERS THAT EARN THE 3-SECOND PAYOFF','HOOK BANK','<span class="eyebrow">6 SAVED</span>')}
+ <div class="glass" style="padding:6px 14px">${T}
+  ${HOOKS.map((h,i)=>`<div style="display:flex;gap:11px;padding:11px 0;${i<2?'border-bottom:1px solid var(--line)':''}">
+   <span class="mono" style="font-size:9px;color:var(--magenta);margin-top:2px">0${i+1}</span>
+   <span style="font-size:12.5px;line-height:1.5;font-style:italic;color:var(--text)">"${h}"</span></div>`).join('')}</div>
+ <div class="dashed pr" onclick="App.openSheet('capture')">${I('plus',14)} Bank a new hook</div>`}
+
+function scrOna(){return `
+ <div style="display:flex;justify-content:space-between;align-items:flex-end">
+  <div><div class="eyebrow">OBSTACLE NINJA ACADEMY · ORLANDO</div><div class="h-screen" style="margin-top:7px">ONA HQ</div></div>
+  <div class="pill" style="color:var(--red);margin-bottom:3px"><span class="pdot pulse"></span>LIVE · GYMDESK</div></div>
+ <div class="glass-strong mesh-ona" style="padding:17px 16px">${T}
+  <div style="display:flex;justify-content:space-between;text-align:center">
+   <div style="flex:1"><div class="display" style="font-size:34px">${ONA.members}</div><div class="eyebrow">MEMBERS</div><div class="mono" style="font-size:8.5px;color:var(--lime);margin-top:3px">▲ +9 MO</div></div>
+   <div style="width:1px;background:var(--line)"></div>
+   <div style="flex:1.2"><div class="display" style="font-size:34px">$38.4<span style="font-size:20px">K</span></div><div class="eyebrow">MRR</div><div class="mono" style="font-size:8.5px;color:var(--lime);margin-top:3px">▲ +4.2%</div></div>
+   <div style="width:1px;background:var(--line)"></div>
+   <div style="flex:1"><div class="display" style="font-size:34px">${ONA.nps}</div><div class="eyebrow">NPS</div><div class="mono" style="font-size:8.5px;color:var(--gold);margin-top:3px">— FLAT</div></div></div></div>
+ <div class="glass" style="padding:14px">${T}
+  ${secHead('LEAD → MEMBER FLOW','SALES PIPELINE','<span class="eyebrow" style="color:var(--gold)">7 STALE</span>')}
+  <div style="display:flex;flex-direction:column;gap:11px;margin-top:13px">
+  ${SALES.map(s=>`<div style="display:flex;align-items:center;gap:10px">
+   <span class="mono" style="font-size:9px;letter-spacing:.1em;color:var(--muted);width:86px">${s.label.toUpperCase()}</span>
+   <div class="bar" style="height:6px"><i style="width:${Math.round(s.count/s.max*100)}%;background:${s.c}"></i></div>
+   <span class="display" style="font-size:17px;color:${s.c};width:26px;text-align:right">${s.count}</span>
+   ${s.stale?`<span class="pill" style="color:var(--gold);border-color:rgba(255,210,60,.4);font-size:7.5px">${s.stale} STALE</span>`:'<span style="width:54px"></span>'}</div>`).join('')}</div></div>
+ <div class="glass" style="padding:14px">${T}
+  ${secHead('PRIVATE-LESSON RATES & GRADES','COACH ROSTER','<span class="eyebrow" style="color:var(--lime)">5 ACTIVE</span>')}
+  <div style="margin-top:10px">
+  ${COACHES.map((c,i)=>`<div style="display:flex;align-items:center;gap:11px;padding:10px 0;${i<4?'border-bottom:1px solid var(--line)':''}">
+   <span style="width:32px;height:32px;border-radius:99px;background:${c.c}1f;border:1px solid ${c.c}55;color:${c.c};display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:15px">${c.ini}</span>
+   <div style="flex:1"><div style="font-size:12.5px;font-weight:700">${c.name}</div><div class="mono" style="font-size:8px;letter-spacing:.12em;color:var(--muted)">${c.role.toUpperCase()}</div></div>
+   <span class="pill" style="color:${c.grade[0]==='A'?'var(--lime)':'var(--gold)'}">${c.grade}</span>
+   <span class="mono" style="font-size:11px;color:var(--text)">$${c.price}<span style="color:var(--dim);font-size:8px">/HR</span></span></div>`).join('')}
+  <div style="display:flex;align-items:center;gap:8px;margin-top:11px"><span class="eyebrow">BENCH</span>
+   ${BENCH.map(b=>`<span style="width:24px;height:24px;border-radius:99px;background:${b.c}18;border:1px solid ${b.c}45;color:${b.c};display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:11px">${b.ini}</span>`).join('')}
+   <span class="pr" style="width:24px;height:24px;border-radius:99px;border:1.5px dashed var(--line2);color:var(--dim);display:flex;align-items:center;justify-content:center">${I('plus',11)}</span></div></div></div>
+ ${secHead('THE BIG ROCKS, PRIORITIZED','INITIATIVES','<span class="eyebrow" style="color:var(--red)">2 × P0</span>')}
+ <div class="glass" style="padding:6px 14px">${T}
+  ${INITIATIVES.map((n,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:11px 0;${i<4?'border-bottom:1px solid var(--line)':''}">
+   <span class="pill" style="color:${n.pr==='P0'?'var(--red)':n.pr==='P1'?'var(--gold)':'var(--muted)'};border-color:currentColor;opacity:.95;width:32px;justify-content:center">${n.pr}</span>
+   <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;line-height:1.3">${n.title}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><div class="bar"><i style="width:${n.pct}%;background:${n.pr==='P0'?'var(--red)':'var(--cyan)'}"></i></div><span class="mono" style="font-size:8.5px;color:var(--muted)">${n.pct}%</span></div></div>
+   <span class="mono" style="font-size:8.5px;color:${n.dc}">${n.due.toUpperCase()}</span></div>`).join('')}</div>`}
+
+function scrMind(){
+ const inbox=S.inbox;
+ return `
+ <div style="display:flex;justify-content:space-between;align-items:flex-end">
+  <div><div class="eyebrow">SECOND BRAIN · CAPTURE → TRIAGE → ROUTE</div><div class="h-screen" style="margin-top:7px">MIND</div></div>
+  <div class="pill" style="color:var(--gold);margin-bottom:3px"><span class="pdot"></span>INBOX ${inbox.length}</div></div>
+ ${inbox.length?`<div>${secHead('ROUTE EACH THOUGHT HOME','TRIAGE',`<span class="eyebrow" style="color:var(--gold)">${inbox.length} WAITING</span>`)}</div>
+ ${inbox.map((c,i)=>{const dom=DOMAINS.find(d=>d.id===c.tag);return `
+  <div class="glass" style="padding:13px 14px">${T}
+   <div style="font-size:13px;line-height:1.5">${c.text}</div>
+   <div class="mono" style="font-size:8px;letter-spacing:.14em;color:var(--dim);margin-top:6px">${c.meta}</div>
+   <div class="acts">
+    <span class="chip pr" style="color:${dom.c};border-color:${dom.c}50;background:${dom.c}10" onclick="App.route(${i})">${dom.e} Route → ${dom.n} <span class="mono" style="font-size:7px;opacity:.7">SUGGESTED</span></span>
+    <span class="chip pr" style="color:var(--muted)" onclick="App.route(${i},true)">${I('arch',13)} Archive</span></div></div>`}).join('')}`
+ :`<div class="glass-strong mesh-mind" style="padding:30px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">${T}
+   <div style="width:58px;height:58px;border-radius:99px;background:rgba(182,255,60,.12);border:1px solid rgba(182,255,60,.45);color:var(--lime);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px -8px rgba(182,255,60,.6)">${I('check',26,2.4)}</div>
+   <div class="display" style="font-size:30px;color:var(--lime)">INBOX ZERO</div>
+   <div style="font-size:12px;color:var(--muted);max-width:230px;line-height:1.55">Every thought has a home. Enjoy the quiet head — it's the whole point.</div></div>`}
+ <div class="dashed pr" onclick="App.openSheet('capture')">${I('plus',14)} Capture a thought — 5 seconds</div>
+ <div class="glass pr" style="padding:14px;display:flex;gap:12px;align-items:center">${T}
+  <span style="width:36px;height:36px;border-radius:11px;background:rgba(177,76,255,.12);border:1px solid rgba(177,76,255,.4);color:var(--violet);display:flex;align-items:center;justify-content:center">${I('pen',16)}</span>
+  <div style="flex:1"><div class="display" style="font-size:17px">JOURNAL</div><div style="font-size:10.5px;color:var(--muted);margin-top:2px">Tonight's entry — how did the shoot go?</div></div>
+  <span class="eyebrow" style="color:var(--violet)">DAY 12 ›</span></div>
+ <div class="glass pr" onclick="App.openSheet('review')" style="padding:14px;border-color:rgba(0,212,255,.25)">${T}
+  <div style="display:flex;justify-content:space-between;align-items:center">
+   <div><div class="eyebrow" style="color:var(--cyan)">SUNDAY RITUAL · 6 MIN</div><div class="display" style="font-size:20px;margin-top:3px">WEEKLY REVIEW</div></div>
+   <span class="chip" style="color:var(--cyan);border-color:rgba(0,212,255,.4)">Open ${I('arrow',12)}</span></div>
+  <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px">
+   ${ATTENTION.slice(0,3).map(a=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px">${a.e}</span><div class="bar" style="height:5px"><i style="width:${a.pct*2.4}%;background:${a.c}"></i></div><span class="mono" style="font-size:8.5px;color:${a.c};width:28px;text-align:right">${a.pct}%</span></div>`).join('')}
+   <div class="eyebrow" style="font-size:7px;color:var(--dim)">WHERE YOUR ATTENTION WENT · PREVIEW</div></div></div>
+ <div class="glass" style="padding:14px;border-color:rgba(177,76,255,.22)">${T}
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+   <div class="eyebrow" style="color:var(--violet)">MONTHLY UPGRADE — THE SELF-IMPROVING LOOP</div>
+   <span class="pill" style="color:var(--violet);border-color:rgba(177,76,255,.45)">LIFEOS V3</span></div>
+  ${S.upg==='pending'?`<div style="font-size:12.5px;line-height:1.55">You open <b>Plan Week</b> 4× less than Build My Session — fold the microcycle into the coach sheet and retire the extra tap?</div>
+  <div class="acts"><span class="chip pr" style="color:var(--lime);border-color:rgba(182,255,60,.45)" onclick="App.upgrade(true)">${I('check',13)} Accept</span>
+  <span class="chip pr" style="color:var(--muted)" onclick="App.upgrade(false)">Dismiss</span></div>`
+  :S.upg==='accepted'?`<div style="font-size:12.5px;color:var(--lime)">✓ Queued for v4 — coach sheet absorbs Plan Week.</div><div class="mono" style="font-size:8.5px;color:var(--dim);margin-top:6px">CHANGELOG · V3 → V4 · 1 UPGRADE PENDING BUILD</div>`
+  :`<div style="font-size:12.5px;color:var(--muted)">Dismissed — I'll keep watching how you actually use the app.</div>`}</div>`}
+
+function scrAgents(){
+ const a=AGENTS.find(x=>x.id===S.agent);
+ return `
+ <div class="glass-strong mesh-ai" style="padding:20px 16px;display:flex;flex-direction:column;align-items:center">${T}
+  <div style="display:flex;justify-content:space-between;width:100%;margin-bottom:14px">
+   <span class="pill" style="color:${a.c};border-color:${a.c}55"><span class="pdot"></span>6 AGENTS</span>
+   <span class="pill" style="color:var(--lime)">● ONLINE</span></div>
+  ${orb(112)}
+  <div class="display" style="font-size:27px;margin-top:16px;color:${a.c}">${a.name.toUpperCase()}</div>
+  <div class="mono" style="font-size:9px;letter-spacing:.18em;color:var(--muted);margin-top:4px">${a.role.toUpperCase()}</div>
+  <div style="width:100%;margin-top:16px;display:flex;gap:8px">
+   <div style="flex:1;background:rgba(255,255,255,.04);border:1px solid ${a.c}40;border-radius:14px;padding:11px 13px;display:flex;gap:8px;align-items:center;box-shadow:0 0 28px -8px ${a.c}55">
+    <span style="color:${a.c}">${I('spark',15)}</span>
+    <input id="agentIn" placeholder="${a.ph}" onkeydown="if(event.key==='Enter')App.agentFree()" style="flex:1;background:none;border:none;outline:none;font-size:13px;color:var(--text)">
+    <span class="pr" style="color:${a.c}" onclick="App.agentFree()">${I('send',16)}</span></div>
+   <span class="pr" style="width:44px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center">${I('mic',17)}</span></div></div>
+ <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+  ${AGENTS.map(x=>{const on=x.id===S.agent;return `<div class="pr" onclick="App.pickAgent('${x.id}')" style="padding:11px 6px;border-radius:14px;text-align:center;background:${on?x.c+'1c':'rgba(255,255,255,.03)'};border:1px solid ${on?x.c:'var(--line)'};${on?`box-shadow:0 0 18px -6px ${x.c}`:''}">
+   <div style="width:30px;height:30px;border-radius:10px;margin:0 auto 7px;background:${x.c}1a;border:1px solid ${x.c}55;color:${x.c};display:flex;align-items:center;justify-content:center">${I(x.ic,15)}</div>
+   <div style="font-size:9px;font-weight:700;color:${on?x.c:'var(--muted)'};line-height:1.25">${x.name}</div></div>`}).join('')}</div>
+ ${S.achat.length||S.thinking?`<div class="glass" style="padding:13px;display:flex;flex-direction:column;gap:9px">${T}
+  ${S.achat.map(m=>m.u?`<div class="bubble-u">${esc(m.t)}</div>`:`<div style="display:flex;gap:8px;align-self:flex-start;max-width:94%"><span style="width:8px;height:8px;border-radius:99px;background:${m.c};box-shadow:0 0 8px ${m.c};margin-top:7px;flex-shrink:0"></span><div class="bubble-a"><div class="mono" style="font-size:7.5px;letter-spacing:.16em;color:${m.c};margin-bottom:4px">${m.a.toUpperCase()}</div>${esc(m.t)}</div></div>`).join('')}
+  ${S.thinking?`<div style="display:flex;gap:7px;align-items:center"><span class="blink" style="width:6px;height:6px;border-radius:99px;background:${a.c}"></span><span class="mono" style="font-size:9px;letter-spacing:.14em;color:var(--muted)">THINKING…</span></div>`:''}</div>`:''}
+ <div>${secHead(a.name.toUpperCase()+' · TAP TO RUN','QUICK ACTIONS')}</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+  ${a.quick.map(q=>`<div class="pr glass" onclick="App.agentAsk('${q}')" style="padding:12px;border-color:${a.c}30;display:flex;gap:10px;align-items:center;box-shadow:0 0 16px -9px ${a.c}">${T}
+   <span style="width:30px;height:30px;border-radius:10px;background:${a.c}18;border:1px solid ${a.c}50;color:${a.c};display:flex;align-items:center;justify-content:center;flex-shrink:0">${I(a.ic,14)}</span>
+   <span style="font-size:11.5px;font-weight:600;line-height:1.25">${q}</span></div>`).join('')}</div>
+ <div class="eyebrow" style="text-align:center;color:var(--dim)">ANSWERS ARE GENERATED LIVE FROM YOUR OWN DATA</div>`}
+
+const SCREENS={today:scrToday,train:scrTrain,create:scrCreate,ona:scrOna,mind:scrMind,agents:scrAgents};
+
+/* ════════════════ RENDER / NAV ════════════════ */
+function render(keep){const c=$('content');const st=$('scroll').scrollTop;
+ c.classList.toggle('noanim',!!keep);c.innerHTML=SCREENS[S.tab]();
+ $('scroll').scrollTop=keep?st:0;tabbar()}
+const style2=document.createElement('style');style2.textContent='.content.noanim>*{animation:none!important}';document.head.appendChild(style2);
+function tabbar(){$('tabbar').innerHTML=TABS.map(t=>`<div class="tab pr ${S.tab===t.id?'on':''}" style="--acc:${t.c}" onclick="App.go('${t.id}')">
+ ${t.id==='mind'&&S.inbox.length?`<span class="badge">${S.inbox.length}</span>`:''}${I(t.ic,21,S.tab===t.id?2.2:1.8)}<span>${t.l}</span></div>`).join('')}
+$('fab').innerHTML=I('plus',24,2.6);
+
+/* ════════════════ SHEETS ════════════════ */
+function sheetShell(inner,tall){return `<div class="scrim" onclick="App.closeSheet()"></div><div class="sheet ${tall?'tall':''}" id="sheetBody"><div class="grab"></div>${inner}</div>`}
+function paintSheet(){const host=$('sheetHost');host.classList.remove('closing');if(!S.sheet){host.innerHTML='';return}
+ const fn={capture:shCapture,companion:shCompanion,session:shSession,week:shWeek,review:shReview}[S.sheet];
+ host.innerHTML=sheetShell(fn(),S.sheet==='companion');
+ if(S.sheet==='review')setTimeout(()=>{document.querySelectorAll('#sheetBody .att i').forEach(el=>el.style.width=el.dataset.w)},60);
+ if(S.sheet==='companion'){const m=$('compMsgs');if(m)m.scrollTop=m.scrollHeight}}
+
+function shCapture(){return `
+ <div class="eyebrow" style="color:var(--cyan)">UNIVERSAL CAPTURE</div>
+ <div class="display" style="font-size:26px;margin:5px 0 14px">WHAT'S ON YOUR MIND?</div>
+ <textarea id="capText" rows="3" placeholder="Type it — or just talk…" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:14px;padding:13px;font-size:14px;outline:none;resize:none">${S.capDraft||''}</textarea>
+ <div class="eyebrow" style="margin:13px 0 8px">TAG IT — ROUTES THE TRIAGE</div>
+ <div style="display:flex;gap:7px;flex-wrap:wrap">
+  ${DOMAINS.map(d=>`<span class="chip pr ${S.capTag===d.id?'':''}" id="tag-${d.id}" onclick="App.capTag('${d.id}')" style="${S.capTag===d.id?`color:${d.c};border-color:${d.c}66;background:${d.c}14`:''}">${d.e} ${d.n}</span>`).join('')}</div>
+ <div style="display:flex;gap:9px;margin-top:16px">
+  <span class="pr" style="width:52px;border-radius:15px;background:rgba(255,0,51,.1);border:1px solid rgba(255,0,51,.4);color:var(--red);display:flex;align-items:center;justify-content:center">${I('mic',19)}</span>
+  <div class="pr" onclick="App.capture()" style="flex:1;padding:15px;border-radius:15px;text-align:center;background:linear-gradient(90deg,var(--cyan),var(--violet));color:#06121a"><span class="display" style="font-size:18px;letter-spacing:.1em">CAPTURE → MIND INBOX</span></div></div>`}
+S.capTag='movement';
+
+const STARTERS=['What should I focus on today?','Help me think through a Podium decision','Coach me on my cork progression','What am I neglecting right now?'];
+const ACT_META={event:{ic:'cal',c:'#00D4FF'},session:{ic:'act',c:'#B6FF3C'},capture:{ic:'plus',c:'#FFD23C'},focus:{ic:'target',c:'#FF0033'},email:{ic:'send',c:'#B14CFF'}};
+function shCompanion(){return `
+ <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">${orb(38)}
+  <div style="flex:1"><div class="display" style="font-size:21px">COMPANION</div>
+  <div class="mono" style="font-size:8px;letter-spacing:.16em;color:var(--muted)">KNOWS YOUR WHOLE WORLD · REMEMBERS</div></div>
+  <span class="pr" style="color:var(--muted)" onclick="App.closeSheet()">${I('x',18)}</span></div>
+ <div id="compMsgs" style="display:flex;flex-direction:column;gap:10px;overflow-y:auto;height:calc(100% - 132px);padding:4px 0">
+ ${S.comp.length?S.comp.map((m,mi)=>m.u?`<div class="bubble-u">${esc(m.t)}</div>`
+  :`<div style="display:flex;gap:8px;align-self:flex-start;max-width:95%"><span style="width:8px;height:8px;border-radius:99px;background:var(--violet);box-shadow:0 0 8px var(--violet);margin-top:7px;flex-shrink:0"></span>
+   <div class="bubble-a">${esc(m.t)}${m.acts?`<div class="acts">${m.acts.map((x,ai)=>{const mt=ACT_META[x.k];return `<span class="chip pr ${x.done?'done':''}" style="${x.done?'':`color:${mt.c};border-color:${mt.c}50;background:${mt.c}0e`};font-size:11px" onclick="App.compAct(${mi},${ai})">${x.done?I('check',12):I(mt.ic,12)} ${x.done?'Done':x.t}</span>`}).join('')}</div>`:''}</div></div>`).join('')
+ :`<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin:auto 0;padding:20px 0">
+   <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.6;max-width:250px">Coach, strategist, creative collaborator, thinking partner. I can <b style="color:var(--text)">act</b>, not just advise.</div>
+   <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+   ${STARTERS.map((s,i)=>`<div class="chip pr" style="justify-content:center" onclick="App.compStart(${i})">${s}</div>`).join('')}</div></div>`}
+ ${S.compThink?`<div style="display:flex;gap:7px;align-items:center"><span class="blink" style="width:6px;height:6px;border-radius:99px;background:var(--violet)"></span><span class="mono" style="font-size:9px;letter-spacing:.14em;color:var(--muted)">THINKING…</span></div>`:''}
+ </div>
+ <div style="display:flex;gap:8px;margin-top:10px">
+  <div style="flex:1;background:rgba(255,255,255,.045);border:1px solid rgba(177,76,255,.35);border-radius:14px;padding:11px 13px;display:flex;gap:8px;align-items:center">
+   <span style="color:var(--violet)">${I('spark',15)}</span>
+   <input id="compIn" placeholder="Talk to your whole world…" onkeydown="if(event.key==='Enter')App.compSend()" style="flex:1;background:none;border:none;outline:none;font-size:13.5px;color:var(--text)">
+   <span class="pr" style="color:var(--violet)" onclick="App.compSend()">${I('send',16)}</span></div>
+  <span class="pr" style="width:46px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center">${I('mic',17)}</span></div>`}
+function compReply(q){const t=q.toLowerCase();
+ if(/cork|gainer|btwist|twist|trick/.test(t))return {t:'Your cork is gated behind the gainer — it\'s sitting at 55%. The pattern in your notes: you\'re jumping backward instead of traveling forward off the one leg.\n\nThis week: 3 short gainer blocks off elevation, film every rep, and keep drilling the swing-through entry. When the gainer lands on flat, the cork opens up.',acts:[{k:'session',t:'Log session'},{k:'capture',t:'Save to Movement'}]};
+ if(/focus|today|plan|day/.test(t))return {t:'Readiness 84 — green light. The one thing is the B-twist tutorial: it feeds JayMuvs AND the league launch.\n\nProtect 16:00 for the shoot, batch the 3 fault-fix overlays right after, and let Riley carry the 13:00 review agenda.',acts:[{k:'event',t:'Block 16:00 — shoot'},{k:'focus',t:'Set focus'}]};
+ if(/neglect|missing|blind|gap/.test(t))return {t:'Two things, honestly:\n\n1 · Acro — active skills, but no session in 3 weeks. Chelsea\'s schedule shows Thursday 19:00 free.\n2 · Landing & eccentric work — the most-skipped pillar and your longevity insurance.\n\nOne acro block + 10 min of depth landings fixes both.',acts:[{k:'event',t:'Plan acro block'},{k:'session',t:'Log session'}]};
+ if(/podium|order|build/.test(t))return {t:'Frame it as one question: does this order move revenue this month?\n\nThe 14ft warped-wall panels do — the cliffhanger ledge set can wait for hardware. Quote the panels at the new rate, protect a CNC block Friday, and tell the client a real date.',acts:[{k:'email',t:'Draft client email'},{k:'capture',t:'Save decision'}]};
+ return {t:'Here\'s your snapshot:\nReadiness 84/100 · streak day 12\nOne Thing → B-twist tutorial\n'+S.inbox.length+' thoughts to triage · 2 P0 initiatives at ONA\n\nAsk me to plan your day, coach a skill, or think through a decision.',acts:[{k:'event',t:'Block deep work'}]}}
+
+function shSession(){const d=DISC.find(x=>x.id===S.sess.disc);const ph=S.sess.phase;
+ let body='';
+ if(ph==='pick'){body=`
+  <div class="eyebrow" style="margin:2px 0 8px">FOCUS DISCIPLINE</div>
+  <div style="display:flex;gap:7px;flex-wrap:wrap">${DISC.map(x=>`<span class="chip pr" onclick="App.sessDisc('${x.id}')" style="${x.id===S.sess.disc?`color:${x.c};border-color:${x.c}66;background:${x.c}12`:''}">${x.ic} ${x.name}</span>`).join('')}</div>
+  <div class="eyebrow" style="margin:15px 0 8px">DURATION</div>
+  <div class="seg">${[45,60,90].map(m=>`<div class="${S.sess.dur===m?'on':''}" onclick="App.sessDur(${m})">${m} MIN</div>`).join('')}</div>
+  <div class="glass" style="padding:13px;margin-top:15px;border-color:rgba(255,210,60,.22)">${T}
+   <div class="eyebrow" style="color:var(--gold);margin-bottom:10px">⚠ BLINDSPOTS YOUR COACH IS WATCHING</div>
+   ${BLINDSPOTS.map(b=>`<div style="display:flex;gap:9px;margin-bottom:10px"><span style="width:7px;height:7px;border-radius:99px;background:${b.c};box-shadow:0 0 8px ${b.c};margin-top:4px;flex-shrink:0"></span>
+    <div><div style="font-size:11.5px;font-weight:700">${b.t}</div><div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:2px">${b.d}</div></div></div>`).join('')}</div>
+  <div class="pr" onclick="App.genSession()" style="margin-top:14px;padding:15px;border-radius:15px;text-align:center;background:linear-gradient(90deg,var(--cyan),var(--violet));color:#06121a"><span class="display" style="font-size:18px;letter-spacing:.1em">GENERATE SESSION</span></div>`}
+ else if(ph==='loading'){body=`<div class="eyebrow" style="margin:6px 0 12px;color:var(--cyan)">COACH IS READING YOUR TREE, LAST 21 DAYS & READINESS…</div>
+  ${[64,90,78,52].map(h=>`<div class="skel" style="height:${h}px;margin-bottom:10px"></div>`).join('')}`}
+ else{const top=SKILLS[S.sess.disc].find(s=>s.st==='active')||SKILLS[S.sess.disc][0];
+  const dr=(DRILLS[S.sess.disc][top.t]||[]).slice(0,3);
+  const phase=(label,c,items)=>`<div style="border-left:2px solid ${c};padding:2px 0 2px 12px;margin:0 0 12px">
+   <div class="mono" style="font-size:9px;letter-spacing:.18em;color:${c};margin-bottom:6px">${label}</div>
+   ${items.map(x=>`<div style="font-size:12px;line-height:1.55;color:var(--text)">· ${x}</div>`).join('')}</div>`;
+  body=`<div class="pill" style="color:${d.c};border-color:${d.c}55;margin-bottom:12px">${d.ic} ${d.name.toUpperCase()} · ${S.sess.dur} MIN · READINESS 84 — PUSH DAY</div>
+  ${phase('PREP · 10 MIN','#00D4FF',['Wrist & shoulder prep — CARs, scap push-ups, dislocates','Body-line: 30s hollow + 30s arch, 2 rounds','Ankle dorsiflexion + light pogos'])}
+  ${phase('PRIMARY — '+top.n.toUpperCase()+' · 25 MIN','#B6FF3C',dr.map(x=>x.n+' — gate: '+x.gate))}
+  ${phase('SUPPORTING STRENGTH · 15 MIN','#FFD23C',['Planche lean 4×15s + front-lever pulls 4×5','Nordic curls 3×5 — landing insurance','Pull/push balance: weighted pull-ups 3×6'])}
+  ${phase('COOL-DOWN · 10 MIN','#B14CFF',['Depth landings — stick & absorb, 2×5 quiet reps','Thoracic + hip mobility flow, breathwork 2 min'])}
+  ${S.sess.phase==='logged'
+   ?`<div style="padding:14px;border-radius:15px;text-align:center;border:1px solid rgba(182,255,60,.5);background:rgba(182,255,60,.1);color:var(--lime)"><span class="display" style="font-size:18px;letter-spacing:.1em">✓ SESSION LOGGED</span></div>`
+   :`<div class="pr" onclick="App.logSession()" style="padding:15px;border-radius:15px;text-align:center;background:linear-gradient(90deg,var(--lime),#7acc1e);color:#0c1404"><span class="display" style="font-size:18px;letter-spacing:.1em">LOG THIS SESSION</span></div>`}`}
+ return `<div class="eyebrow" style="color:var(--cyan)">AI COACH · STRUCTURED BY YOUR SKILL TREE</div>
+ <div class="display" style="font-size:26px;margin:5px 0 12px">BUILD MY SESSION</div>${body}`}
+
+function shWeek(){const rows=WEEK.slice(0,S.week.days).concat([WEEK[6]]);
+ return `<div class="eyebrow" style="color:var(--violet)">PERIODIZATION · MICROCYCLE</div>
+ <div class="display" style="font-size:26px;margin:5px 0 12px">PLAN WEEK</div>
+ <div class="eyebrow" style="margin-bottom:8px">TRAINING DAYS / WEEK</div>
+ <div class="seg">${[3,4,5,6].map(n=>`<div class="${S.week.days===n?'on':''}" onclick="App.weekDays(${n})">${n}</div>`).join('')}</div>
+ <div class="eyebrow" style="margin:14px 0 8px">PRIORITY</div>
+ <div style="display:flex;gap:7px;flex-wrap:wrap">${DISC.map(x=>`<span class="chip pr" onclick="App.weekPrio('${x.id}')" style="${x.id===S.week.prio?`color:${x.c};border-color:${x.c}66;background:${x.c}12`:''}">${x.ic} ${x.name}</span>`).join('')}</div>
+ <div style="display:flex;flex-direction:column;gap:8px;margin-top:15px">
+ ${rows.map(w=>{const m=IMP_META[w.imp];return `<div style="display:flex;gap:11px;align-items:center;padding:11px 12px;border-radius:13px;border:1px solid ${m.c}26;background:${m.c}0a">
+  <span style="width:3px;height:30px;border-radius:2px;background:${m.c};box-shadow:0 0 8px ${m.c}66;flex-shrink:0"></span>
+  <div style="flex:1"><div class="mono" style="font-size:9.5px;font-weight:700;letter-spacing:.08em">${w.d.toUpperCase()}</div>
+  <div style="font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4">${w.f}</div></div>
+  <span class="pill" style="color:${m.c};border-color:${m.c}45;font-size:7px">${m.l}</span></div>`}).join('')}</div>
+ <div class="eyebrow" style="margin:15px 0 8px;color:var(--violet)">WHY THIS WORKS</div>
+ ${PRINCIPLES.map(p=>`<div style="display:flex;gap:8px;font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:7px"><span style="color:var(--violet)">▸</span>${p}</div>`).join('')}
+ <div class="pr" onclick="App.applyWeek()" style="margin-top:12px;padding:15px;border-radius:15px;text-align:center;background:linear-gradient(90deg,var(--violet),var(--magenta));color:#160620"><span class="display" style="font-size:18px;letter-spacing:.1em">APPLY TO CALENDAR</span></div>`}
+
+function shReview(){return `<div class="eyebrow" style="color:var(--cyan)">WEEKLY REVIEW · JUN 6 – 12</div>
+ <div class="display" style="font-size:26px;margin:5px 0 14px">HOW THE WEEK ACTUALLY WENT</div>
+ <div style="display:flex;gap:9px;margin-bottom:16px">
+  ${[['6/7','DAYS ACTIVE','#B6FF3C'],['81','AVG READINESS','#00D4FF'],['5','SESSIONS','#FFD23C']].map(s=>`<div class="glass" style="flex:1;padding:12px;text-align:center">${T}<div class="display" style="font-size:25px;color:${s[2]}">${s[0]}</div><div class="eyebrow" style="font-size:7px;margin-top:3px">${s[1]}</div></div>`).join('')}</div>
+ <div class="glass" style="padding:14px;margin-bottom:14px">${T}
+  <div class="eyebrow" style="color:var(--cyan);margin-bottom:12px">WHERE YOUR ATTENTION ACTUALLY WENT</div>
+  ${ATTENTION.map(a=>`<div class="att" style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
+   <span style="font-size:12px;width:16px">${a.e}</span><span style="font-size:10.5px;font-weight:600;width:56px">${a.n}</span>
+   <div class="bar" style="height:7px"><i data-w="${a.pct*2.4}%" style="width:0;background:${a.c};box-shadow:0 0 10px ${a.c}55"></i></div>
+   <span class="mono" style="font-size:9.5px;color:${a.c};width:30px;text-align:right">${a.pct}%</span></div>`).join('')}
+  <div style="font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)">ONA ate a third of your week while <b style="color:var(--violet)">Wife & I</b> and <b style="color:var(--cyan)">Self</b> got 15% combined. The league launch explains it — just don't let it become the pattern.</div></div>
+ <div class="eyebrow" style="margin-bottom:8px">ONE FOCUS FOR NEXT WEEK</div>
+ <input id="focusIn" value="Ship the league launch — then 2 evenings fully off" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:13px;padding:12px 13px;font-size:13px;outline:none">
+ <div class="acts" style="margin-top:10px">
+  <span class="chip pr" onclick="App.schedFocus('Tue 19:00')">${I('cal',13)} Schedule · Tue 19:00</span>
+  <span class="chip pr" onclick="App.schedFocus('Thu 19:00')">${I('cal',13)} Thu 19:00</span></div>
+ <div class="pr" onclick="App.setFocus()" style="margin-top:13px;padding:15px;border-radius:15px;text-align:center;background:linear-gradient(90deg,var(--cyan),var(--lime));color:#06140a"><span class="display" style="font-size:18px;letter-spacing:.1em">SET FOCUS → CLOSE THE WEEK</span></div>`}
+
+/* ════════════════ APP ACTIONS ════════════════ */
+window.App={
+ go(t){S.tab=t;hapt(8);render()},
+ toggleDisc(id){S.openDisc=S.openDisc===id?null:id;hapt(8);render(true)},
+ toggleSkill(k){S.skillKey=S.skillKey===k?null:k;hapt(8);render(true)},
+ cycleTrk(el,key){const v=((S.trk[key]||0)+1)%3;S.trk[key]=v;hapt(10);
+  el.className='trk pr '+(v===1?'w':v===2?'g':'');el.textContent=v===1?'WORKING':v===2?'✓ GOT IT':'TRACK';
+  if(v===2){confetti(20);toast('LOCKED IN','#B6FF3C')}},
+ oneThing(){S.oneDone=!S.oneDone;if(S.oneDone){confetti();toast('ONE THING — DONE','#B6FF3C')}render(true)},
+ briefChip(el,msg){el.classList.add('done');el.innerHTML=I('check',13)+' Done';toast(msg.toUpperCase(),'#00D4FF');hapt()},
+ route(i,arch){S.inbox.splice(i,1);hapt(12);toast(arch?'ARCHIVED':'ROUTED','#B6FF3C');if(!S.inbox.length){setTimeout(()=>confetti(30),250)}render(true)},
+ upgrade(yes){S.upg=yes?'accepted':'dismissed';if(yes){confetti(22);toast('QUEUED FOR V4','#B14CFF')}render(true)},
+ pickAgent(id){S.agent=id;hapt(8);render(true)},
+ agentAsk(q){const a=AGENTS.find(x=>x.id===S.agent);S.achat.push({u:1,t:q});S.thinking=true;render(true);
+  setTimeout(()=>{S.thinking=false;S.achat.push({a:a.name,c:a.c,t:AGENT_REPLIES[q]||'On it.'});render(true)},650)},
+ agentFree(){const el=$('agentIn');const q=(el&&el.value.trim());if(!q)return;el.value='';
+  const a=AGENTS.find(x=>x.id===S.agent);S.achat.push({u:1,t:q});S.thinking=true;render(true);
+  setTimeout(()=>{S.thinking=false;S.achat.push({a:a.name,c:a.c,t:AGENT_REPLIES[a.quick[0]]});render(true)},700)},
+ openSheet(name){S.sheet=name;if(name==='session'&&S.sess.phase==='logged')S.sess.phase='pick';hapt(8);paintSheet()},
+ closeSheet(){S.sheet=null;const h=$('sheetHost');h.classList.add('closing');
+  h.querySelectorAll('.scrim,.sheet').forEach(e=>e.classList.add('closing'));
+  setTimeout(()=>{h.classList.remove('closing');if(S.sheet===null)h.innerHTML=''},260)},
+ capTag(id){const t=$('capText');if(t)S.capDraft=t.value;S.capTag=id;paintSheet()},
+ capture(){const txt=($('capText')&&$('capText').value.trim())||S.capDraft||'Reel idea: fundamentals carousel — the set, the block, the twist';
+  const d=DOMAINS.find(x=>x.id===S.capTag);S.inbox.unshift({text:txt,tag:S.capTag,meta:'JUST NOW · TYPED'});
+  S.capDraft='';this.closeSheet();confetti(16);toast('CAPTURED','#00D4FF');tabbar();if(S.tab==='mind')render(true)},
+ compStart(i){this.compSend(STARTERS[i])},
+ compSend(text){const el=$('compIn');const q=(text!=null?text:(el?el.value.trim():''));if(!q||S.compThink)return;if(el)el.value='';
+  S.comp.push({u:1,t:q});S.compThink=true;paintSheet();
+  setTimeout(()=>{S.compThink=false;S.comp.push(Object.assign({u:0},compReply(q)));paintSheet()},750)},
+ compAct(mi,ai){const a=S.comp[mi].acts[ai];if(a.done)return;a.done=true;hapt(14);
+  if(a.k==='session'){confetti();toast('SESSION LOGGED','#B6FF3C')}
+  else if(a.k==='event')toast('ADDED TO TODAY · 16:00','#00D4FF');
+  else if(a.k==='capture')toast('SAVED','#FFD23C');
+  else if(a.k==='focus')toast('FOCUS SET','#FF0033');
+  else toast('DRAFT READY','#B14CFF');paintSheet()},
+ sessDisc(id){S.sess.disc=id;paintSheet()},
+ sessDur(m){S.sess.dur=m;paintSheet()},
+ genSession(){S.sess.phase='loading';paintSheet();setTimeout(()=>{S.sess.phase='plan';paintSheet();hapt()},1050)},
+ logSession(){S.sess.phase='logged';confetti();toast('SESSION LOGGED','#B6FF3C');paintSheet()},
+ weekDays(n){S.week.days=n;paintSheet()},
+ weekPrio(id){S.week.prio=id;paintSheet()},
+ applyWeek(){this.closeSheet();confetti(20);toast('MICROCYCLE → CALENDAR','#B14CFF')},
+ schedFocus(t){toast('BLOCKED · '+t.toUpperCase(),'#00D4FF');hapt()},
+ setFocus(){this.closeSheet();confetti();toast('WEEK CLOSED — FOCUS SET','#B6FF3C')},
+ dismissOnb(){const o=$('onb');if(!o)return;o.style.transition='opacity 420ms ease, transform 420ms ease';o.style.opacity=0;o.style.transform='scale(1.04)';hapt(16);setTimeout(()=>o.remove(),430)}
+};
+
+/* ════════════════ BOOT + ONBOARDING ════════════════ */
+function boot(){
+ $('overlayHost').innerHTML=`<div class="boot" id="bootEl">
+  <div class="orb"><div class="halo"></div><div class="r1"></div><div class="r2"></div><div class="core"></div></div>
+  <div class="boot-word">LIFE OS</div>
+  <div class="boot-tag">Your second brain, elite coach<br>& chief of staff — in one place.</div>
+  <div class="boot-ver">V3 · BUILT FOR JAY MARTINEZ</div></div>`;
+ render();
+ setTimeout(()=>{const b=$('bootEl');if(b)b.classList.add('leaving')},2050);
+ setTimeout(()=>{$('overlayHost').innerHTML=onboarding()},2560)}
+function onboarding(){
+ const cards=[
+  ['sun','#00D4FF','TODAY','One screen that tells you what matters — readiness, the brief, the one thing.'],
+  ['zap','#B6FF3C','TRAIN','Six disciplines, real progressions, an AI coach that catches your blindspots.'],
+  ['mind','#FFD23C','MIND','Capture everything in 5 seconds. Triage it home. Inbox zero, weekly.'],
+  ['bot','#B14CFF','AGENTS','A six-agent AI team that knows your whole world — and acts on it.']];
+ return `<div class="onb" id="onb">
+  <div class="hero">${orb(86)}
+   <div class="boot-word" style="font-size:42px;animation-delay:120ms">LIFE OS</div>
+   <div class="boot-tag" style="animation-delay:300ms">Clarity, calm, and capability —<br>built around how you actually live.</div></div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+   ${cards.map((c,i)=>`<div class="onb-card" style="animation-delay:${380+i*90}ms">
+    <span style="width:38px;height:38px;border-radius:12px;background:${c[1]}1a;border:1px solid ${c[1]}50;color:${c[1]};display:flex;align-items:center;justify-content:center;flex-shrink:0">${I(c[0],18)}</span>
+    <div><div class="display" style="font-size:16px;color:${c[1]}">${c[2]}</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-top:2px">${c[3]}</div></div></div>`).join('')}
+   <div class="cta pr" onclick="App.dismissOnb()">LET'S BUILD →</div></div></div>`}
+boot();
+</script>
+</body>
+</html>
