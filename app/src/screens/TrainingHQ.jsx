@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill, ConfettiBurst } from '../components/atoms.jsx';
 import { celebrate } from '../lib/haptics.js';
-import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar } from '../components/icons.jsx';
+import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar, IconBolt, IconSparkles } from '../components/icons.jsx';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
@@ -287,7 +287,7 @@ function ProgressionHero({ skills, readiness, onCoach }) {
           background: 'rgba(69,183,232,0.07)', border: '1px solid rgba(69,183,232,0.35)',
           display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          <span style={{ fontSize: 16 }}>⚡</span>
+          <IconBolt size={17} color="var(--cyan)" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
               Closest breakthrough: {edge.skill.name} · {edge.skill.pct}%
@@ -300,7 +300,7 @@ function ProgressionHero({ skills, readiness, onCoach }) {
       )}
       {unlocks.length > 0 && (
         <div className="mono" style={{ fontSize: 9.5, color: 'var(--gold)', letterSpacing: '0.06em', marginTop: 9, lineHeight: 1.5 }}>
-          🔓 ABOUT TO UNLOCK: {unlocks.map((u) => u.skill.name).join(' · ')}
+          <IconLock size={10} color="var(--gold)" style={{ verticalAlign: '-1px', marginRight: 4 }} />ABOUT TO UNLOCK: {unlocks.map((u) => u.skill.name).join(' · ')}
         </div>
       )}
     </div>
@@ -504,8 +504,8 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
             <div style={{ width: '100%', fontSize: 12, color: 'var(--muted)', lineHeight: 1.45, textWrap: 'pretty' }}>{skill.cue}</div>
           )}
           {skill.status === 'locked' && prereq && (
-            <div className="mono" style={{ width: '100%', fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.06em' }}>
-              🔒 UNLOCKS AFTER: {prereq.name.toUpperCase()}{prereq.status === 'active' ? ` (${prereq.pct}%)` : ''}
+            <div className="mono" style={{ width: '100%', fontSize: 10, color: 'var(--dim)', letterSpacing: '0.06em' }}>
+              <IconLock size={10} color="var(--dim)" style={{ verticalAlign: '-1px', marginRight: 4 }} />UNLOCKS AFTER: {prereq.name.toUpperCase()}{prereq.status === 'active' ? ` (${prereq.pct}%)` : ''}
             </div>
           )}
           {skill.status === 'active' && (() => {
@@ -541,7 +541,8 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
               padding: '5px 9px', borderRadius: 999,
               fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
               background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.45)', color: 'var(--cyan)',
-            }}>✦ COACH ME</div>
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+            }}><IconSparkles size={11} /> COACH ME</div>
           )}
           {skill.status === 'active' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>

@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
-import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, kindIcon, domainIcon } from '../components/icons.jsx';
+import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
@@ -75,7 +75,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
             {readiness != null && (
               <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>READY {readiness}</span>
             )}
-            {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em' }}>🔥 {streak} DAY</span>}
+            {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconFlame size={11} color="var(--gold)" /> {streak} DAY</span>}
           </div>
         </div>
         {alignment != null && (
@@ -90,7 +90,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="eyebrow" style={{ color: 'var(--cyan)' }}>Today's mission</span>
           {adaptedFlash && (
-            <span className="mono" style={{ fontSize: 8, color: 'var(--gold)', letterSpacing: '0.1em', padding: '2px 6px', borderRadius: 999, background: 'rgba(233,196,106,0.14)', border: '1px solid rgba(233,196,106,0.4)', animation: 'screenFade 300ms ease' }}>⟳ RE-PLANNED FOR READINESS</span>
+            <span className="mono" style={{ fontSize: 9.5, color: 'var(--gold)', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: 999, background: 'rgba(233,196,106,0.14)', border: '1px solid rgba(233,196,106,0.4)', animation: 'screenFade 300ms ease' }}>RE-PLANNED FOR READINESS</span>
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -119,13 +119,20 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
               opacity: isDone ? 0.5 : 1, transition: 'all 200ms',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
+                {/* 44px hit area; the visual box stays 24px (negative margins
+                    keep layout identical to before). */}
                 <div className="pressable" onClick={() => toggle(m)} style={{
-                  width: 24, height: 24, borderRadius: 8, flexShrink: 0, marginTop: 1,
-                  border: `1.5px solid ${isDone ? 'var(--lime)' : c}`,
-                  background: isDone ? 'var(--lime)' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, margin: '-9px -10px -10px -10px', padding: 10,
+                  display: 'flex', alignItems: 'flex-start',
                 }}>
-                  {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
+                  <div style={{
+                    width: 24, height: 24, borderRadius: 8,
+                    border: `1.5px solid ${isDone ? 'var(--lime)' : c}`,
+                    background: isDone ? 'var(--lime)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
+                  </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }} className="pressable" onClick={() => onGo(m)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -227,7 +234,7 @@ function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
                   {q.why && <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4 }}>{q.why}</div>}
                   {(q.milestones || []).map((m) => (
                     <div key={m.id} className="pressable" onClick={() => { onToggleMilestone(q.id, m.id); if (!m.done) celebrate(); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '4px 0' }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 0', marginTop: -6, marginBottom: -6 }}>
                       <div style={{
                         width: 18, height: 18, borderRadius: 6, flexShrink: 0,
                         border: `1.5px solid ${m.done ? 'var(--lime)' : 'var(--line-strong)'}`,

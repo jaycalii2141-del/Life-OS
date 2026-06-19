@@ -7,7 +7,7 @@
 // propose-and-confirm, never silent execution.
 // ─────────────────────────────────────────────────────────
 import { useState, useRef, useEffect } from 'react';
-import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget, IconMic } from './components/icons.jsx';
+import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget, IconMic, IconBrain } from './components/icons.jsx';
 import { Sheet } from './components/Sheet.jsx';
 import { celebrate } from './lib/haptics.js';
 import { aiFetch } from './lib/api.js';
@@ -250,7 +250,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
           <div>
             <div className="eyebrow" style={{ color: activeMode.color }}>{activeMode.hint}</div>
             <div className="display" style={{ fontSize: 20, marginTop: 1 }}>JAM INTELLIGENCE</div>
-            {memory && <div className="mono" style={{ fontSize: 8, color: 'var(--lime)', letterSpacing: '0.1em', marginTop: 2 }}>🧠 REMEMBERS YOU</div>}
+            {memory && <div className="mono" style={{ fontSize: 10, color: 'var(--lime)', letterSpacing: '0.1em', marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconBrain size={11} color="var(--lime)" /> REMEMBERS YOU</div>}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

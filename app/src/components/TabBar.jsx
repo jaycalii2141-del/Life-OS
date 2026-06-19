@@ -112,8 +112,8 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
               <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
               <span style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: 8,
-                letterSpacing: '0.14em',
+                fontSize: 9.5,
+                letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 fontWeight: isActive ? 700 : 500,
               }}>{t.label}</span>

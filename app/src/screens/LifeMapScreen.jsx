@@ -81,7 +81,7 @@ function LifeMapViz({ scores, alignment, onPick }) {
               style={ringFor(n.score, 29)} transform={`rotate(-90 ${n.x} ${n.y})`} />
             <text x={n.x} y={n.y + 1} textAnchor="middle" style={{ font: '14px sans-serif' }}>{n.icon}</text>
             <text x={n.x} y={n.y + 15} textAnchor="middle" fill={n.color} style={{ font: '700 8px JetBrains Mono, monospace' }}>{n.score}</text>
-            <text x={n.x} y={n.y + 42} textAnchor="middle" fill="#8A8A95" style={{ font: '600 7.5px JetBrains Mono, monospace', letterSpacing: '0.12em' }}>{n.name.toUpperCase()}</text>
+            <text x={n.x} y={n.y + 42} textAnchor="middle" fill="#9AA0AC" style={{ font: '600 9.5px JetBrains Mono, monospace', letterSpacing: '0.1em' }}>{n.name.toUpperCase()}</text>
           </g>
         ))}
       </svg>
