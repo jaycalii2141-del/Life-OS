@@ -129,6 +129,23 @@ const ACTION_META = {
 };
 
 // ── The conversation ──
+// Streaming-style reveal — types an AI reply out token-by-token with a
+// luminous caret, so answers feel alive instead of popping in fully formed.
+function Typewriter({ text }) {
+  const [shown, setShown] = useState('');
+  useEffect(() => {
+    setShown('');
+    let i = 0;
+    const id = setInterval(() => {
+      i += 3;
+      setShown(text.slice(0, i));
+      if (i >= text.length) clearInterval(id);
+    }, 14);
+    return () => clearInterval(id);
+  }, [text]);
+  return <span className={shown.length < text.length ? 'ai-caret' : ''}>{shown}</span>;
+}
+
 export function Companion({ open, onClose, onAction, startVoice = false }) {
   const [messages, setMessages] = useSyncedState('lifeos:companion', []);
   // Long-term memory — a distilled, persistent sense of Jay that the
@@ -140,6 +157,16 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
   const [thinking, setThinking] = useState(false);
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  // Only the freshly-arrived AI reply types out; history renders instantly.
+  const [animateIdx, setAnimateIdx] = useState(-1);
+  const prevLenRef = useRef(messages.length);
+  useEffect(() => {
+    if (messages.length > prevLenRef.current) {
+      const last = messages[messages.length - 1];
+      if (last && last.role !== 'user') setAnimateIdx(messages.length - 1);
+    }
+    prevLenRef.current = messages.length;
+  }, [messages.length]);
   // Voice replies on = full hands-free loop (speak → answer → listen again).
   const [voiceOn, setVoiceOn] = useSyncedState('lifeos:voicereplies', false);
   const endRef = useRef(null);
@@ -310,7 +337,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ padding: '9px 13px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', fontSize: 13.5, color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                   {m.mode && m.mode !== 'partner' && <div className="mono" style={{ fontSize: 8, color: mMode.color, letterSpacing: '0.14em', marginBottom: 4 }}>{mMode.name.toUpperCase()} MODE</div>}
-                  {m.text}
+                  {i === animateIdx ? <Typewriter text={m.text} /> : m.text}
                 </div>
                 {m.actions && m.actions.length > 0 && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>

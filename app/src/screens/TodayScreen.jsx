@@ -14,7 +14,8 @@ import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalenda
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
-import { SEED_QUESTS, questProgress, nextMilestone, alignmentScore, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
+import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
+import { becomingIndex, becomingLine } from '../lib/becoming.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
@@ -36,7 +37,7 @@ const KIND_COLORS = { focus: '#FF6B5B', train: '#34D399', build: '#E9C46A', ritu
 // ─────────────────────────────────────────────────────────
 // L1 — Today's Mission
 // ─────────────────────────────────────────────────────────
-function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, alignment, adaptedAt }) {
+function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, becoming, adaptedAt }) {
   const [party, setParty] = useState(0);
   const [editingFocus, setEditingFocus] = useState(false);
   const [draft, setDraft] = useState('');
@@ -70,21 +71,29 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
     <div className="hud glass-strong mesh-readiness" style={{ padding: '18px 16px 16px', borderRadius: 22, position: 'relative', overflow: 'visible' }}>
       <ConfettiBurst trigger={party} />
 
-      {/* header — greeting + the cockpit's one number (alignment) */}
+      {/* header — greeting + the cockpit's one number (Becoming) + who you're becoming */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
           <span className="eyebrow">{realDateLabel()}</span>
           <div style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em', marginTop: 3 }}>{greetingLabel()}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 8 }}>
+          {becoming && (
+            <div style={{ fontSize: 11.5, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.3, textWrap: 'pretty' }}>{becomingLine(becoming)}</div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 8, flexWrap: 'wrap' }}>
             {readiness != null && (
               <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>READY {readiness}</span>
             )}
             {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconFlame size={11} color="var(--gold)" /> {streak} DAY</span>}
+            {becoming && becoming.delta !== 0 && (
+              <span className="mono" style={{ fontSize: 10, letterSpacing: '0.08em', color: becoming.trend === 'rising' ? 'var(--lime)' : becoming.trend === 'dipping' ? 'var(--ona-red)' : 'var(--muted)' }}>
+                {becoming.delta > 0 ? '▲+' : '▼'}{Math.abs(becoming.delta)} · 7D
+              </span>
+            )}
           </div>
         </div>
-        {alignment != null && (
+        {becoming && (
           <div style={{ flexShrink: 0 }}>
-            <RadialGauge value={alignment} size={80} stroke={7} color="#45B7E8" label="ALIGN" />
+            <RadialGauge value={becoming.score} size={80} stroke={7} color="#45B7E8" label="BECOMING" />
           </div>
         )}
       </div>
@@ -554,11 +563,11 @@ export function TodayScreen({
   const [goalOpen, setGoalOpen] = useState(false);
   const addQuest = (q) => setQuests((list) => [q, ...list]);
 
-  // Life Alignment + wins — computed fresh each open (cheap, local).
-  const [alignment, setAlignment] = useState(null);
+  // Becoming Index + wins — computed fresh each open (cheap, local).
+  const [becoming, setBecoming] = useState(null);
   const [wins, setWins] = useState([]);
   useEffect(() => {
-    try { setAlignment(alignmentScore()); setWins(recentWins()); } catch { /* first run */ }
+    try { setBecoming(becomingIndex()); setWins(recentWins()); } catch { /* first run */ }
   }, [doneIds, quests]);
 
   // Real calendar events for today (read-only).
@@ -597,7 +606,7 @@ export function TodayScreen({
         onGo={goMission}
         oneThing={state.oneThing}
         onSetOneThing={(txt) => setState((s) => ({ ...s, oneThing: txt }))}
-        alignment={alignment}
+        becoming={becoming}
         adaptedAt={adaptedAt}
       />
 
