@@ -10,6 +10,7 @@ import { IconClose, IconSparkles, IconCheck, IconArrowRight, IconTrendUp } from 
 import { LIFE_DOMAINS } from './data.js';
 import { usageBySurface } from './lib/telemetry.js';
 import { useSyncedState } from './useSyncedState.js';
+import { aiFetch } from './lib/api.js';
 import { Sheet } from './components/Sheet.jsx';
 
 function readJSON(key, fb) {
@@ -126,7 +127,7 @@ export function MonthlyUpgrade({ open, onClose }) {
       `Empty folders: ${m.staleFolders.length}. Weekly focus set: ${m.hasFocus ? 'yes' : 'no'}.`,
     ].join('\n');
     try {
-      const r = await fetch('/api/chief', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'upgrade', context: ctx }) });
+      const r = await aiFetch('/api/chief', { mode: 'upgrade', context: ctx });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       const text = (data.text || '').trim();

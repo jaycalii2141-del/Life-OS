@@ -1,6 +1,8 @@
 // Serverless proxy for the Life OS AI tab.
 // Keeps the Anthropic API key server-side (never shipped to the browser).
 // Set ANTHROPIC_API_KEY in Vercel → Settings → Environment Variables.
+import { gate } from './_auth.js';
+
 const MODEL = 'claude-haiku-4-5-20251001';
 
 export default async function handler(req, res) {
@@ -8,6 +10,7 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
     return;
   }
+  if (!(await gate(req, res))) return;
 
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {

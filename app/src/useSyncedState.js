@@ -17,10 +17,12 @@ export function useSyncedState(key, initial) {
   const { session, configured } = useAuth();
   const uid = session?.user?.id;
   const pulled = useRef(false);
+  const lastSynced = useRef(undefined); // serialized value last seen from / sent to remote
 
   // Pull the remote value once when a session becomes available.
   useEffect(() => {
     pulled.current = false;
+    lastSynced.current = undefined;
     if (!configured || !uid) return;
     let active = true;
     supabase
@@ -31,15 +33,24 @@ export function useSyncedState(key, initial) {
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
-        if (data?.value != null) setValue(data.value);
+        if (data?.value != null) {
+          // Remember what we pulled so the push effect below doesn't
+          // immediately echo the same value straight back up.
+          lastSynced.current = JSON.stringify(data.value);
+          setValue(data.value);
+        }
         pulled.current = true;
       });
     return () => { active = false; };
   }, [uid, key, configured]);
 
-  // Push local changes up to Supabase (after the initial pull).
+  // Push local changes up to Supabase (after the initial pull),
+  // skipping no-op writes that just mirror what we already synced.
   useEffect(() => {
     if (!configured || !uid || !pulled.current) return;
+    const serialized = JSON.stringify(value);
+    if (serialized === lastSynced.current) return; // nothing actually changed
+    lastSynced.current = serialized;
     supabase
       .from('app_state')
       .upsert(

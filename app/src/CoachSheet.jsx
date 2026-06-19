@@ -8,6 +8,7 @@ import { analyzeBlindspots, drillsFor, fundamentalsFor } from './coaching.js';
 import { celebrate } from './lib/haptics.js';
 import { Sheet } from './components/Sheet.jsx';
 import { todayKey } from './usePersistentState.js';
+import { aiFetch } from './lib/api.js';
 
 // Pick the tier to train for a discipline: the active skill's tier,
 // else the next locked skill's tier, else Foundation.
@@ -128,7 +129,7 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
     setLoading(true); setPlan('');
     const context = buildContext(skills, focus, duration);
     try {
-      const resp = await fetch('/api/coach', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ context }) });
+      const resp = await aiFetch('/api/coach', { context });
       if (!resp.ok) throw new Error('no ai');
       const data = await resp.json();
       const text = (data.text || '').trim();

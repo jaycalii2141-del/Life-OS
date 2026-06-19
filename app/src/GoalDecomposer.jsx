@@ -6,6 +6,7 @@ import { Sheet } from './components/Sheet.jsx';
 import { IconSparkles, IconCheck, IconPlus, IconClose, IconTrash, IconArrowRight, domainIcon } from './components/icons.jsx';
 import { LIFE_MAP_DOMAINS } from './lib/quests.js';
 import { celebrate } from './lib/haptics.js';
+import { aiFetch } from './lib/api.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -56,7 +57,7 @@ export function GoalDecomposer({ open, onClose, onAddQuest }) {
     if (!goal.trim() || loading) return;
     setLoading(true);
     try {
-      const r = await fetch('/api/decompose', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ goal, domain, context: lightContext(domain) }) });
+      const r = await aiFetch('/api/decompose', { goal, domain, context: lightContext(domain) });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       if (!Array.isArray(data.milestones) || !data.milestones.length) throw new Error('empty');

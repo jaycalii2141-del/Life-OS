@@ -3,10 +3,6 @@
 // Uses the Vibration API (Android/Chrome); a no-op where unsupported
 // (e.g. iOS Safari), so it's always safe to call.
 // ─────────────────────────────────────────────────────────
-export function haptic(ms = 8) {
-  try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(ms); } catch { /* */ }
-}
-
 // A richer "success" pattern for reward moments (mastered a skill, logged
 // a session, captured a thought). Safe no-op where unsupported.
 export function celebrate() {

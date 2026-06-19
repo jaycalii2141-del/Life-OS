@@ -1,6 +1,8 @@
 // Goal decomposition — name a goal, get back a clear, sequenced progression
 // of milestones. The AI thinks like Jay's coach/strategist; the client has a
 // deterministic fallback so it's useful before the key is set.
+import { gate } from './_auth.js';
+
 const MODEL = 'claude-haiku-4-5-20251001';
 
 function extractJSON(text) {
@@ -13,6 +15,7 @@ function extractJSON(text) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+  if (!(await gate(req, res))) return;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'AI not configured' }); return; }
 

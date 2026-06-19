@@ -1,10 +1,13 @@
 // Serverless brain for the LifeOS Companion — an always-present AI partner
 // Jay can talk to from anywhere in the app. Multi-turn, context-aware,
 // oriented around collaborating, learning, building, and growing together.
+import { gate } from './_auth.js';
+
 const MODEL = 'claude-haiku-4-5-20251001';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+  if (!(await gate(req, res))) return;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'AI not configured' }); return; }
 

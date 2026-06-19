@@ -10,6 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 import { IconSparkles, IconSend, IconClose, IconCalendar, IconActivity, IconPlus, IconTarget, IconMic } from './components/icons.jsx';
 import { Sheet } from './components/Sheet.jsx';
 import { celebrate } from './lib/haptics.js';
+import { aiFetch } from './lib/api.js';
 import { voiceSupported, ttsSupported, createListener, speak, stopSpeaking } from './lib/voice.js';
 import { DISCIPLINES } from './data.js';
 import { analyzeBlindspots } from './coaching.js';
@@ -192,7 +193,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
   const updateMemory = async (history) => {
     try {
       const instr = `[INTERNAL] Update your long-term memory of Jay. Prior memory: """${memory || 'none yet'}""". From our recent conversation, write an updated, concise long-term memory — durable facts about who he is, his goals, preferences, recurring patterns, and what's worked or not. Keep it under 180 words as short plain lines. Merge with prior memory; drop nothing important. Output ONLY the memory text, no preamble.`;
-      const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: [...history.slice(-14), { role: 'user', text: instr }], context: '', mode: 'partner' }) });
+      const r = await aiFetch('/api/companion', { messages: [...history.slice(-14), { role: 'user', text: instr }], context: '', mode: 'partner' });
       if (!r.ok) return;
       const data = await r.json();
       const m = (data.text || '').trim();
@@ -209,7 +210,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
     setThinking(true);
     let reply, acts = [], aiOk = false;
     try {
-      const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: next, context: buildGlobalContext(), mode }) });
+      const r = await aiFetch('/api/companion', { messages: next, context: buildGlobalContext(), mode });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       reply = (data.text || '').trim();

@@ -7,6 +7,7 @@ import { DISCIPLINES } from './data.js';
 import { WEEK_TEMPLATE, PROGRAMMING_PRINCIPLES, analyzeBlindspots } from './coaching.js';
 import { todayKey } from './usePersistentState.js';
 import { Sheet } from './components/Sheet.jsx';
+import { aiFetch } from './lib/api.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -45,7 +46,7 @@ export function WeekPlanSheet({ open, onClose, skills }) {
   const generate = async () => {
     setLoading(true); setPlan('');
     try {
-      const r = await fetch('/api/coach', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'week', context: buildContext(skills, days, priority) }) });
+      const r = await aiFetch('/api/coach', { mode: 'week', context: buildContext(skills, days, priority) });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       const text = (data.text || '').trim();

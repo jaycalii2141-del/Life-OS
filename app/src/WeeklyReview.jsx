@@ -10,6 +10,7 @@ import { LIFE_DOMAINS } from './data.js';
 import { Sheet } from './components/Sheet.jsx';
 import { usageBySurface } from './lib/telemetry.js';
 import { googleCalendarUrl, openExternal } from './lib/actions.js';
+import { aiFetch } from './lib/api.js';
 
 // Next weekday morning, for scheduling next-week intentions.
 function tomorrow9() {
@@ -119,7 +120,7 @@ export function WeeklyReview({ open, onClose }) {
       `App surface opens: ${w.usageSorted.map(([k, v]) => `${SURFACE_NAMES[k] || k} ${v}`).join(', ') || 'n/a'}.`,
     ].filter(Boolean).join('\n');
     try {
-      const r = await fetch('/api/chief', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'review', context: ctx }) });
+      const r = await aiFetch('/api/chief', { mode: 'review', context: ctx });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       const text = (data.text || '').trim();

@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { IconCompass, IconSparkles, IconChevronDown, IconCalendar, IconSend, IconInbox, IconArrowRight, IconCheck, IconClose } from './components/icons.jsx';
 import { todayKey } from './usePersistentState.js';
 import { googleCalendarUrl, mailtoUrl, openExternal } from './lib/actions.js';
+import { aiFetch } from './lib/api.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -77,7 +78,7 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
     const context = buildContext({ readiness, oneThing, calendarEvents });
     let text = '', ai = false, acts = [];
     try {
-      const r = await fetch('/api/chief', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode: 'brief', context }) });
+      const r = await aiFetch('/api/chief', { mode: 'brief', context });
       if (!r.ok) throw new Error('no ai');
       const data = await r.json();
       text = (data.text || '').trim();

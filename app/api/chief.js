@@ -4,6 +4,8 @@
 //   mode:'review' → an honest weekly reflection
 // Falls back to the client's local logic when no API key is set.
 // ─────────────────────────────────────────────────────────
+import { gate } from './_auth.js';
+
 const MODEL = 'claude-haiku-4-5-20251001';
 
 const SYSTEMS = {
@@ -39,6 +41,7 @@ const SYSTEMS = {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+  if (!(await gate(req, res))) return;
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { res.status(503).json({ error: 'AI not configured' }); return; }
 
