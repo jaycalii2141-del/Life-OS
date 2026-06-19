@@ -9,7 +9,7 @@
 // what to do next, what can wait, and how the campaign is going.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill } from '../components/atoms.jsx';
+import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
@@ -55,24 +55,24 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
     <div className="hud glass-strong mesh-readiness" style={{ padding: '18px 16px 16px', borderRadius: 22, position: 'relative', overflow: 'visible' }}>
       <ConfettiBurst trigger={party} />
 
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="eyebrow">{realDateLabel()}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {alignment != null && (
-            <span className="mono" style={{ fontSize: 10, color: 'var(--cyan)', letterSpacing: '0.1em' }}>
-              ALIGNMENT {alignment}
-            </span>
-          )}
-          {readiness != null && (
-            <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>
-              R{readiness}
-            </span>
-          )}
-          {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em' }}>🔥 {streak}</span>}
+      {/* header — greeting + the cockpit's one number (alignment) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <span className="eyebrow">{realDateLabel()}</span>
+          <div style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em', marginTop: 3 }}>{greetingLabel()}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 8 }}>
+            {readiness != null && (
+              <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>READY {readiness}</span>
+            )}
+            {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em' }}>🔥 {streak} DAY</span>}
+          </div>
         </div>
+        {alignment != null && (
+          <div style={{ flexShrink: 0 }}>
+            <RadialGauge value={alignment} size={80} stroke={7} color="#45B7E8" label="ALIGN" />
+          </div>
+        )}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em', marginTop: 4 }}>{greetingLabel()}</div>
 
       {/* progress line */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, marginBottom: 6 }}>
@@ -319,6 +319,11 @@ function MomentumStrip({ momentum = [], streak = 0 }) {
         </div>
         <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14D</span>
       </div>
+      {momentum.length > 1 && (
+        <div style={{ marginBottom: 9, opacity: 0.9 }}>
+          <Sparkline data={momentum} width={304} height={28} color="#E9C46A" />
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 4 }}>
         {momentum.map((v, i) => {
           const isToday = i === momentum.length - 1;

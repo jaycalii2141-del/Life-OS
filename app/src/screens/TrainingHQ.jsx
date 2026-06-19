@@ -330,46 +330,70 @@ function MovementPyramid({ skills, radar }) {
   let mastered = 0, total = 0;
   DISCIPLINES.forEach((d) => (skills[d.id] || []).forEach((s) => { total += 1; if (s.status === 'done') mastered += 1; }));
 
+  const layerScore = (items) => Math.round(items.reduce((s, x) => s + x.value, 0) / (items.length || 1));
+  // Top → bottom (apex = Skills, base = Foundations).
   const LAYERS = [
-    { n: 'L4', name: 'Skills', width: 58, color: '#FF6B5B', items: [{ label: `${mastered} mastered of ${total}`, value: total ? Math.round((mastered / total) * 100) : 0 }] },
-    { n: 'L3', name: 'Disciplines', width: 72, color: '#E9C46A', items: ids.map((x) => ({ label: x.disc.name, value: x.pct })) },
-    { n: 'L2', name: 'Capabilities', width: 86, color: '#2DD4BF', items: capabilities },
-    { n: 'L1', name: 'Foundations', width: 100, color: '#45B7E8', items: foundations },
+    { n: 'L4', name: 'Skills', color: '#FF6B5B', items: [{ label: `${mastered}/${total} mastered`, value: total ? Math.round((mastered / total) * 100) : 0 }] },
+    { n: 'L3', name: 'Disciplines', color: '#E9C46A', items: ids.map((x) => ({ label: x.disc.name, value: x.pct })) },
+    { n: 'L2', name: 'Capabilities', color: '#2DD4BF', items: capabilities },
+    { n: 'L1', name: 'Foundations', color: '#45B7E8', items: foundations },
   ];
+
+  // ── Pyramid geometry: stacked trapezoids tapering to an apex. ──
+  const W = 300, baseY = 200, apexY = 18, baseHalf = 142, apexHalf = 24, cx = 150, h = 40, gap = 6;
+  const halfW = (y) => baseHalf - (baseHalf - apexHalf) * ((baseY - y) / (baseY - apexY));
 
   return (
     <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
       <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className="eyebrow">Movement pyramid</span>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{open ? 'HIDE' : '4 LAYERS'}</span>
+        <div>
+          <span className="eyebrow" style={{ color: 'var(--cyan)' }}>How world-class is built</span>
+          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1 }}>MOVEMENT PYRAMID</div>
+        </div>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{open ? 'HIDE BREAKDOWN' : 'TAP A LAYER'}</span>
       </div>
+
+      <svg viewBox={`0 0 ${W} 212`} style={{ width: '100%', display: 'block', marginTop: 8 }}>
+        {LAYERS.map((layer, j) => {
+          const yTop = apexY + j * (h + gap);
+          const yBot = yTop + h;
+          const hwTop = halfW(yTop), hwBot = halfW(yBot);
+          const sc = layerScore(layer.items);
+          const alpha = (0.16 + 0.55 * (sc / 100)).toFixed(2);
+          const my = (yTop + yBot) / 2;
+          return (
+            <g key={layer.n} style={{ animation: 'cardIn 520ms cubic-bezier(0.2,0.7,0.2,1) both', animationDelay: `${j * 90}ms` }}>
+              <polygon
+                points={`${cx - hwBot},${yBot} ${cx + hwBot},${yBot} ${cx + hwTop},${yTop} ${cx - hwTop},${yTop}`}
+                fill={layer.color} fillOpacity={alpha} stroke={layer.color} strokeOpacity="0.7" strokeWidth="1"
+                style={{ filter: `drop-shadow(0 0 6px ${layer.color}40)` }} />
+              <text x={cx} y={my - 3} textAnchor="middle" fill="#fff" fontFamily="var(--font-mono)" fontSize="8" fontWeight="700" style={{ letterSpacing: '0.12em', opacity: 0.85 }}>
+                {layer.n} · {layer.name.toUpperCase()}
+              </text>
+              <text x={cx} y={my + 13} textAnchor="middle" fill="#fff" fontFamily="var(--font-display)" fontSize="16">{sc}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="eyebrow" style={{ color: 'var(--dim)', textAlign: 'center', marginTop: 2 }}>each layer feeds the one above — brighter = more developed</div>
+
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12, alignItems: 'center' }}>
-          {LAYERS.map((layer) => {
-            const layerAvg = Math.round(layer.items.reduce((s, x) => s + x.value, 0) / layer.items.length);
-            return (
-              <div key={layer.n} style={{
-                width: `${layer.width}%`, padding: '9px 12px', borderRadius: 12,
-                background: `${layer.color}0d`, border: `1px solid ${layer.color}40`,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span className="mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', color: layer.color }}>{layer.n} · {layer.name.toUpperCase()}</span>
-                  <span className="display" style={{ fontSize: 15, color: layer.color }}>{layerAvg}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 3 }}>
-                  {layer.items.map((it) => (
-                    <div key={it.label} title={`${it.label} ${it.value}`} style={{ flex: 1 }}>
-                      <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-                        <div style={{ width: `${it.value}%`, height: '100%', background: layer.color }} />
-                      </div>
-                      <div className="mono" style={{ fontSize: 6.5, color: 'var(--dim)', letterSpacing: '0.04em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label.toUpperCase()}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+          {LAYERS.map((layer) => (
+            <div key={layer.n} style={{ borderLeft: `2px solid ${layer.color}`, paddingLeft: 10 }}>
+              <div className="mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: layer.color, marginBottom: 6 }}>{layer.n} · {layer.name.toUpperCase()}</div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {layer.items.map((it) => (
+                  <div key={it.label} title={`${it.label} ${it.value}`} style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                      <div style={{ width: `${it.value}%`, height: '100%', background: layer.color, transition: 'width 600ms cubic-bezier(0.2,0.7,0.2,1)' }} />
                     </div>
-                  ))}
-                </div>
+                    <div className="mono" style={{ fontSize: 6.5, color: 'var(--dim)', letterSpacing: '0.04em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label.toUpperCase()}</div>
+                  </div>
+                ))}
               </div>
-            );
-          })}
-          <div className="eyebrow" style={{ color: 'var(--dim)', textAlign: 'center' }}>each layer feeds the one above it</div>
+            </div>
+          ))}
         </div>
       )}
     </div>
