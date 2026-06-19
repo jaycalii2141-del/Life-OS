@@ -7,7 +7,7 @@
 // live here.
 // ─────────────────────────────────────────────────────────
 import { useState, useMemo } from 'react';
-import { SectionHead, ProgressBar } from '../components/atoms.jsx';
+import { SectionHead, ProgressBar, RadarChart } from '../components/atoms.jsx';
 import { Sheet } from '../components/Sheet.jsx';
 import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight } from '../components/icons.jsx';
 import { LIFE_DOMAINS, SEED_FOLDERS, DOMAIN_ALIASES, DISCIPLINES } from '../data.js';
@@ -309,6 +309,21 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
       <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
 
       <LifeMapViz scores={scores} alignment={alignment} onPick={(id) => { setOpenDomain(id); logEvent('map', 'domain', id); }} />
+
+      {/* Balance — the same eight domains read as a single shape. A
+          lopsided web shows instantly where life is out of balance. */}
+      <div className="hud glass" style={{ borderRadius: 18, padding: '14px 10px 6px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 4 }}>
+          <div className="eyebrow" style={{ color: 'var(--cyan)' }}>The shape of your life</div>
+          <div className="section-title" style={{ fontSize: 18, marginTop: 1 }}>BALANCE</div>
+        </div>
+        <RadarChart
+          axes={LIFE_MAP_DOMAINS.map((d) => ({ label: ({ relationships: 'BONDS', creativity: 'CREATE', adventure: 'EXPLORE', business: 'BIZ' }[d.id] || d.name.slice(0, 6).toUpperCase()), value: scores[d.id]?.score ?? 0 }))}
+          size={240}
+          color="#45B7E8"
+        />
+        <div className="eyebrow" style={{ textAlign: 'center', color: 'var(--dim)', marginTop: 2 }}>each point = that domain's live score · aim for a full, even web</div>
+      </div>
 
       {/* View toggle — the daily mind tools */}
       <div style={{ display: 'flex', gap: 8 }}>

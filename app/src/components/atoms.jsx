@@ -282,7 +282,128 @@ function EmptyState({ icon, text, style }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// Data-visuals — SVG primitives that turn numbers into something
+// you can read at a glance. All theme via a passed accent color.
+// ─────────────────────────────────────────────────────────
+
+// Animated radial gauge: a glowing arc that fills to `value` (0–100)
+// with the score big in the middle. Great for an alignment/readiness score.
+function RadialGauge({ value = 0, size = 132, stroke = 11, color = '#45B7E8', label, sub }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(100, value));
+  const gid = `g-${color.replace('#', '')}`;
+  return (
+    <div style={{ position: 'relative', width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={color} />
+            <stop offset="100%" stopColor="#2DD4BF" />
+          </linearGradient>
+        </defs>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={`url(#${gid})`} strokeWidth={stroke}
+          strokeLinecap="round" strokeDasharray={c}
+          strokeDashoffset={c - (c * v) / 100}
+          style={{ transition: 'stroke-dashoffset 900ms cubic-bezier(0.2,0.7,0.2,1)', filter: `drop-shadow(0 0 6px ${color}99)` }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="display" style={{ fontSize: size * 0.32, lineHeight: 1, color: 'var(--text)' }}>{Math.round(v)}</div>
+        {label && <div className="eyebrow" style={{ marginTop: 3, color }}>{label}</div>}
+        {sub && <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Sparkline: a tiny trend line for a series of numbers, with a soft fill
+// and a glowing endpoint. Shows momentum at a glance.
+function Sparkline({ data = [], width = 120, height = 36, color = '#45B7E8', showDot = true }) {
+  if (!data.length) return <svg width={width} height={height} />;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = max - min || 1;
+  const pts = data.map((d, i) => [(i / (data.length - 1 || 1)) * width, height - 4 - ((d - min) / range) * (height - 8)]);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const area = `${line} L${width},${height} L0,${height} Z`;
+  const gid = `s-${color.replace('#', '')}`;
+  const end = pts[pts.length - 1];
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gid})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ filter: `drop-shadow(0 0 4px ${color}88)` }} />
+      {showDot && <circle cx={end[0]} cy={end[1]} r="2.8" fill={color} style={{ filter: `drop-shadow(0 0 5px ${color})` }} />}
+    </svg>
+  );
+}
+
+// Radar / spider chart for multi-axis scores (life domains, body attributes,
+// identity meters). Pass axes: [{label, value 0–100}]. Optional `goal` ring.
+function RadarChart({ axes = [], size = 220, color = '#45B7E8', goalColor = 'rgba(255,255,255,0.25)', goal }) {
+  const cx = size / 2, cy = size / 2, R = size / 2 - 26;
+  const n = axes.length || 1;
+  const pt = (i, val) => {
+    const a = -Math.PI / 2 + (i / n) * Math.PI * 2;
+    const rad = (Math.max(0, Math.min(100, val)) / 100) * R;
+    return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
+  };
+  const poly = (vals) => vals.map((v, i) => pt(i, v).join(',')).join(' ');
+  const gid = `r-${color.replace('#', '')}`;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block', margin: '0 auto' }}>
+      <defs>
+        <radialGradient id={gid}>
+          <stop offset="0%" stopColor={color} stopOpacity="0.45" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.12" />
+        </radialGradient>
+      </defs>
+      {[25, 50, 75, 100].map((g) => (
+        <polygon key={g} points={poly(axes.map(() => g))} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+      ))}
+      {axes.map((_, i) => { const [x, y] = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />; })}
+      {goal && <polygon points={poly(goal)} fill="none" stroke={goalColor} strokeWidth="1.5" strokeDasharray="3 3" />}
+      <polygon points={poly(axes.map((a) => a.value))} fill={`url(#${gid})`} stroke={color} strokeWidth="2" style={{ filter: `drop-shadow(0 0 6px ${color}66)` }} />
+      {axes.map((a, i) => {
+        const [x, y] = pt(i, a.value);
+        const [lx, ly] = pt(i, 122);
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r="3" fill={color} />
+            <text x={lx} y={ly} fill="var(--muted)" fontSize="8.5" fontFamily="var(--font-mono)" textAnchor="middle" dominantBaseline="middle" style={{ letterSpacing: '0.04em' }}>{a.label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// Horizontal labeled bar meters — clean comparison of several values.
+function MiniBars({ items = [], max, height = 8 }) {
+  const top = max || Math.max(1, ...items.map((i) => i.value));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      {items.map((it, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ width: 70, fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label}</span>
+          <div style={{ flex: 1, height, borderRadius: 999, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+            <div style={{ width: `${(it.value / top) * 100}%`, height: '100%', borderRadius: 999, background: it.color || '#45B7E8', boxShadow: `0 0 8px ${it.color || '#45B7E8'}66`, transition: 'width 700ms cubic-bezier(0.2,0.7,0.2,1)' }} />
+          </div>
+          <span className="mono" style={{ width: 22, textAlign: 'right', fontSize: 11, color: it.color || 'var(--cyan)' }}>{it.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export {
   HUDTicks, TickCounter, SectionHead, ProgressBar, Pill, HUDCard,
   ConfettiBurst, StateMeter, TimelineEvent, StatTile, EmptyState,
+  RadialGauge, Sparkline, RadarChart, MiniBars,
 };
