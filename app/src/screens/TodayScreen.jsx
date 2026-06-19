@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
-import { celebrate } from '../lib/haptics.js';
+import { celebrate, dayComplete } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
 import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
 import { becomingIndex, becomingLine } from '../lib/becoming.js';
@@ -61,8 +61,8 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
   const toggle = (m) => {
     const isDone = doneIds.includes(m.id);
     if (!isDone) {
-      celebrate();
-      if (done + 1 === total) setParty((p) => p + 1);
+      if (done + 1 === total) { setParty((p) => p + 1); dayComplete(); } // the day closes
+      else celebrate();
     }
     onToggle(m.id);
   };
@@ -127,9 +127,17 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         ))}
 
         {allDone && (
-          <div style={{ textAlign: 'center', padding: '10px 0 4px' }}>
-            <div className="display" style={{ fontSize: 22, color: 'var(--lime)' }}>MISSION COMPLETE</div>
-            <div className="eyebrow" style={{ marginTop: 4 }}>day {streak} of the streak · rest easy</div>
+          <div style={{ position: 'relative', textAlign: 'center', padding: '16px 0 6px', overflow: 'visible' }}>
+            <div className="ceremony-bloom" />
+            <div className="ceremony-text" style={{ position: 'relative' }}>
+              <div className="display" style={{ fontSize: 26, color: 'var(--lime)', letterSpacing: '0.01em' }}>DAY CLOSED</div>
+              {becoming && (
+                <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 6, lineHeight: 1.35, textWrap: 'pretty' }}>
+                  You showed up — {becomingLine(becoming).toLowerCase()}{becoming.delta > 0 ? ` · ▲+${becoming.delta}` : ''}
+                </div>
+              )}
+              <div className="eyebrow" style={{ marginTop: 6 }}>day {streak} of the streak · rest easy</div>
+            </div>
           </div>
         )}
       </div>

@@ -9,6 +9,11 @@ export function celebrate() {
   try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([14, 40, 24]); } catch { /* */ }
 }
 
+// A crescendo for the biggest daily moment — closing the whole day.
+export function dayComplete() {
+  try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([12, 30, 18, 30, 26, 90]); } catch { /* */ }
+}
+
 // Light tap feedback on every interactive `.pressable` element, installed
 // once globally so we don't have to wire each handler.
 export function installGlobalHaptics() {

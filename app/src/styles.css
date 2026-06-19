@@ -418,6 +418,25 @@ html, body {
 /* Gentle lift for a card while its menu is open */
 .obj-active { border-color: rgba(69, 183, 232, 0.45) !important; }
 
+/* "Close the day" ceremony — a light bloom + rise when the day is complete */
+@keyframes ceremonyBloom {
+  0%   { opacity: 0; transform: scale(0.4); }
+  40%  { opacity: 0.85; }
+  100% { opacity: 0; transform: scale(2.3); }
+}
+.ceremony-bloom {
+  position: absolute; left: 50%; top: 50%;
+  width: 170px; height: 170px; margin: -85px 0 0 -85px;
+  border-radius: 999px; pointer-events: none;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.5) 0%, rgba(52, 211, 153, 0) 70%);
+  animation: ceremonyBloom 1200ms ease-out forwards;
+}
+@keyframes ceremonyRise {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ceremony-text { animation: ceremonyRise 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
 /* ─────────────────────────────────────────────────────────
    Pills / chips
    ───────────────────────────────────────────────────────── */
