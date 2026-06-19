@@ -25,6 +25,7 @@ import { TIMELINE } from './data.js';
 import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
 import { useMissionEngine } from './lib/useMissionEngine.js';
+import { maybeMorningNudge } from './lib/nudges.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
@@ -114,6 +115,12 @@ function MainApp() {
   // adaptively re-ranks training to readiness. Build can push moves in.
   const { missions, doneIds, adaptedAt, toggleMission, regenerateMissions, addMission } =
     useMissionEngine(today, missionState, setMissionState);
+
+  // Morning nudge on open (once/day) — the "welcome back, here's your focus" moment.
+  useEffect(() => {
+    maybeMorningNudge(missionState.oneThing ? `Today's focus: ${missionState.oneThing}` : 'Name your one thing — that’s where today lives or dies.');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Captures — a synced log across all days, newest first.
   const [captures, setCaptures] = useSyncedState('lifeos:captures', []);

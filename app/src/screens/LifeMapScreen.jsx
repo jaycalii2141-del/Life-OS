@@ -6,10 +6,12 @@
 // Learning Lab, Adventure Hub, and the daily Inbox/Journal all
 // live here.
 // ─────────────────────────────────────────────────────────
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { SectionHead, ProgressBar, RadarChart } from '../components/atoms.jsx';
 import { Sheet } from '../components/Sheet.jsx';
-import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight } from '../components/icons.jsx';
+import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight, IconTarget, IconWarn, IconActivity } from '../components/icons.jsx';
+import { ObjectMenu } from '../components/ObjectMenu.jsx';
+import { askCompanion } from '../lib/aiActions.js';
 import { LIFE_DOMAINS, SEED_FOLDERS, DOMAIN_ALIASES, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { logEvent } from '../lib/telemetry.js';
@@ -40,10 +42,27 @@ function fmtDay(ts) {
 // ─────────────────────────────────────────────────────────
 // The map itself — an orbital SVG ecosystem.
 // ─────────────────────────────────────────────────────────
-function LifeMapViz({ scores, alignment, onPick }) {
+// Contextual AI actions for a life domain (long-press a node).
+function domainActions(dom, enter) {
+  const ctx = `my "${dom.name}" life domain (currently ${dom.score}/100)`;
+  return [
+    { id: 'analyze', ai: true, icon: <IconActivity size={15} />, label: 'Analyze this domain', hint: 'Where it stands + why', run: () => askCompanion(`Give me an honest 2-3 sentence read on ${ctx}: where it stands, what's driving the score, and whether it's trending right. Specific, no preamble.`) },
+    { id: 'levelup', ai: true, icon: <IconTarget size={15} />, label: 'One move to level it up', hint: 'The highest-leverage action', run: () => askCompanion(`What is the single highest-leverage move this week to raise ${ctx}? One concrete action, 1-2 sentences, no preamble.`) },
+    { id: 'limiter', ai: true, icon: <IconWarn size={15} />, label: "What's pulling it down", hint: 'The limiter + the fix', run: () => askCompanion(`What's most likely holding back ${ctx}, and the fix? 2 sentences, specific.`) },
+    { id: 'enter', ai: false, icon: <IconCompass size={15} />, label: 'Enter domain', hint: 'Open this space', run: () => enter() },
+  ];
+}
+
+function LifeMapViz({ scores, alignment, onPick, onLongPick }) {
   const size = 340;
   const cx = size / 2, cy = size / 2;
   const orbit = 128;
+  // Inline long-press: tap enters the domain, hold opens AI actions.
+  const timer = useRef(null);
+  const longRef = useRef(false);
+  const down = (id) => () => { longRef.current = false; clearTimeout(timer.current); timer.current = setTimeout(() => { longRef.current = true; try { navigator.vibrate?.(12); } catch { /* */ } onLongPick(id); }, 440); };
+  const up = (id) => () => { clearTimeout(timer.current); if (!longRef.current) onPick(id); };
+  const leave = () => clearTimeout(timer.current);
   const nodes = LIFE_MAP_DOMAINS.map((d, i) => {
     const angle = -Math.PI / 2 + (i / LIFE_MAP_DOMAINS.length) * Math.PI * 2;
     return { ...d, x: cx + orbit * Math.cos(angle), y: cy + orbit * Math.sin(angle), score: scores[d.id]?.score ?? 0 };
@@ -75,7 +94,7 @@ function LifeMapViz({ scores, alignment, onPick }) {
 
         {/* domain nodes */}
         {nodes.map((n) => (
-          <g key={n.id} onClick={() => onPick(n.id)} style={{ cursor: 'pointer' }}>
+          <g key={n.id} onPointerDown={down(n.id)} onPointerUp={up(n.id)} onPointerLeave={leave} style={{ cursor: 'pointer', touchAction: 'manipulation' }}>
             <circle cx={n.x} cy={n.y} r={26} fill="rgba(16,18,20,0.85)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
             <circle cx={n.x} cy={n.y} r={29} fill="none" stroke={n.color} strokeWidth="2" strokeLinecap="round"
               style={ringFor(n.score, 29)} transform={`rotate(-90 ${n.x} ${n.y})`} />
@@ -274,6 +293,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const [adventure, setAdventure] = useSyncedState('lifeos:adventure', []);
   const [draft, setDraft] = useState('');
   const [openDomain, setOpenDomain] = useState(null);
+  const [menuDomain, setMenuDomain] = useState(null);
 
   const scores = useMemo(() => { try { return domainScores(); } catch { return {}; } }, [openDomain, learning, adventure]);
   const alignment = useMemo(() => { try { return alignmentScore(scores); } catch { return null; } }, [scores]);
@@ -308,7 +328,25 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
 
-      <LifeMapViz scores={scores} alignment={alignment} onPick={(id) => { setOpenDomain(id); logEvent('map', 'domain', id); }} />
+      <LifeMapViz scores={scores} alignment={alignment}
+        onPick={(id) => { setOpenDomain(id); logEvent('map', 'domain', id); }}
+        onLongPick={(id) => setMenuDomain(id)} />
+
+      {(() => {
+        const dom = menuDomain ? LIFE_MAP_DOMAINS.find((d) => d.id === menuDomain) : null;
+        if (!dom) return null;
+        const score = scores[dom.id]?.score ?? 0;
+        return (
+          <ObjectMenu
+            open={!!menuDomain}
+            onClose={() => setMenuDomain(null)}
+            title={dom.name}
+            subtitle={`Life domain · ${score}/100`}
+            accent={dom.color || 'var(--cyan)'}
+            actions={domainActions({ ...dom, score }, () => { setOpenDomain(dom.id); setMenuDomain(null); logEvent('map', 'domain', dom.id); })}
+          />
+        );
+      })()}
 
       {/* Balance — the same eight domains read as a single shape. A
           lopsided web shows instantly where life is out of balance. */}

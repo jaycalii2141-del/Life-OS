@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { IconClose, IconDownload, IconCheck } from './components/icons.jsx';
 import { useAuth } from './auth/AuthProvider.jsx';
 import { Sheet } from './components/Sheet.jsx';
+import { nudgesEnabled, enableNudges, disableNudges, confirmNudge, notificationsSupported } from './lib/nudges.js';
 
 function exportData() {
   const data = {};
@@ -33,6 +34,14 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
   const { configured, session, signOut } = useAuth();
   const [exported, setExported] = useState(false);
   const [cal, setCal] = useState(icalUrl || '');
+  const [nudges, setNudges] = useState(nudgesEnabled());
+
+  const toggleNudges = async () => {
+    if (nudges) { disableNudges(); setNudges(false); return; }
+    const ok = await enableNudges();
+    setNudges(ok);
+    if (ok) confirmNudge();
+  };
 
   const email = session?.user?.email;
 
@@ -105,6 +114,24 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
           </div>
         </div>
 
+        {/* Daily nudges */}
+        {notificationsSupported() && (
+          <>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Daily nudges</div>
+            <div className="pressable" onClick={toggleNudges} style={{ ...rowStyle, marginBottom: 18 }}>
+              <div style={{ minWidth: 0, paddingRight: 10 }}>
+                <div style={{ fontSize: 14, color: 'var(--text)' }}>Greet me each day</div>
+                <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.08em' }}>
+                  {nudges ? 'ON · A FOCUS NUDGE WHEN YOU OPEN UP' : 'OFF · TAP TO ALLOW NOTIFICATIONS'}
+                </div>
+              </div>
+              <div style={{ width: 44, height: 26, borderRadius: 999, flexShrink: 0, background: nudges ? 'rgba(52,211,153,0.3)' : 'rgba(255,255,255,0.08)', border: `1px solid ${nudges ? 'var(--lime)' : 'var(--line-strong)'}`, position: 'relative', transition: 'all 200ms' }}>
+                <span style={{ position: 'absolute', top: 2, left: nudges ? 20 : 2, width: 20, height: 20, borderRadius: 999, background: nudges ? 'var(--lime)' : 'var(--muted)', transition: 'left 200ms' }} />
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Calendar */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>Google Calendar</div>
         <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 8, marginBottom: 8 }}>
@@ -130,6 +157,27 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
           {icalUrl && (
             <div className="mono" style={{ fontSize: 9, color: 'var(--lime)', letterSpacing: '0.1em' }}>● CONNECTED</div>
           )}
+        </div>
+
+        {/* Make it yours — real data calibration */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Make it yours</div>
+        <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 9, marginBottom: 18 }}>
+          <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
+            Your <span style={{ color: 'var(--text)' }}>Becoming</span> score and the AI are only as true as your data. Replace the starter numbers with your real life:
+          </div>
+          {[
+            ['ONA & business numbers', 'Build → ONA · tap any metric to edit'],
+            ['Your real goals', 'Command → New Goal · or tap a campaign'],
+            ['Skill levels', 'Move → tap a skill to set its %'],
+          ].map(([t, where]) => (
+            <div key={t} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ color: 'var(--cyan)', fontWeight: 800, fontSize: 12, flexShrink: 0 }}>▸</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: 'var(--text)' }}>{t}</div>
+                <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.06em', marginTop: 1 }}>{where.toUpperCase()}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Data */}
