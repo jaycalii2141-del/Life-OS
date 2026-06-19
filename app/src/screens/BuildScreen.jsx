@@ -8,13 +8,16 @@
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { SectionHead, HUDTicks, TickCounter } from '../components/atoms.jsx';
-import { IconCheck, IconPlus, domainIcon } from '../components/icons.jsx';
+import { IconCheck, IconPlus, IconActivity, IconTarget, IconWarn, domainIcon } from '../components/icons.jsx';
 import { ONAHQ } from './ONAHQ.jsx';
 import { ContentStudio } from './ContentStudio.jsx';
 import { snapshot, recommendOna, recommendContent } from '../lib/mission.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { celebrate } from '../lib/haptics.js';
 import { logEvent } from '../lib/telemetry.js';
+import { ObjectMenu } from '../components/ObjectMenu.jsx';
+import { useLongPress } from '../lib/useLongPress.js';
+import { askCompanion } from '../lib/aiActions.js';
 
 // ─────────────────────────────────────────────────────────
 // PODIUM — the second company gets its own command hub.
@@ -179,8 +182,45 @@ function dueStatus(due) {
   return { label: `DUE ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}`, color: 'var(--dim)', rank: 3 };
 }
 
+// Contextual actions for a project object (long-press).
+function projectActions(p) {
+  const ctx = `"${p.title}" (${p.folder.name}, ${p.pct}% done${p.next ? `, next step: ${p.next}` : ''})`;
+  return [
+    { id: 'summary', ai: true, icon: <IconActivity size={15} />, label: 'Summarize progress', hint: 'Where it stands right now', run: () => askCompanion(`Summarize the state of my project ${ctx}. 2-3 sentences: where it stands and its momentum. No preamble.`) },
+    { id: 'next', ai: true, icon: <IconTarget size={15} />, label: 'Generate next steps', hint: 'The next concrete moves', run: () => askCompanion(`For my project ${ctx}: give me the next 3-5 concrete steps to push it forward. Short lines, no preamble, no fluff.`) },
+    { id: 'blockers', ai: true, icon: <IconWarn size={15} />, label: 'Surface blockers', hint: 'What’s in the way + the unblock', run: () => askCompanion(`For my project ${ctx}: what's most likely blocking progress right now, and the single highest-leverage move to unblock it? 2-3 specific sentences.`) },
+  ];
+}
+
+// A single project — an interactive object. Long-press for AI actions.
+function ProjectCard({ p, menuOpen, onLongPress }) {
+  const c = p.folder.color || '#FF8A4C';
+  const lp = useLongPress(() => onLongPress(p), () => onLongPress(p));
+  return (
+    <div {...lp} className={`pressable${menuOpen ? ' obj-pulse' : ''}`} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${menuOpen ? 'rgba(69,183,232,0.55)' : 'var(--line)'}`, touchAction: 'pan-y', transition: 'border-color 200ms' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+        <span style={{ width: 7, height: 7, borderRadius: 999, background: c, boxShadow: `0 0 7px ${c}`, flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{p.title}</div>
+          <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.08em', marginTop: 2 }}>
+            {(p.folder.emoji || '') + ' ' + (p.folder.name || '').toUpperCase()}{p.due.label ? <span style={{ color: p.due.color }}> · {p.due.label}</span> : null}
+          </div>
+        </div>
+        <span className="display" style={{ fontSize: 15, color: p.pct >= 60 ? 'var(--lime)' : 'var(--cyan)', flexShrink: 0 }}>{p.pct}%</span>
+      </div>
+      {p.next && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 7 }}>
+          <span style={{ color: c, fontWeight: 800, fontSize: 12 }}>▸</span>
+          <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.next}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Workbench() {
   const s = snapshot();
+  const [menuProject, setMenuProject] = useState(null);
   const all = [];
   (s.folders || []).forEach((f) => (f.projects || []).forEach((p) => {
     const steps = p.steps || [];
@@ -207,31 +247,20 @@ function Workbench() {
         <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5 }}>No active projects. Start one in any folder (Studio) and it shows up here with its next move.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {all.slice(0, 12).map((p) => {
-            const c = p.folder.color || '#FF8A4C';
-            return (
-              <div key={p.id} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 999, background: c, boxShadow: `0 0 7px ${c}`, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{p.title}</div>
-                    <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.08em', marginTop: 2 }}>
-                      {(p.folder.emoji || '') + ' ' + (p.folder.name || '').toUpperCase()}{p.due.label ? <span style={{ color: p.due.color }}> · {p.due.label}</span> : null}
-                    </div>
-                  </div>
-                  <span className="display" style={{ fontSize: 15, color: p.pct >= 60 ? 'var(--lime)' : 'var(--cyan)', flexShrink: 0 }}>{p.pct}%</span>
-                </div>
-                {p.next && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 7 }}>
-                    <span style={{ color: c, fontWeight: 800, fontSize: 12 }}>▸</span>
-                    <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.next}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {all.slice(0, 12).map((p) => (
+            <ProjectCard key={p.id} p={p} menuOpen={menuProject?.id === p.id} onLongPress={setMenuProject} />
+          ))}
         </div>
       )}
+
+      <ObjectMenu
+        open={!!menuProject}
+        onClose={() => setMenuProject(null)}
+        title={menuProject?.title}
+        subtitle={menuProject ? `${menuProject.folder.name} · ${menuProject.pct}%${menuProject.next ? ` · next: ${menuProject.next}` : ''}` : ''}
+        accent="var(--orange)"
+        actions={menuProject ? projectActions(menuProject) : []}
+      />
     </div>
   );
 }

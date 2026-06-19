@@ -18,7 +18,7 @@ import { SEED_QUESTS, questProgress, nextMilestone, alignmentScore, recentWins, 
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
-import { aiFetch } from '../lib/api.js';
+import { askCompanion, decomposeText } from '../lib/aiActions.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { TIMELINE } from '../data.js';
 
@@ -157,23 +157,6 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
       />
     </div>
   );
-}
-
-// ─────────────────────────────────────────────────────────
-// Inline AI helpers for contextual object actions (the live model).
-// ─────────────────────────────────────────────────────────
-async function askCompanion(prompt) {
-  const r = await aiFetch('/api/companion', { messages: [{ role: 'user', text: prompt }], context: '', mode: 'partner' });
-  if (!r.ok) throw new Error('ai');
-  const d = await r.json();
-  return d.text || '';
-}
-async function decomposeText(title, domain) {
-  const r = await aiFetch('/api/decompose', { goal: title, domain: domain || 'growth', context: '' });
-  if (!r.ok) throw new Error('ai');
-  const d = await r.json();
-  const ms = Array.isArray(d.milestones) ? d.milestones : [];
-  return (d.why ? d.why + '\n\n' : '') + ms.map((m, i) => `${i + 1}. ${m}`).join('\n');
 }
 
 // Contextual actions for a daily mission object.

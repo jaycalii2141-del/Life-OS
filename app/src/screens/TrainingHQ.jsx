@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill, ConfettiBurst } from '../components/atoms.jsx';
 import { celebrate } from '../lib/haptics.js';
-import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar, IconBolt, IconSparkles } from '../components/icons.jsx';
+import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar, IconBolt, IconSparkles, IconWarn, IconTarget, IconCompass } from '../components/icons.jsx';
+import { ObjectMenu } from '../components/ObjectMenu.jsx';
+import { useLongPress } from '../lib/useLongPress.js';
+import { askCompanion } from '../lib/aiActions.js';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
@@ -401,9 +404,22 @@ function MovementPyramid({ skills, radar }) {
 }
 
 // Skill node (3 states: done, active, locked) — tap to edit
+// Contextual actions for a skill object (long-press).
+function skillActions(skill, { onCoach, expand }) {
+  const acts = [
+    { id: 'mastery', ai: true, icon: <IconTarget size={15} />, label: 'Fastest path to mastery', hint: 'Key progressions + the one drill', run: () => askCompanion(`I'm training "${skill.name}" (currently ${skill.pct || 0}%). Give me the fastest, safest path to mastery: the key progression steps and the single drill that matters most right now. Tight, specific, no preamble.`) },
+    { id: 'limiter', ai: true, icon: <IconWarn size={15} />, label: 'Analyze my limiter', hint: 'The fault that stalls this + the fix', run: () => askCompanion(`For the movement skill "${skill.name}": what's the most common limiter or fault that stalls progress here, and the exact fix or correction? 2-3 sentences, specific and coach-grade.`) },
+  ];
+  if (onCoach) acts.push({ id: 'session', ai: false, icon: <IconActivity size={15} />, label: 'Generate a session', hint: 'Build today’s training around this', run: () => onCoach() });
+  acts.push({ id: 'review', ai: false, icon: <IconCompass size={15} />, label: 'Review drills & detail', hint: 'Open the breakdown', run: () => expand() });
+  return acts;
+}
+
 function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTrack, prereq, readiness, onCoach }) {
   const [editing, setEditing] = useState(false);
   const [party, setParty] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const lp = useLongPress(() => setMenuOpen(true), () => setEditing((e) => !e));
 
   const stateMap = {
     done: {
@@ -454,22 +470,23 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
 
   return (
     <div
+      className={menuOpen ? 'obj-pulse' : ''}
       style={{
         padding: '10px 12px',
         borderRadius: 12,
         background: s.bg,
-        border: `1px solid ${editing ? color : s.border}`,
+        border: `1px solid ${menuOpen ? 'rgba(69,183,232,0.55)' : editing ? color : s.border}`,
         position: 'relative',
         opacity: skill.status === 'locked' && !editing ? 0.55 : 1,
         transition: 'border-color 200ms',
       }}
     >
       <ConfettiBurst trigger={party} />
-      {/* compact row — one clean line; detail lives one tap away */}
+      {/* compact row — tap to expand, long-press for AI actions */}
       <div
         className="pressable"
-        onClick={() => setEditing((e) => !e)}
-        style={{ display: 'flex', alignItems: 'center', gap: 11 }}
+        {...lp}
+        style={{ display: 'flex', alignItems: 'center', gap: 11, touchAction: 'pan-y' }}
       >
         <div style={{
           width: 20, height: 20, borderRadius: 7,
@@ -599,6 +616,15 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
           })()}
         </div>
       )}
+
+      <ObjectMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title={skill.name}
+        subtitle={skill.status === 'active' ? `In progress · ${skill.pct}%` : skill.status === 'done' ? 'Mastered' : 'Locked'}
+        accent="var(--cyan)"
+        actions={skillActions(skill, { onCoach, expand: () => { setEditing(true); setMenuOpen(false); } })}
+      />
     </div>
   );
 }
