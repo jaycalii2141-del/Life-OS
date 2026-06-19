@@ -32,10 +32,20 @@ const KIND_COLORS = { focus: '#FF6B5B', train: '#34D399', build: '#E9C46A', ritu
 // ─────────────────────────────────────────────────────────
 // L1 — Today's Mission
 // ─────────────────────────────────────────────────────────
-function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, alignment }) {
+function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, alignment, adaptedAt }) {
   const [party, setParty] = useState(0);
   const [editingFocus, setEditingFocus] = useState(false);
   const [draft, setDraft] = useState('');
+
+  // Flash a brief "re-planned" badge when the engine adapts to readiness.
+  const [adaptedFlash, setAdaptedFlash] = useState(false);
+  useEffect(() => {
+    if (!adaptedAt) return;
+    if (Date.now() - adaptedAt > 8000) return;
+    setAdaptedFlash(true);
+    const t = setTimeout(() => setAdaptedFlash(false), 6000);
+    return () => clearTimeout(t);
+  }, [adaptedAt]);
 
   const total = missions.length;
   const done = missions.filter((m) => doneIds.includes(m.id)).length;
@@ -76,7 +86,12 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
 
       {/* progress line */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, marginBottom: 6 }}>
-        <span className="eyebrow" style={{ color: 'var(--cyan)' }}>Today's mission</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="eyebrow" style={{ color: 'var(--cyan)' }}>Today's mission</span>
+          {adaptedFlash && (
+            <span className="mono" style={{ fontSize: 8, color: 'var(--gold)', letterSpacing: '0.1em', padding: '2px 6px', borderRadius: 999, background: 'rgba(233,196,106,0.14)', border: '1px solid rgba(233,196,106,0.4)', animation: 'screenFade 300ms ease' }}>⟳ RE-PLANNED FOR READINESS</span>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>
             {done}/{total} · {estimateLabel(missions, doneIds)}
@@ -444,7 +459,7 @@ function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCale
 // The screen
 // ─────────────────────────────────────────────────────────
 export function TodayScreen({
-  state, setState, missions, doneIds, onToggleMission, onRegenerate,
+  state, setState, missions, doneIds, adaptedAt, onToggleMission, onRegenerate,
   momentum, streak, trend, icalUrl,
   onOpenSettings, onOpenCalendar, onOpenCompanion, onGoTab,
 }) {
@@ -504,6 +519,7 @@ export function TodayScreen({
         oneThing={state.oneThing}
         onSetOneThing={(txt) => setState((s) => ({ ...s, oneThing: txt }))}
         alignment={alignment}
+        adaptedAt={adaptedAt}
       />
 
       <AskBar onOpen={onOpenCompanion} />

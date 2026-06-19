@@ -4,7 +4,7 @@
 // The Mission Engine lives here so every screen can feed it.
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture.
 // ─────────────────────────────────────────────────────────
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
@@ -138,6 +138,32 @@ function MainApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [missionState.oneThing, missionDoc.items]);
 
+  // ── Adaptive re-rank ──
+  // When readiness crosses a threshold after check-in, swap the training
+  // mission to match the moment (push → technique → recovery) — preserving
+  // order, the other missions, and completion. The cockpit re-plans itself.
+  const lastBucketRef = useRef(null);
+  useEffect(() => {
+    if (!missionDoc.items || !missionState.checkedIn) return;
+    const r = Math.round(((missionState.energy + missionState.focus + missionState.body + missionState.mood) / 40) * 100);
+    const bucket = r >= 60 ? 'push' : r >= 45 ? 'tech' : 'recover';
+    if (lastBucketRef.current === null) { lastBucketRef.current = bucket; return; }
+    if (bucket === lastBucketRef.current) return;
+    lastBucketRef.current = bucket;
+    const freshTrain = generateMissions().find((m) => m.kind === 'train');
+    if (!freshTrain) return;
+    setMissionDoc((d) => {
+      const oldTrain = (d.items || []).find((m) => m.kind === 'train');
+      if (!oldTrain || oldTrain.id === freshTrain.id) return d;
+      const items = (d.items || []).map((m) => (m.kind === 'train' ? freshTrain : m));
+      let doneIds = d.doneIds || [];
+      if (doneIds.includes(oldTrain.id)) doneIds = [...doneIds.filter((x) => x !== oldTrain.id), freshTrain.id];
+      return { ...d, items, doneIds, adaptedAt: Date.now() };
+    });
+    logEvent('mission', 'adapt', bucket);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionState.energy, missionState.focus, missionState.body, missionState.mood, missionState.checkedIn, missionDoc.items]);
+
   const toggleMission = (id) => {
     setMissionDoc((d) => {
       const done = (d.doneIds || []).includes(id);
@@ -240,6 +266,7 @@ function MainApp() {
           setState={setMissionState}
           missions={missions}
           doneIds={doneIds}
+          adaptedAt={missionDoc.adaptedAt}
           onToggleMission={toggleMission}
           onRegenerate={regenerateMissions}
           momentum={momentum}
