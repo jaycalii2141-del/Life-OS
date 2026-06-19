@@ -550,7 +550,7 @@ export function TodayScreen({
         calendarEvents={calendarEvents}
         onAddEvent={addEvent}
         onGoMind={() => onGoTab?.('life')}
-        defaultOpen={false}
+        defaultOpen={true}
       />
 
       <TimelineCard events={events} calendarEvents={calendarEvents} onAdd={addEvent} onDelete={deleteEvent} onOpenCalendar={onOpenCalendar} />

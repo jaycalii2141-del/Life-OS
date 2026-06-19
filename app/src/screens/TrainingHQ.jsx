@@ -388,7 +388,7 @@ function MovementPyramid({ skills, radar }) {
                     <div style={{ height: 4, borderRadius: 999, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
                       <div style={{ width: `${it.value}%`, height: '100%', background: layer.color, transition: 'width 600ms cubic-bezier(0.2,0.7,0.2,1)' }} />
                     </div>
-                    <div className="mono" style={{ fontSize: 6.5, color: 'var(--dim)', letterSpacing: '0.04em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label.toUpperCase()}</div>
+                    <div style={{ fontSize: 9.5, color: 'var(--dim)', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.label}</div>
                   </div>
                 ))}
               </div>

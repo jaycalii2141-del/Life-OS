@@ -5,15 +5,10 @@ import { useState, useEffect, useRef } from 'react';
 // ─────────────────────────────────────────────────────────
 
 // HUD corner ticks (4 L-brackets)
+// Corner ticks removed for a calmer, less "sci-fi template" look (kept as a
+// no-op so existing call sites don't need editing). Restraint reads premium.
 function HUDTicks() {
-  return (
-    <>
-      <span className="hud-tick tl" />
-      <span className="hud-tick tr" />
-      <span className="hud-tick bl" />
-      <span className="hud-tick br" />
-    </>
-  );
+  return null;
 }
 
 // Animated counter — ticks from 0 to value
