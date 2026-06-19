@@ -76,6 +76,10 @@ function buildGlobalContext() {
   const inbox = s.captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
   if (inbox) L.push(`${inbox} thoughts waiting in the capture inbox.`);
 
+  // Long-term memory — what the companion has learned about Jay over time.
+  const mem = readJSON('lifeos:companion:memory', '');
+  if (mem) L.unshift(`LONG-TERM MEMORY (what you've learned about Jay over time, carry it forward): ${mem}`);
+
   return L.join('\n');
 }
 
@@ -126,6 +130,10 @@ const ACTION_META = {
 // ── The conversation ──
 export function Companion({ open, onClose, onAction, startVoice = false }) {
   const [messages, setMessages] = useSyncedState('lifeos:companion', []);
+  // Long-term memory — a distilled, persistent sense of Jay that the
+  // companion carries across every conversation, so it grows with you.
+  const [memory, setMemory] = useSyncedState('lifeos:companion:memory', '');
+  const memTickRef = useRef(0);
   const [mode, setMode] = useState('partner');
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
@@ -179,6 +187,19 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, startVoice]);
 
+  // Distill the conversation into durable long-term memory (every few
+  // exchanges). Runs only when the AI is live; a graceful no-op otherwise.
+  const updateMemory = async (history) => {
+    try {
+      const instr = `[INTERNAL] Update your long-term memory of Jay. Prior memory: """${memory || 'none yet'}""". From our recent conversation, write an updated, concise long-term memory — durable facts about who he is, his goals, preferences, recurring patterns, and what's worked or not. Keep it under 180 words as short plain lines. Merge with prior memory; drop nothing important. Output ONLY the memory text, no preamble.`;
+      const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: [...history.slice(-14), { role: 'user', text: instr }], context: '', mode: 'partner' }) });
+      if (!r.ok) return;
+      const data = await r.json();
+      const m = (data.text || '').trim();
+      if (m && m.length > 20) setMemory(m.slice(0, 1600));
+    } catch { /* no key → keep existing memory */ }
+  };
+
   const send = async (text) => {
     const q = (text ?? input).trim();
     if (!q || thinking) return;
@@ -186,7 +207,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
     const next = [...messages, { role: 'user', text: q }];
     setMessages(next.slice(-60));
     setThinking(true);
-    let reply, acts = [];
+    let reply, acts = [], aiOk = false;
     try {
       const r = await fetch('/api/companion', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: next, context: buildGlobalContext(), mode }) });
       if (!r.ok) throw new Error('no ai');
@@ -194,12 +215,18 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
       reply = (data.text || '').trim();
       if (!reply) throw new Error('empty');
       acts = Array.isArray(data.actions) ? data.actions : [];
+      aiOk = true;
     } catch {
       // Local intelligence — real answers from live data until the key is set.
       reply = localAnswer(q, mode);
     }
     setMessages((m) => [...m, { role: 'ai', text: reply, actions: acts, mode }].slice(-60));
     setThinking(false);
+    // Fold the conversation into long-term memory every few exchanges.
+    if (aiOk) {
+      memTickRef.current += 1;
+      if (memTickRef.current >= 5) { memTickRef.current = 0; updateMemory([...next, { role: 'ai', text: reply }]); }
+    }
     // Speak the answer, then hand the mic back — a real conversation.
     if (voiceOnRef.current && openRef.current) {
       setSpeaking(true);
@@ -222,6 +249,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
           <div>
             <div className="eyebrow" style={{ color: activeMode.color }}>{activeMode.hint}</div>
             <div className="display" style={{ fontSize: 20, marginTop: 1 }}>JAM INTELLIGENCE</div>
+            {memory && <div className="mono" style={{ fontSize: 8, color: 'var(--lime)', letterSpacing: '0.1em', marginTop: 2 }}>🧠 REMEMBERS YOU</div>}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -340,15 +340,41 @@ function MainApp() {
 }
 
 // Minimal, on-brand fallback while a screen chunk loads.
+// Skeleton placeholders that mirror a screen's shape — content fades in
+// over structure, the way premium apps load (never a blank or a spinner).
 function ScreenLoading() {
+  const Card = ({ h, children }) => (
+    <div className="hud glass" style={{ borderRadius: 18, padding: 16, height: h }}>{children}</div>
+  );
+  const Line = ({ w, h = 11, mt = 0 }) => <div className="skeleton" style={{ width: w, height: h, marginTop: mt }} />;
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="orb-spin" style={{
-        width: 40, height: 40, borderRadius: '50%',
-        background: 'conic-gradient(from 0deg, #45B7E8, #2DD4BF, #45B7E8)',
-        WebkitMask: 'radial-gradient(circle, transparent 58%, #000 60%)',
-        mask: 'radial-gradient(circle, transparent 58%, #000 60%)',
-      }} />
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 8 }}>
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <Line w={90} h={9} />
+            <Line w={150} h={18} mt={8} />
+            <Line w={110} h={9} mt={10} />
+          </div>
+          <div className="skeleton" style={{ width: 78, height: 78, borderRadius: '50%' }} />
+        </div>
+        <Line w="100%" h={4} mt={16} />
+        <Line w="92%" mt={14} />
+        <Line w="74%" mt={8} />
+      </Card>
+      <Card h={70}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div className="skeleton" style={{ width: 34, height: 34, borderRadius: 10 }} />
+          <Line w="60%" />
+        </div>
+      </Card>
+      <Card>
+        <Line w={80} h={9} />
+        <Line w="100%" h={26} mt={12} />
+        <div style={{ display: 'flex', gap: 4, marginTop: 10 }}>
+          {Array.from({ length: 14 }).map((_, i) => <div key={i} className="skeleton" style={{ flex: 1, height: 24, borderRadius: 5 }} />)}
+        </div>
+      </Card>
     </div>
   );
 }

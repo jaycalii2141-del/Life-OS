@@ -162,6 +162,80 @@ function ActionCenter({ onAddMission, missionIds }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// Workbench — every active project across every folder (ONA, Podium,
+// Studio, personal), in one place, sorted by urgency, each with its
+// surfaced next action. The single "what's on my plate" view.
+// ─────────────────────────────────────────────────────────
+function dueStatus(due) {
+  if (!due) return { label: '', color: 'var(--dim)', rank: 4 };
+  const d = new Date(`${due}T00:00:00`);
+  if (isNaN(d)) return { label: '', color: 'var(--dim)', rank: 4 };
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const days = Math.round((d - today) / 864e5);
+  if (days < 0) return { label: `OVERDUE ${-days}D`, color: '#FF6B5B', rank: 0 };
+  if (days === 0) return { label: 'DUE TODAY', color: '#E9C46A', rank: 1 };
+  if (days <= 3) return { label: `DUE ${days}D`, color: '#E9C46A', rank: 2 };
+  return { label: `DUE ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}`, color: 'var(--dim)', rank: 3 };
+}
+
+function Workbench() {
+  const s = snapshot();
+  const all = [];
+  (s.folders || []).forEach((f) => (f.projects || []).forEach((p) => {
+    const steps = p.steps || [];
+    const done = steps.filter((x) => x.done).length;
+    const allDone = steps.length > 0 && done === steps.length;
+    if (allDone) return; // active only
+    all.push({
+      id: p.id, title: p.title, folder: f,
+      pct: steps.length ? Math.round((done / steps.length) * 100) : 0,
+      next: steps.find((x) => !x.done)?.text,
+      due: dueStatus(p.due),
+    });
+  }));
+  all.sort((a, b) => a.due.rank - b.due.rank || b.pct - a.pct);
+
+  return (
+    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(255,138,76,0.22)' }}>
+      <HUDTicks />
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span className="eyebrow" style={{ color: 'var(--orange)' }}>What's on your plate</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{all.length} ACTIVE PROJECTS</span>
+      </div>
+      {all.length === 0 ? (
+        <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5 }}>No active projects. Start one in any folder (Studio) and it shows up here with its next move.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {all.slice(0, 12).map((p) => {
+            const c = p.folder.color || '#FF8A4C';
+            return (
+              <div key={p.id} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 999, background: c, boxShadow: `0 0 7px ${c}`, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{p.title}</div>
+                    <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.08em', marginTop: 2 }}>
+                      {(p.folder.emoji || '') + ' ' + (p.folder.name || '').toUpperCase()}{p.due.label ? <span style={{ color: p.due.color }}> · {p.due.label}</span> : null}
+                    </div>
+                  </div>
+                  <span className="display" style={{ fontSize: 15, color: p.pct >= 60 ? 'var(--lime)' : 'var(--cyan)', flexShrink: 0 }}>{p.pct}%</span>
+                </div>
+                {p.next && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 7 }}>
+                    <span style={{ color: c, fontWeight: 800, fontSize: 12 }}>▸</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.next}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const SEGMENTS = [
   { id: 'ona', label: 'ONA', color: '#FF6B5B' },
   { id: 'podium', label: 'Podium', color: '#E9C46A' },
@@ -191,6 +265,8 @@ export function BuildScreen({ onAddMission, missionIds = [] }) {
       } />
 
       <ActionCenter onAddMission={onAddMission} missionIds={missionIds} />
+
+      <Workbench />
 
       {seg === 'ona' ? <ONAHQ embedded /> : seg === 'podium' ? <PodiumHub /> : <ContentStudio embedded />}
     </div>
