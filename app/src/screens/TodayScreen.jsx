@@ -98,7 +98,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
             {done}/{total} · {estimateLabel(missions, doneIds)}
           </span>
           <div className="pressable" onClick={onRegenerate} title="Re-plan"
-            style={{ width: 26, height: 26, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--violet)', background: 'rgba(45,212,191,0.1)' }}>
+            style={{ width: 26, height: 26, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cyan)', background: 'rgba(69,183,232,0.1)' }}>
             <IconSparkles size={14} />
           </div>
         </div>
@@ -324,10 +324,12 @@ function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
       </div>
       {open && (
         <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+          {/* One accent per surface — meters share Command's cyan; level is read
+              from the fill, not from four competing hues. */}
           <StateMeter label="Energy" value={state.energy} color="#45B7E8" onChange={(v) => onMeter('energy', v)} />
-          <StateMeter label="Focus" value={state.focus} color="#2DD4BF" onChange={(v) => onMeter('focus', v)} />
-          <StateMeter label="Body" value={state.body} color="#34D399" onChange={(v) => onMeter('body', v)} />
-          <StateMeter label="Mood" value={state.mood} color="#E9C46A" onChange={(v) => onMeter('mood', v)} />
+          <StateMeter label="Focus" value={state.focus} color="#45B7E8" onChange={(v) => onMeter('focus', v)} />
+          <StateMeter label="Body" value={state.body} color="#45B7E8" onChange={(v) => onMeter('body', v)} />
+          <StateMeter label="Mood" value={state.mood} color="#45B7E8" onChange={(v) => onMeter('mood', v)} />
         </div>
       )}
     </div>
