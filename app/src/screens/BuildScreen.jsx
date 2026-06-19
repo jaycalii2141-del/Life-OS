@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { SectionHead, HUDTicks, TickCounter } from '../components/atoms.jsx';
-import { IconCheck, IconPlus } from '../components/icons.jsx';
+import { IconCheck, IconPlus, domainIcon } from '../components/icons.jsx';
 import { ONAHQ } from './ONAHQ.jsx';
 import { ContentStudio } from './ContentStudio.jsx';
 import { snapshot, recommendOna, recommendContent } from '../lib/mission.js';
@@ -137,7 +137,7 @@ function ActionCenter({ onAddMission, missionIds }) {
           return (
             <div key={r.id} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--line)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                <span style={{ fontSize: 16, flexShrink: 0, lineHeight: '20px' }}>{r.icon}</span>
+                {(() => { const K = domainIcon(r.domain); return <K size={16} color="var(--orange)" stroke={1.9} style={{ flexShrink: 0, marginTop: 1 }} />; })()}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{r.title}</div>
                   <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4, marginTop: 3 }}>{r.why}</div>

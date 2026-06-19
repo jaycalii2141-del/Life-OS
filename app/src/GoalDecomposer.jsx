@@ -3,7 +3,7 @@
 // (quest). Works on a deterministic scaffold before the AI key is set.
 import { useState } from 'react';
 import { Sheet } from './components/Sheet.jsx';
-import { IconSparkles, IconCheck, IconPlus, IconClose, IconTrash, IconArrowRight } from './components/icons.jsx';
+import { IconSparkles, IconCheck, IconPlus, IconClose, IconTrash, IconArrowRight, domainIcon } from './components/icons.jsx';
 import { LIFE_MAP_DOMAINS } from './lib/quests.js';
 import { celebrate } from './lib/haptics.js';
 
@@ -112,10 +112,11 @@ export function GoalDecomposer({ open, onClose, onAddQuest }) {
           const on = domain === d.id;
           return (
             <div key={d.id} className="pressable" onClick={() => setDomain(d.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 11px', borderRadius: 999, fontSize: 11, fontWeight: 700,
               background: on ? `${d.color}1f` : 'rgba(255,255,255,0.04)', border: `1px solid ${on ? d.color : 'var(--line)'}`,
               color: on ? d.color : 'var(--muted)',
-            }}>{d.icon} {d.name}</div>
+            }}>{(() => { const K = domainIcon(d.id); return <K size={13} stroke={2} />; })()} {d.name}</div>
           );
         })}
       </div>

@@ -260,7 +260,7 @@ function WinsStrip({ wins }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
         {wins.map((w, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13 }}>{w.icon}</span>
+            <IconCheck size={13} color="var(--lime)" stroke={2.4} style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.3 }}>{w.text}</span>
           </div>
         ))}
