@@ -10,12 +10,15 @@
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
-import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, kindIcon, domainIcon } from '../components/icons.jsx';
+import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
 import { SEED_QUESTS, questProgress, nextMilestone, alignmentScore, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
+import { ObjectMenu } from '../components/ObjectMenu.jsx';
+import { useLongPress } from '../lib/useLongPress.js';
+import { aiFetch } from '../lib/api.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { TIMELINE } from '../data.js';
 
@@ -37,6 +40,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
   const [party, setParty] = useState(0);
   const [editingFocus, setEditingFocus] = useState(false);
   const [draft, setDraft] = useState('');
+  const [menuMission, setMenuMission] = useState(null);
 
   // Flash a brief "re-planned" badge when the engine adapts to readiness.
   const [adaptedFlash, setAdaptedFlash] = useState(false);
@@ -107,53 +111,11 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
 
       {/* mission list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-        {missions.map((m) => {
-          const isDone = doneIds.includes(m.id);
-          const isNext = next && next.id === m.id;
-          const c = KIND_COLORS[m.kind] || 'var(--cyan)';
-          return (
-            <div key={m.id} style={{
-              padding: '10px 12px', borderRadius: 14,
-              background: isNext ? 'rgba(69,183,232,0.07)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${isNext ? 'rgba(69,183,232,0.45)' : 'var(--line)'}`,
-              opacity: isDone ? 0.5 : 1, transition: 'all 200ms',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
-                {/* 44px hit area; the visual box stays 24px (negative margins
-                    keep layout identical to before). */}
-                <div className="pressable" onClick={() => toggle(m)} style={{
-                  flexShrink: 0, margin: '-9px -10px -10px -10px', padding: 10,
-                  display: 'flex', alignItems: 'flex-start',
-                }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 8,
-                    border: `1.5px solid ${isDone ? 'var(--lime)' : c}`,
-                    background: isDone ? 'var(--lime)' : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
-                  </div>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }} className="pressable" onClick={() => onGo(m)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    {(() => { const K = kindIcon(m.kind); return <K size={15} color={c} stroke={2} style={{ flexShrink: 0 }} />; })()}
-                    <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3, textDecoration: isDone ? 'line-through' : 'none', textWrap: 'pretty' }}>
-                      {m.title}
-                    </span>
-                  </div>
-                  {!isDone && (
-                    <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4, marginTop: 3 }}>{m.why}</div>
-                  )}
-                  {isNext && (
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.16em', marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
-                      NEXT UP · ~{m.est}M <IconChevronRight size={11} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {missions.map((m) => (
+          <MissionRow key={m.id} m={m} isDone={doneIds.includes(m.id)} isNext={next && next.id === m.id}
+            menuOpen={menuMission?.id === m.id}
+            onToggle={() => toggle(m)} onGo={() => onGo(m)} onLongPress={() => setMenuMission(m)} />
+        ))}
 
         {allDone && (
           <div style={{ textAlign: 'center', padding: '10px 0 4px' }}>
@@ -184,17 +146,159 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
           }}>+ SET YOUR ONE THING</div>
         )
       )}
+
+      <ObjectMenu
+        open={!!menuMission}
+        onClose={() => setMenuMission(null)}
+        title={menuMission?.title}
+        subtitle={menuMission?.why}
+        accent="var(--cyan)"
+        actions={menuMission ? missionActions(menuMission, onSetOneThing, () => setMenuMission(null)) : []}
+      />
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────
-// MISSIONS — the long campaigns (quest system). Each breaks into
-// milestones; checking one off is a real win, not a task tick.
+// Inline AI helpers for contextual object actions (the live model).
+// ─────────────────────────────────────────────────────────
+async function askCompanion(prompt) {
+  const r = await aiFetch('/api/companion', { messages: [{ role: 'user', text: prompt }], context: '', mode: 'partner' });
+  if (!r.ok) throw new Error('ai');
+  const d = await r.json();
+  return d.text || '';
+}
+async function decomposeText(title, domain) {
+  const r = await aiFetch('/api/decompose', { goal: title, domain: domain || 'growth', context: '' });
+  if (!r.ok) throw new Error('ai');
+  const d = await r.json();
+  const ms = Array.isArray(d.milestones) ? d.milestones : [];
+  return (d.why ? d.why + '\n\n' : '') + ms.map((m, i) => `${i + 1}. ${m}`).join('\n');
+}
+
+// Contextual actions for a daily mission object.
+function missionActions(m, onSetOneThing, close) {
+  return [
+    { id: 'approach', ai: true, icon: <IconActivity size={15} />, label: 'How should I approach this?', hint: 'A practical way in', run: () => askCompanion(`For my task today — "${m.title}" — give me a tight, practical way to approach it in the next focused block. 2-3 sentences, specific, no preamble.`) },
+    { id: 'why', ai: true, icon: <IconTarget size={15} />, label: 'Why does this matter?', hint: 'The stakes, honestly', run: () => askCompanion(`In 2 sentences, why does "${m.title}" matter for me today? Then one sentence on the real cost of skipping it. Direct, no fluff.`) },
+    { id: 'focus', ai: false, icon: <IconCompass size={15} />, label: 'Set as my One Thing', hint: 'Make it today’s priority', run: () => { onSetOneThing?.(m.title); close?.(); } },
+  ];
+}
+
+// A single daily mission — an interactive object.
+//   tap on the body → go to its screen   ·   long-press → AI actions
+function MissionRow({ m, isDone, isNext, menuOpen, onToggle, onGo, onLongPress }) {
+  const c = KIND_COLORS[m.kind] || 'var(--cyan)';
+  const lp = useLongPress(onLongPress, onGo);
+  return (
+    <div className={menuOpen ? 'obj-pulse' : ''} style={{
+      padding: '10px 12px', borderRadius: 14,
+      background: isNext ? 'rgba(69,183,232,0.07)' : 'rgba(255,255,255,0.03)',
+      border: `1px solid ${menuOpen ? 'rgba(69,183,232,0.55)' : isNext ? 'rgba(69,183,232,0.45)' : 'var(--line)'}`,
+      opacity: isDone ? 0.5 : 1, transition: 'all 200ms',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
+        {/* 44px hit area; the visual box stays 24px. */}
+        <div className="pressable" onClick={onToggle} style={{ flexShrink: 0, margin: '-9px -10px -10px -10px', padding: 10, display: 'flex', alignItems: 'flex-start' }}>
+          <div style={{
+            width: 24, height: 24, borderRadius: 8,
+            border: `1.5px solid ${isDone ? 'var(--lime)' : c}`,
+            background: isDone ? 'var(--lime)' : 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
+          </div>
+        </div>
+        <div {...lp} style={{ flex: 1, minWidth: 0, touchAction: 'pan-y' }} className="pressable">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            {(() => { const K = kindIcon(m.kind); return <K size={15} color={c} stroke={2} style={{ flexShrink: 0 }} />; })()}
+            <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3, textDecoration: isDone ? 'line-through' : 'none', textWrap: 'pretty' }}>
+              {m.title}
+            </span>
+          </div>
+          {!isDone && (
+            <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4, marginTop: 3 }}>{m.why}</div>
+          )}
+          {isNext && (
+            <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.16em', marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+              NEXT UP · ~{m.est}M <IconChevronRight size={11} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Contextual actions for a goal/campaign object.
+function campaignActions(q, openRoadmap) {
+  return [
+    { id: 'breakdown', ai: true, icon: <IconTarget size={15} />, label: 'Break into next actions', hint: 'A sequenced path of milestones', run: () => decomposeText(q.title, q.domain) },
+    { id: 'blockers', ai: true, icon: <IconWarn size={15} />, label: 'Analyze blockers', hint: 'What’s in the way + the unblock', run: () => askCompanion(`I'm working toward this goal: "${q.title}". In 3-4 tight, specific sentences: what's most likely blocking my progress right now, and the single highest-leverage move to unblock it? No preamble.`) },
+    { id: 'plan', ai: true, icon: <IconActivity size={15} />, label: 'Generate a plan', hint: 'A concrete 5-step plan', run: () => askCompanion(`Give me a concrete, sequenced 5-step plan to make real progress on: "${q.title}". Short lines, no preamble, no fluff.`) },
+    { id: 'roadmap', ai: false, icon: <IconCompass size={15} />, label: 'View roadmap', hint: 'Open milestones', run: () => openRoadmap(q.id) },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────
+// A single campaign — an interactive object.
+//   tap        → expand/collapse the roadmap
+//   long-press → contextual actions (AI breakdown, blockers, plan…)
+// ─────────────────────────────────────────────────────────
+function CampaignCard({ q, open, onToggleOpen, onToggleMilestone, onLongPress, menuOpen }) {
+  const pct = questProgress(q);
+  const next = nextMilestone(q);
+  const lp = useLongPress(() => onLongPress(q), () => onToggleOpen(q.id));
+  return (
+    <div className={`press-soft${menuOpen ? ' obj-active obj-pulse' : ''}`} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? 'var(--line-strong)' : 'var(--line)'}`, transition: 'border-color 200ms' }}>
+      <div {...lp} className="pressable" style={{ touchAction: 'pan-y' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          {(() => { const K = domainIcon(q.domain); return <K size={16} color="var(--muted)" stroke={1.9} style={{ flexShrink: 0 }} />; })()}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{q.title}</div>
+            {!open && next && (
+              <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.06em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                ▸ {next.text.toUpperCase()}
+              </div>
+            )}
+          </div>
+          <span className="display" style={{ fontSize: 16, color: pct >= 60 ? 'var(--lime)' : 'var(--cyan)', flexShrink: 0 }}>{pct}%</span>
+        </div>
+        <div style={{ marginTop: 8 }}><ProgressBar value={pct} color={pct >= 60 ? 'var(--lime)' : 'var(--cyan)'} height={3} /></div>
+      </div>
+      {open && (
+        <div className="unfold" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {q.why && <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4 }}>{q.why}</div>}
+          {(q.milestones || []).map((m) => (
+            <div key={m.id} className="pressable" onClick={() => { onToggleMilestone(q.id, m.id); if (!m.done) celebrate(); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 0', marginTop: -6, marginBottom: -6 }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                border: `1.5px solid ${m.done ? 'var(--lime)' : 'var(--line-strong)'}`,
+                background: m.done ? 'var(--lime)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {m.done && <IconCheck size={11} color="#0A0B0D" stroke={3} />}
+              </div>
+              <span style={{ fontSize: 12.5, color: m.done ? 'var(--dim)' : 'var(--text)', textDecoration: m.done ? 'line-through' : 'none', lineHeight: 1.3 }}>{m.text}</span>
+            </div>
+          ))}
+          <div className="mono" style={{ fontSize: 8.5, color: 'var(--dim)', letterSpacing: '0.1em', marginTop: 2 }}>HOLD FOR AI ACTIONS</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// MISSIONS — the long campaigns (quest system). Each is an interactive
+// object: tap to open the roadmap, long-press for AI actions.
 // ─────────────────────────────────────────────────────────
 function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
   const [openId, setOpenId] = useState(null);
+  const [menuQuest, setMenuQuest] = useState(null);
   const active = quests.filter((q) => questProgress(q) < 100);
+  const openRoadmap = (id) => setOpenId((cur) => (cur === id ? cur : id));
 
   return (
     <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
@@ -208,50 +312,22 @@ function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {active.map((q) => {
-          const pct = questProgress(q);
-          const next = nextMilestone(q);
-          const open = openId === q.id;
-          return (
-            <div key={q.id} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? 'var(--line-strong)' : 'var(--line)'}` }}>
-              <div className="pressable" onClick={() => setOpenId(open ? null : q.id)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                  {(() => { const K = domainIcon(q.domain); return <K size={16} color="var(--muted)" stroke={1.9} style={{ flexShrink: 0 }} />; })()}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{q.title}</div>
-                    {!open && next && (
-                      <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.06em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        ▸ {next.text.toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <span className="display" style={{ fontSize: 16, color: pct >= 60 ? 'var(--lime)' : 'var(--cyan)', flexShrink: 0 }}>{pct}%</span>
-                </div>
-                <div style={{ marginTop: 8 }}><ProgressBar value={pct} color={pct >= 60 ? 'var(--lime)' : 'var(--cyan)'} height={3} /></div>
-              </div>
-              {open && (
-                <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {q.why && <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4 }}>{q.why}</div>}
-                  {(q.milestones || []).map((m) => (
-                    <div key={m.id} className="pressable" onClick={() => { onToggleMilestone(q.id, m.id); if (!m.done) celebrate(); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 0', marginTop: -6, marginBottom: -6 }}>
-                      <div style={{
-                        width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                        border: `1.5px solid ${m.done ? 'var(--lime)' : 'var(--line-strong)'}`,
-                        background: m.done ? 'var(--lime)' : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {m.done && <IconCheck size={11} color="#0A0B0D" stroke={3} />}
-                      </div>
-                      <span style={{ fontSize: 12.5, color: m.done ? 'var(--dim)' : 'var(--text)', textDecoration: m.done ? 'line-through' : 'none', lineHeight: 1.3 }}>{m.text}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {active.map((q) => (
+          <CampaignCard key={q.id} q={q} open={openId === q.id} menuOpen={menuQuest?.id === q.id}
+            onToggleOpen={(id) => setOpenId(openId === id ? null : id)}
+            onToggleMilestone={onToggleMilestone}
+            onLongPress={setMenuQuest} />
+        ))}
       </div>
+
+      <ObjectMenu
+        open={!!menuQuest}
+        onClose={() => setMenuQuest(null)}
+        title={menuQuest?.title}
+        subtitle={menuQuest ? `${questProgress(menuQuest)}% · ${(menuQuest.milestones || []).filter((m) => m.done).length}/${(menuQuest.milestones || []).length} milestones` : ''}
+        accent="var(--cyan)"
+        actions={menuQuest ? campaignActions(menuQuest, (id) => { openRoadmap(id); setMenuQuest(null); }) : []}
+      />
     </div>
   );
 }
