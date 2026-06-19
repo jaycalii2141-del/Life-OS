@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
-import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic } from '../components/icons.jsx';
+import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
@@ -128,9 +128,10 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
                   {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }} className="pressable" onClick={() => onGo(m)}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    {(() => { const K = kindIcon(m.kind); return <K size={15} color={c} stroke={2} style={{ flexShrink: 0 }} />; })()}
                     <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3, textDecoration: isDone ? 'line-through' : 'none', textWrap: 'pretty' }}>
-                      {m.icon} {m.title}
+                      {m.title}
                     </span>
                   </div>
                   {!isDone && (
@@ -208,7 +209,7 @@ function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
             <div key={q.id} style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${open ? 'var(--line-strong)' : 'var(--line)'}` }}>
               <div className="pressable" onClick={() => setOpenId(open ? null : q.id)}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                  <span style={{ fontSize: 15, flexShrink: 0 }}>{q.icon}</span>
+                  {(() => { const K = domainIcon(q.domain); return <K size={16} color="var(--muted)" stroke={1.9} style={{ flexShrink: 0 }} />; })()}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{q.title}</div>
                     {!open && next && (

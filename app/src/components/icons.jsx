@@ -52,6 +52,19 @@ const IconArchive = (p) => <Ico {...p}><rect x="3" y="4" width="18" height="5" r
 const IconTrash = (p) => <Ico {...p}><polyline points="4 7 20 7" /><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" /><path d="M6 7l1 13h10l1-13" /></Ico>;
 const IconBook = (p) => <Ico {...p}><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2V5z" /><line x1="9" y1="7" x2="15" y2="7" /></Ico>;
 const IconCompass = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><polygon points="16 8 13 13 8 16 11 11 16 8" /></Ico>;
+const IconHeart = (p) => <Ico {...p}><path d="M12 20s-7-4.5-9.5-9A4.5 4.5 0 0112 5a4.5 4.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z" /></Ico>;
+const IconGlobe = (p) => <Ico {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.6 2.5 4 5.7 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.7-4-9s1.4-6.5 4-9z" /></Ico>;
+const IconPulse = (p) => <Ico {...p}><path d="M3 12h4l2-6 4 14 2.5-8H21" /></Ico>;
+
+// Stroke icons by life domain / mission kind — replaces emoji-as-icons.
+const DOMAIN_ICON = {
+  athlete: IconBolt, business: IconTrendUp, relationships: IconHeart, health: IconPulse,
+  creativity: IconPlay, learning: IconBook, adventure: IconGlobe, growth: IconCompass,
+  ona: IconNinja, podium: IconTrendUp, social: IconPlay, self: IconCompass, movement: IconBolt,
+};
+const KIND_ICON = { focus: IconTarget, train: IconBolt, build: IconTrendUp, ritual: IconCompass };
+function domainIcon(id) { return DOMAIN_ICON[id] || IconCircle; }
+function kindIcon(kind) { return KIND_ICON[kind] || IconCircle; }
 
 export {
   Ico,
@@ -60,5 +73,6 @@ export {
   IconFlame, IconCamera, IconCopy, IconUsers, IconTrendUp, IconTarget, IconWarn,
   IconCalendar, IconClock, IconArrowRight, IconSend, IconActivity,
   IconSliders, IconDownload, IconBrain, IconInbox, IconArchive, IconTrash,
-  IconBook, IconCompass,
+  IconBook, IconCompass, IconHeart, IconGlobe, IconPulse,
+  domainIcon, kindIcon,
 };
