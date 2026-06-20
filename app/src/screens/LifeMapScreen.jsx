@@ -19,6 +19,7 @@ import { celebrate } from '../lib/haptics.js';
 import { googleCalendarUrl, openExternal } from '../lib/actions.js';
 import { LIFE_MAP_DOMAINS, domainScores, alignmentScore } from '../lib/quests.js';
 import { snapshot } from '../lib/mission.js';
+import { lifeLevel } from '../lib/level.js';
 
 function folderForDomain(folders, domain) {
   let f = folders.find((x) => x.domain === domain);
@@ -53,7 +54,7 @@ function domainActions(dom, enter) {
   ];
 }
 
-function LifeMapViz({ scores, alignment, onPick, onLongPick }) {
+function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
   const size = 340;
   const cx = size / 2, cy = size / 2;
   const orbit = 128;
@@ -90,7 +91,7 @@ function LifeMapViz({ scores, alignment, onPick, onLongPick }) {
         <circle cx={cx} cy={cy} r={47} fill="none" stroke="#45B7E8" strokeWidth="2.5" strokeLinecap="round"
           style={ringFor(alignment ?? 0, 47)} transform={`rotate(-90 ${cx} ${cy})`} />
         <text x={cx} y={cy - 6} textAnchor="middle" fill="#F5F5F7" style={{ font: '700 13px Inter, sans-serif', letterSpacing: '0.08em' }}>JAY</text>
-        <text x={cx} y={cy + 12} textAnchor="middle" fill="#45B7E8" style={{ font: '700 15px JetBrains Mono, monospace' }}>{alignment ?? '—'}</text>
+        <text x={cx} y={cy + 13} textAnchor="middle" fill="#45B7E8" style={{ font: '700 13px JetBrains Mono, monospace', letterSpacing: '0.04em' }}>LV {level ?? '—'}</text>
 
         {/* domain nodes */}
         {nodes.map((n) => (
@@ -297,6 +298,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
 
   const scores = useMemo(() => { try { return domainScores(); } catch { return {}; } }, [openDomain, learning, adventure]);
   const alignment = useMemo(() => { try { return alignmentScore(scores); } catch { return null; } }, [scores]);
+  const lvl = useMemo(() => { try { return lifeLevel(); } catch { return null; } }, [scores]);
 
   const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
   const triaged = (captures || []).filter((c) => c.status === 'triaged');
@@ -328,7 +330,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
 
-      <LifeMapViz scores={scores} alignment={alignment}
+      <LifeMapViz scores={scores} alignment={alignment} level={lvl?.level}
         onPick={(id) => { setOpenDomain(id); logEvent('map', 'domain', id); }}
         onLongPick={(id) => setMenuDomain(id)} />
 

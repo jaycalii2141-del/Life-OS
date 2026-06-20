@@ -15,6 +15,7 @@ import { voiceSupported, ttsSupported, createListener, speak, stopSpeaking } fro
 import { DISCIPLINES } from './data.js';
 import { analyzeBlindspots } from './coaching.js';
 import { generateMissions, localAnswer, snapshot } from './lib/mission.js';
+import { identityDigest } from './lib/identity.js';
 import { useSyncedState } from './useSyncedState.js';
 import { todayKey } from './usePersistentState.js';
 
@@ -80,6 +81,10 @@ function buildGlobalContext() {
   // Long-term memory — what the companion has learned about Jay over time.
   const mem = readJSON('lifeos:companion:memory', '');
   if (mem) L.unshift(`LONG-TERM MEMORY (what you've learned about Jay over time, carry it forward): ${mem}`);
+
+  // Structured identity model — deterministic, always current. Sits at the top.
+  const ident = identityDigest(s);
+  if (ident) L.unshift(ident);
 
   return L.join('\n');
 }
