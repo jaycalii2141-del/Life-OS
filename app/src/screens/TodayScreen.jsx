@@ -8,7 +8,7 @@
 // Opening the app answers, in one glance: what matters most,
 // what to do next, what can wait, and how the campaign is going.
 // ─────────────────────────────────────────────────────────
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
@@ -16,6 +16,7 @@ import { celebrate, dayComplete } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
 import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
 import { becomingIndex, becomingLine } from '../lib/becoming.js';
+import { proactiveInsight } from '../lib/presence.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
@@ -578,6 +579,12 @@ export function TodayScreen({
     try { setBecoming(becomingIndex()); setWins(recentWins()); } catch { /* first run */ }
   }, [doneIds, quests]);
 
+  // The Presence — one proactive, unasked observation.
+  const allDoneToday = missions.length > 0 && missions.every((m) => doneIds.includes(m.id));
+  const insight = useMemo(() => {
+    try { return proactiveInsight({ oneThing: state.oneThing, allDone: allDoneToday, becoming, quests }); } catch { return null; }
+  }, [state.oneThing, allDoneToday, becoming, quests]);
+
   // Real calendar events for today (read-only).
   const [calendarEvents, setCalendarEvents] = useState([]);
   useEffect(() => {
@@ -619,6 +626,20 @@ export function TodayScreen({
       />
 
       <AskBar onOpen={onOpenCompanion} />
+
+      {insight && (
+        <div className="pressable" onClick={onOpenCompanion} style={{
+          display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 14px', borderRadius: 14,
+          background: 'rgba(69,183,232,0.05)', border: '1px solid rgba(69,183,232,0.22)', marginTop: -4,
+        }}>
+          <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--cyan)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--cyan)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="mono" style={{ fontSize: 8.5, color: 'var(--cyan)', letterSpacing: '0.14em', marginBottom: 3 }}>PRESENCE</div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{insight.text}</div>
+          </div>
+          <IconChevronRight size={14} color="var(--dim)" style={{ flexShrink: 0, marginTop: 3 }} />
+        </div>
+      )}
 
       <MissionsCard quests={quests} onToggleMilestone={toggleMilestone} onNewGoal={() => setGoalOpen(true)} />
 
