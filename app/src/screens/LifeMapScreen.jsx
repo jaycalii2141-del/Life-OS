@@ -20,6 +20,8 @@ import { googleCalendarUrl, openExternal } from '../lib/actions.js';
 import { LIFE_MAP_DOMAINS, domainScores, alignmentScore } from '../lib/quests.js';
 import { snapshot } from '../lib/mission.js';
 import { lifeLevel } from '../lib/level.js';
+import { becomingIndex, becomingLine } from '../lib/becoming.js';
+import { TheSelf } from '../components/TheSelf.jsx';
 
 function folderForDomain(folders, domain) {
   let f = folders.find((x) => x.domain === domain);
@@ -300,6 +302,8 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const scores = useMemo(() => { try { return domainScores(); } catch { return {}; } }, [openDomain, learning, adventure]);
   const alignment = useMemo(() => { try { return alignmentScore(scores); } catch { return null; } }, [scores]);
   const lvl = useMemo(() => { try { return lifeLevel(); } catch { return null; } }, [scores]);
+  const becoming = useMemo(() => { try { return becomingIndex({ scores }); } catch { return null; } }, [scores]);
+  const selfFacets = useMemo(() => LIFE_MAP_DOMAINS.map((d) => ({ id: d.id, score: scores[d.id]?.score ?? 0 })), [scores]);
 
   const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
   const triaged = (captures || []).filter((c) => c.status === 'triaged');
@@ -330,6 +334,12 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
+
+      {/* The Self — the living identity artifact */}
+      <div className="hud glass-strong mesh-readiness" style={{ borderRadius: 22, padding: '18px 0 16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <TheSelf facets={selfFacets} becoming={becoming?.score ?? 0} level={lvl?.level} trend={becoming?.trend} />
+        {becoming && <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 8, textAlign: 'center', padding: '0 16px', textWrap: 'pretty' }}>{becomingLine(becoming)}</div>}
+      </div>
 
       <LifeMapViz scores={scores} alignment={alignment} level={lvl?.level}
         onPick={(id) => { setOpenDomain(id); logEvent('map', 'domain', id); }}

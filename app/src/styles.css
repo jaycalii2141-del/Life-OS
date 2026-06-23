@@ -425,6 +425,11 @@ html, body {
 /* Gentle lift for a card while its menu is open */
 .obj-active { border-color: rgba(69, 183, 232, 0.45) !important; }
 
+/* The Self breathes — a slow, living pulse at the heart of the headquarters */
+@keyframes selfBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+.self-breathe { animation: selfBreathe 6s ease-in-out infinite; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) { .self-breathe { animation: none; } }
+
 /* "Close the day" ceremony — a light bloom + rise when the day is complete */
 @keyframes ceremonyBloom {
   0%   { opacity: 0; transform: scale(0.4); }
