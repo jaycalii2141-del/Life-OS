@@ -415,7 +415,16 @@ html, body {
 
   <!-- ios-frame -->
   <script type="text/babel">
-function IOSStatusBar({ dark = false, time = '9:41' }) {
+function IOSStatusBar({ dark = false }) {
+  const [time, setTime] = useState(() => {
+    const n = new Date(); return `${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;
+  });
+  useEffect(() => {
+    const id = setInterval(() => {
+      const n = new Date(); setTime(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`);
+    }, 15000);
+    return () => clearInterval(id);
+  }, []);
   const c = dark ? '#fff' : '#000';
   return (
     <div style={{
@@ -1404,7 +1413,7 @@ function BodyRadar({ size = 260 }) {
   );
 }
 
-function SkillNode({ skill, color }) {
+function SkillNode({ skill, color, onForge }) {
   const stateMap = {
     done:   { bg: `${color}20`, border: `${color}80`, iconBg: color, icon: <IconCheck size={11} color="#06060A" stroke={3} />, pctColor: color },
     active: { bg: 'rgba(0, 212, 255, 0.10)', border: 'rgba(0, 212, 255, 0.5)', iconBg: '#00D4FF', icon: <span style={{ width: 6, height: 6, borderRadius: 99, background: '#06060A' }} />, pctColor: '#00D4FF' },
@@ -1412,7 +1421,7 @@ function SkillNode({ skill, color }) {
   };
   const s = stateMap[skill.status];
   return (
-    <div className="pressable" style={{ padding: '10px 12px', borderRadius: 12, background: s.bg, border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', gap: 12, position: 'relative', opacity: skill.status === 'locked' ? 0.55 : 1 }}>
+    <div className="pressable" onClick={skill.status === 'active' ? onForge : undefined} style={{ padding: '10px 12px', borderRadius: 12, background: s.bg, border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', gap: 12, position: 'relative', opacity: skill.status === 'locked' ? 0.55 : 1 }}>
       <div className={skill.status === 'active' ? 'pulse-node' : ''} style={{ width: 22, height: 22, borderRadius: 8, background: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: skill.status === 'locked' ? 'var(--muted)' : 'var(--text)' }}>{skill.name}</div>
@@ -1421,11 +1430,12 @@ function SkillNode({ skill, color }) {
           <span className="mono" style={{ fontSize: 10, color: s.pctColor, minWidth: 32, textAlign: 'right' }}>{skill.pct}%</span>
         </div>
       </div>
+      {skill.status === 'active' && <div style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 8, color: '#00D4FF', letterSpacing: '0.1em', opacity: 0.7 }}>FORGE →</div>}
     </div>
   );
 }
 
-function SkillTree({ discipline, expanded, onToggle }) {
+function SkillTree({ discipline, expanded, onToggle, onForge }) {
   const skills = SKILLS[discipline.id];
   const done = skills.filter(s => s.status === 'done').length;
   const active = skills.filter(s => s.status === 'active').length;
@@ -1443,75 +1453,181 @@ function SkillTree({ discipline, expanded, onToggle }) {
       </div>
       {expanded && (
         <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8, animation: 'screenIn 320ms cubic-bezier(0.2,0.7,0.2,1)' }}>
-          {skills.map((skill) => <SkillNode key={skill.name} skill={skill} color={discipline.color} />)}
+          {skills.map((skill) => <SkillNode key={skill.name} skill={skill} color={discipline.color} onForge={() => onForge?.({ discipline: discipline.id, name: skill.name })} />)}
         </div>
       )}
     </div>
   );
 }
 
-function LogSessionSheet({ open, onClose }) {
+function LogSessionSheet({ open, onClose, preSkill = null }) {
+  const [phase, setPhase] = useState('intent'); // intent | active | post
   const [discipline, setDiscipline] = useState('tricking');
-  const [duration, setDuration] = useState(60);
-  const [intensity, setIntensity] = useState(7);
-  const [logged, setLogged] = useState(false);
-  useEffect(() => { if (open) { setLogged(false); setDiscipline('tricking'); setDuration(60); setIntensity(7); } }, [open]);
+  const [seconds, setSeconds] = useState(0);
+  const [attempts, setAttempts] = useState([
+    { result: 'Landed', stars: 3 }, { result: 'Bail', stars: 1 }, { result: 'Landed', stars: 3 },
+  ]);
+  const [breath, setBreath] = useState('IN');
+  const timerRef = useRef(null);
+  const breathRef = useRef(null);
+
+  useEffect(() => {
+    if (open) {
+      setPhase('intent');
+      setDiscipline(preSkill?.discipline || 'tricking');
+      setSeconds(0);
+      setAttempts([
+        { result: 'Landed', stars: 3 }, { result: 'Bail', stars: 1 }, { result: 'Landed', stars: 3 },
+      ]);
+      setBreath('IN');
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (phase === 'active') {
+      timerRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+    } else { clearInterval(timerRef.current); }
+    return () => clearInterval(timerRef.current);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === 'intent') {
+      breathRef.current = setInterval(() => setBreath(b => b === 'IN' ? 'OUT' : 'IN'), 4000);
+    } else { clearInterval(breathRef.current); }
+    return () => clearInterval(breathRef.current);
+  }, [phase]);
+
+  const d = DISCIPLINES.find(dd => dd.id === discipline) || DISCIPLINES[1];
+  const activeSkill = SKILLS[discipline]?.find(s => s.status === 'active');
+  const xpPct = Math.min(100, attempts.length * 8 + 24);
+  const fmt = (s) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  const logAttempt = () => {
+    setAttempts(a => [...a, { result: Math.random() > 0.4 ? 'Landed' : 'Bail', stars: Math.random() > 0.5 ? 3 : Math.random() > 0.3 ? 2 : 1 }]);
+  };
+
   if (!open) return null;
-  const d = DISCIPLINES.find(d => d.id === discipline);
-  const submit = () => { setLogged(true); setTimeout(() => onClose(), 700); };
+
   return (
     <>
-      <div className="scrim" onClick={onClose} />
-      <div className="sheet" style={{ maxHeight: '76%', overflowY: 'auto' }}>
+      <div className="scrim" onClick={phase === 'intent' ? onClose : undefined} />
+      <div className="sheet" style={{ maxHeight: '84%', overflowY: 'auto' }}>
         <div className="sheet-handle" />
-        {logged ? (
-          <div style={{ padding: '32px 0 16px', textAlign: 'center' }}>
-            <div className="display" style={{ fontSize: 28, color: 'var(--lime)' }}>SESSION LOGGED</div>
-            <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6 }}>{duration} MIN · {d.name.toUpperCase()} · INTENSITY {intensity}/10</div>
-          </div>
-        ) : (
+
+        {phase === 'intent' && (
           <>
-            <div style={{ marginBottom: 12 }}>
-              <div className="eyebrow">Log Session</div>
-              <div className="display" style={{ fontSize: 24, marginTop: 2 }}>WHAT DID YOU TRAIN?</div>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div className="eyebrow" style={{ color: d.color }}>SESSION RITUAL</div>
+              <div className="display" style={{ fontSize: 26, marginTop: 2 }}>PRE-FORGE</div>
             </div>
-            <div className="eyebrow" style={{ marginBottom: 8 }}>Discipline</div>
+
+            {/* breathing orb */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                background: `radial-gradient(circle at 35% 30%, #fff 0%, ${d.color} 40%, #06060A 100%)`,
+                boxShadow: `0 0 30px ${d.color}60`,
+                transform: breath === 'IN' ? 'scale(1.12)' : 'scale(1)',
+                transition: 'transform 4000ms ease-in-out',
+              }} />
+              <div className="mono" style={{ fontSize: 10, color: d.color, marginTop: 8, letterSpacing: '0.22em' }}>
+                BREATHE {breath}…
+              </div>
+            </div>
+
+            <div className="eyebrow" style={{ marginBottom: 8 }}>DISCIPLINE</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 14 }}>
               {DISCIPLINES.map((dd) => {
-                const active = discipline === dd.id;
+                const sel = discipline === dd.id;
                 return (
-                  <div key={dd.id} className="pressable" onClick={() => setDiscipline(dd.id)} style={{ padding: '10px 0', textAlign: 'center', borderRadius: 10, background: active ? `${dd.color}18` : 'rgba(255,255,255,0.04)', border: `1px solid ${active ? dd.color + '80' : 'var(--line)'}`, color: active ? dd.color : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', fontWeight: 700, textTransform: 'uppercase', boxShadow: active ? `0 0 14px -4px ${dd.color}` : 'none' }}>
-                    <span style={{ marginRight: 4 }}>{dd.icon}</span>{dd.name}
+                  <div key={dd.id} className="pressable" onClick={() => setDiscipline(dd.id)} style={{ padding: '9px 0', textAlign: 'center', borderRadius: 10, background: sel ? `${dd.color}18` : 'rgba(255,255,255,0.04)', border: `1px solid ${sel ? dd.color + '80' : 'var(--line)'}`, color: sel ? dd.color : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700, textTransform: 'uppercase', boxShadow: sel ? `0 0 14px -4px ${dd.color}` : 'none', transition: 'all 200ms' }}>
+                    <div>{dd.icon}</div><div style={{ marginTop: 3 }}>{dd.name}</div>
                   </div>
                 );
               })}
             </div>
-            <div className="eyebrow" style={{ marginBottom: 8 }}>Duration · min</div>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-              {[30, 45, 60, 90, 120].map((m) => (
-                <div key={m} className="pressable" onClick={() => setDuration(m)} style={{ flex: 1, padding: '10px 0', textAlign: 'center', borderRadius: 10, background: duration === m ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${duration === m ? 'rgba(0,212,255,0.6)' : 'var(--line)'}`, color: duration === m ? 'var(--cyan)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}>{m}</div>
+
+            {activeSkill && (
+              <div style={{ padding: '10px 12px', borderRadius: 12, marginBottom: 14, background: `${d.color}0C`, border: `1px solid ${d.color}35` }}>
+                <div className="eyebrow" style={{ marginBottom: 4 }}>PRIMARY TARGET</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{activeSkill.name}</div>
+                  <div className="mono" style={{ fontSize: 11, color: d.color, fontWeight: 700 }}>{activeSkill.pct}%</div>
+                </div>
+                <div style={{ marginTop: 6, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.08)' }}>
+                  <div style={{ width: `${activeSkill.pct}%`, height: '100%', background: d.color, borderRadius: 2, transition: 'width 800ms', boxShadow: `0 0 6px ${d.color}` }} />
+                </div>
+              </div>
+            )}
+
+            <div className="pressable" onClick={() => setPhase('active')} style={{ height: 52, borderRadius: 14, background: `linear-gradient(135deg, ${d.color} 0%, ${d.color}80 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', boxShadow: `0 10px 28px -8px ${d.color}` }}>
+              <IconBolt size={18} stroke={2.4} /> ENTER THE FORGE
+            </div>
+          </>
+        )}
+
+        {phase === 'active' && (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: 14 }}>
+              <div className="eyebrow" style={{ color: d.color }}>THE FORGE · ACTIVE</div>
+              <div className="display" style={{ fontSize: 52, letterSpacing: '0.04em', color: 'var(--text)', lineHeight: 1, marginTop: 2 }}>{fmt(seconds)}</div>
+              <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 4, letterSpacing: '0.14em' }}>{d.name.toUpperCase()} · SKILL FOCUS</div>
+            </div>
+
+            {activeSkill && (
+              <div style={{ padding: '10px 12px', borderRadius: 12, marginBottom: 10, background: `${d.color}0C`, border: `1px solid ${d.color}40`, boxShadow: `0 0 20px -8px ${d.color}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{activeSkill.name}</div>
+                  <div className="mono" style={{ fontSize: 10, color: d.color }}>{attempts.length} ATTEMPTS</div>
+                </div>
+                <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.07)' }}>
+                  <div style={{ width: `${xpPct}%`, height: '100%', background: 'var(--lime)', borderRadius: 2, transition: 'width 400ms cubic-bezier(0.2,0.7,0.2,1)', boxShadow: '0 0 8px var(--lime)' }} />
+                </div>
+                <div className="mono" style={{ fontSize: 8, color: 'var(--lime)', marginTop: 4 }}>SESSION XP: {xpPct}%</div>
+              </div>
+            )}
+
+            <div style={{ maxHeight: 120, overflowY: 'auto', marginBottom: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {attempts.slice(-6).reverse().map((a, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.03)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: a.result === 'Landed' ? 'var(--lime)' : 'var(--ona-red)', boxShadow: `0 0 6px ${a.result === 'Landed' ? 'var(--lime)' : 'var(--ona-red)'}`, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, flex: 1, color: 'var(--muted)' }}>Attempt {attempts.length - i} · {a.result}</span>
+                  <span style={{ color: '#FFD23C', fontSize: 11 }}>{'★'.repeat(a.stars)}{'☆'.repeat(3-a.stars)}</span>
+                </div>
               ))}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span className="eyebrow">Intensity</span>
-              <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', fontWeight: 700 }}>{intensity}/10</span>
+
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <div className="pressable" onClick={logAttempt} style={{ flex: 2, height: 48, borderRadius: 12, background: 'rgba(182,255,60,0.15)', border: '1px solid rgba(182,255,60,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--lime)', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', boxShadow: '0 0 20px -6px rgba(182,255,60,0.5)' }}>
+                <IconPlus size={16} stroke={2.5} /> LOG ATTEMPT
+              </div>
+              <div className="pressable" onClick={() => setPhase('post')} style={{ flex: 1, height: 48, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em' }}>
+                END →
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="pressable" onClick={() => setIntensity(i + 1)} style={{ flex: 1, height: 24, borderRadius: 4, background: i < intensity ? `hsl(${20 - i * 2}, 90%, ${55 - i * 1.5}%)` : 'rgba(255,255,255,0.06)', boxShadow: i < intensity ? `0 0 8px hsla(${20 - i * 2}, 90%, 55%, 0.6)` : 'none' }} />
+          </>
+        )}
+
+        {phase === 'post' && (
+          <>
+            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 16 }}>
+              <div className="eyebrow" style={{ color: 'var(--gold)' }}>SESSION COMPLETE</div>
+              <div className="display" style={{ fontSize: 52, color: 'var(--gold)', marginTop: 4, textShadow: '0 0 40px rgba(255,210,60,0.5)' }}>FORGED</div>
+              <div style={{ width: 60, height: 3, borderRadius: 2, background: 'var(--gold)', margin: '8px auto 0', boxShadow: '0 0 12px var(--gold)' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 14 }}>
+              {[['DURATION', fmt(seconds)], ['ATTEMPTS', attempts.length], ['QUALITY', '★★★'], ['XP EARNED', `+${attempts.length * 28}`]].map(([k, v]) => (
+                <div key={k} style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+                  <div className="display" style={{ fontSize: 22, color: 'var(--text)' }}>{v}</div>
+                  <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.14em' }}>{k}</div>
+                </div>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 12, padding: '10px 12px' }}>
-                <div className="eyebrow" style={{ marginBottom: 4 }}>Notes</div>
-                <div style={{ color: 'var(--muted)', fontSize: 13 }}>How did it feel?</div>
-              </div>
-              <div className="pressable" style={{ width: 60, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
-                <IconCamera size={20} />
-              </div>
+            <div style={{ padding: '12px 14px', borderRadius: 12, marginBottom: 14, background: 'rgba(45,212,191,0.06)', borderLeft: '3px solid var(--teal)', borderTop: '1px solid rgba(45,212,191,0.15)', borderRight: '1px solid rgba(45,212,191,0.1)', borderBottom: '1px solid rgba(45,212,191,0.1)' }}>
+              <div className="eyebrow" style={{ color: 'var(--teal)', marginBottom: 4 }}>AI REFLECTION</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.6 }}>Solid session. {activeSkill ? `${activeSkill.name} is trending toward breakthrough — consistency at this rate puts mastery within reach.` : 'Good work today. Keep the momentum going.'} Next session: push volume slightly.</div>
             </div>
-            <div className="pressable" onClick={submit} style={{ height: 52, borderRadius: 14, background: `linear-gradient(135deg, ${d.color}, ${d.color}80)`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 700, fontSize: 14, letterSpacing: '0.12em', textTransform: 'uppercase', boxShadow: `0 8px 24px -8px ${d.color}` }}>
-              <IconCheck size={18} stroke={2.4} /> Log Session
+            <div className="pressable" onClick={() => { setPhase('intent'); onClose(); }} style={{ height: 50, borderRadius: 14, background: `linear-gradient(135deg, ${d.color}, ${d.color}80)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#06060A', fontWeight: 800, fontSize: 13, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              DONE ✓
             </div>
           </>
         )}
@@ -1523,6 +1639,10 @@ function LogSessionSheet({ open, onClose }) {
 function TrainingHQ() {
   const [expanded, setExpanded] = useState({ tricking: true, calisthenics: true });
   const [logOpen, setLogOpen] = useState(false);
+  const [forgeSkill, setForgeSkill] = useState(null);
+
+  const openForge = (skill = null) => { setForgeSkill(skill); setLogOpen(true); };
+
   return (
     <>
       <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1564,16 +1684,16 @@ function TrainingHQ() {
           <SectionHead eyebrow="6 disciplines · 23 skills" title="SKILL TREES" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {DISCIPLINES.map((d) => (
-              <SkillTree key={d.id} discipline={d} expanded={!!expanded[d.id]} onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))} />
+              <SkillTree key={d.id} discipline={d} expanded={!!expanded[d.id]} onToggle={() => setExpanded(e => ({ ...e, [d.id]: !e[d.id] }))} onForge={openForge} />
             ))}
           </div>
         </div>
 
-        <div className="pressable" onClick={() => setLogOpen(true)} style={{ height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 800, fontSize: 14, letterSpacing: '0.16em', textTransform: 'uppercase', boxShadow: '0 12px 36px -8px rgba(0,212,255,0.5)', marginTop: 4 }}>
-          <IconActivity size={20} stroke={2.4} /> Log Session
+        <div className="pressable" onClick={() => openForge()} style={{ height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #00D4FF 0%, #B6FF3C 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#06060A', fontWeight: 800, fontSize: 14, letterSpacing: '0.16em', textTransform: 'uppercase', boxShadow: '0 12px 36px -8px rgba(0,212,255,0.5)', marginTop: 4 }}>
+          <IconActivity size={20} stroke={2.4} /> Enter The Forge
         </div>
       </div>
-      <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} />
+      <LogSessionSheet open={logOpen} onClose={() => setLogOpen(false)} preSkill={forgeSkill} />
     </>
   );
 }
@@ -1754,7 +1874,15 @@ function ONAStat({ label, value, prefix, suffix, color, trend }) {
   );
 }
 
+const STALE_LEADS = [
+  { name: 'Marcus T.', age: '51h', interest: 'Ninja · Adult', status: 'contacted' },
+  { name: 'Leila R.', age: '49h', interest: 'Gymnastics · Youth', status: 'contacted' },
+];
+
 function SalesPipeline() {
+  const [contacted, setContacted] = useState({});
+  const [showLeads, setShowLeads] = useState(false);
+
   return (
     <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
       <HUDTicks />
@@ -1763,8 +1891,34 @@ function SalesPipeline() {
           <div className="eyebrow">Sales Pipeline</div>
           <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>FUNNEL</div>
         </div>
-        <Pill variant="red">⚠ 7 STALE</Pill>
+        <div className="pressable" onClick={() => setShowLeads(s => !s)}>
+          <Pill variant="red">⚠ 2 STALE</Pill>
+        </div>
       </div>
+
+      {showLeads && (
+        <div style={{ marginBottom: 12, padding: 10, borderRadius: 12, background: 'rgba(255,0,51,0.06)', border: '1px solid rgba(255,0,51,0.2)', animation: 'screenIn 250ms ease' }}>
+          <div className="eyebrow" style={{ color: 'var(--ona-red)', marginBottom: 8 }}>LEADS GOING COLD — ACT NOW</div>
+          {STALE_LEADS.map((lead) => (
+            <div key={lead.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{lead.name}</div>
+                <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', marginTop: 1 }}>{lead.interest} · {lead.age} ago</div>
+              </div>
+              <div className="pressable" onClick={() => setContacted(c => ({ ...c, [lead.name]: true }))} style={{
+                padding: '5px 12px', borderRadius: 8, fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: contacted[lead.name] ? 'rgba(182,255,60,0.15)' : 'rgba(255,0,51,0.12)',
+                border: `1px solid ${contacted[lead.name] ? 'rgba(182,255,60,0.4)' : 'rgba(255,0,51,0.35)'}`,
+                color: contacted[lead.name] ? 'var(--lime)' : 'var(--ona-red)',
+                transition: 'all 250ms',
+              }}>
+                {contacted[lead.name] ? '✓ SENT' : 'CONTACT →'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {SALES_STAGES.map((stage) => (
           <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1779,7 +1933,7 @@ function SalesPipeline() {
           </div>
         ))}
       </div>
-      <div className="eyebrow" style={{ marginTop: 10, color: 'var(--dim)' }}>⚠ stale = lead untouched 48h+</div>
+      <div className="eyebrow" style={{ marginTop: 10, color: 'var(--dim)' }}>⚠ stale = lead untouched 48h+ · tap badge to view</div>
     </div>
   );
 }
