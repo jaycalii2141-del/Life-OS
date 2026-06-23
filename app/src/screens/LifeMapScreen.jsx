@@ -7,7 +7,7 @@
 // live here.
 // ─────────────────────────────────────────────────────────
 import { useState, useMemo, useRef } from 'react';
-import { SectionHead, ProgressBar, RadarChart, useCountUp } from '../components/atoms.jsx';
+import { SectionHead, ProgressBar, RadarChart, Sparkline, useCountUp } from '../components/atoms.jsx';
 import { Sheet } from '../components/Sheet.jsx';
 import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight, IconTarget, IconWarn, IconActivity } from '../components/icons.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
@@ -304,6 +304,8 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const lvl = useMemo(() => { try { return lifeLevel(); } catch { return null; } }, [scores]);
   const becoming = useMemo(() => { try { return becomingIndex({ scores }); } catch { return null; } }, [scores]);
   const selfFacets = useMemo(() => LIFE_MAP_DOMAINS.map((d) => ({ id: d.id, score: scores[d.id]?.score ?? 0 })), [scores]);
+  const [selfHistory] = useSyncedState('lifeos:self-history', {});
+  const evolution = useMemo(() => Object.keys(selfHistory).sort().map((k) => selfHistory[k]?.becoming ?? 0).filter((v) => typeof v === 'number'), [selfHistory]);
 
   const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
   const triaged = (captures || []).filter((c) => c.status === 'triaged');
@@ -339,6 +341,12 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
       <div className="hud glass-strong mesh-readiness" style={{ borderRadius: 22, padding: '18px 0 16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <TheSelf facets={selfFacets} becoming={becoming?.score ?? 0} level={lvl?.level} trend={becoming?.trend} />
         {becoming && <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 8, textAlign: 'center', padding: '0 16px', textWrap: 'pretty' }}>{becomingLine(becoming)}</div>}
+        {evolution.length >= 2 && (
+          <div style={{ width: '82%', marginTop: 12 }}>
+            <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.14em', textAlign: 'center', marginBottom: 5 }}>BECOMING · {evolution.length}-DAY EVOLUTION</div>
+            <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
+          </div>
+        )}
       </div>
 
       <LifeMapViz scores={scores} alignment={alignment} level={lvl?.level}

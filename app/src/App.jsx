@@ -29,6 +29,8 @@ import { useSyncedState } from './useSyncedState.js';
 import { useMissionEngine } from './lib/useMissionEngine.js';
 import { maybeMorningNudge } from './lib/nudges.js';
 import { earnedFreezes, healFreezes, freezeState } from './lib/streak.js';
+import { becomingIndex } from './lib/becoming.js';
+import { lifeLevel } from './lib/level.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
@@ -158,6 +160,10 @@ function MainApp() {
   // Streak insurance — earned freeze tokens that heal a genuine 1-day gap.
   const [freezes, setFreezes] = useSyncedState('lifeos:freezes', { used: {} });
 
+  // The becoming record — one Self-snapshot per day, so the evolution of who
+  // you're becoming can be replayed over time (the foundation of the time-lapse).
+  const [selfHistory, setSelfHistory] = useSyncedState('lifeos:self-history', {});
+
   // App settings (e.g. connected Google Calendar iCal link).
   const [settings, setSettings] = useSyncedState('lifeos:settings', {});
 
@@ -188,6 +194,21 @@ function MainApp() {
   const streak = computeStreak(history, today, todayScore, freezes.used || {});
   const trend = readinessTrend(history, today, todayReadiness);
   const freezeInfo = freezeState(history, freezes.used || {});
+
+  // Record today's Self snapshot (becoming + level) for the time-lapse.
+  useEffect(() => {
+    try {
+      const b = becomingIndex();
+      const lvl = lifeLevel();
+      setSelfHistory((h) => {
+        const cur = h[today];
+        const next = { becoming: b.score, level: lvl.level };
+        if (cur && cur.becoming === next.becoming && cur.level === next.level) return h;
+        return { ...h, [today]: next };
+      });
+    } catch { /* first run */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayScore, doneCount]);
 
   // Untriaged captures → a gentle badge on the Life tab.
   const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
