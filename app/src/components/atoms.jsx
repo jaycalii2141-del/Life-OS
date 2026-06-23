@@ -4,6 +4,30 @@ import { useState, useEffect, useRef } from 'react';
 // Atoms — shared building blocks
 // ─────────────────────────────────────────────────────────
 
+// useCountUp — animate an integer to its new value (motion v2: any number
+// that changes rolls up instead of snapping). Eased, ~700ms, rAF-driven.
+function useCountUp(target, ms = 700) {
+  const t = Math.round(Number.isFinite(target) ? target : 0);
+  const [val, setVal] = useState(t);
+  const fromRef = useRef(t);
+  useEffect(() => {
+    const from = fromRef.current;
+    if (from === t) return;
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / ms);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(from + (t - from) * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else fromRef.current = t;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [t, ms]);
+  return val;
+}
+
 // HUD corner ticks (4 L-brackets)
 // Corner ticks removed for a calmer, less "sci-fi template" look (kept as a
 // no-op so existing call sites don't need editing). Restraint reads premium.
@@ -288,6 +312,7 @@ function RadialGauge({ value = 0, size = 132, stroke = 11, color = '#45B7E8', la
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const v = Math.max(0, Math.min(100, value));
+  const shown = useCountUp(v);
   const gid = `g-${color.replace('#', '')}`;
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
@@ -305,7 +330,7 @@ function RadialGauge({ value = 0, size = 132, stroke = 11, color = '#45B7E8', la
           style={{ transition: 'stroke-dashoffset 900ms cubic-bezier(0.2,0.7,0.2,1)', filter: `drop-shadow(0 0 6px ${color}99)` }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="display" style={{ fontSize: size * 0.32, lineHeight: 1, color: 'var(--text)' }}>{Math.round(v)}</div>
+        <div className="display" style={{ fontSize: size * 0.32, lineHeight: 1, color: 'var(--text)' }}>{shown}</div>
         {label && <div className="eyebrow" style={{ marginTop: 3, color }}>{label}</div>}
         {sub && <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', marginTop: 2, letterSpacing: '0.1em' }}>{sub}</div>}
       </div>
@@ -401,4 +426,5 @@ export {
   HUDTicks, TickCounter, SectionHead, ProgressBar, Pill, HUDCard,
   ConfettiBurst, StateMeter, TimelineEvent, StatTile, EmptyState,
   RadialGauge, Sparkline, RadarChart, MiniBars,
+  useCountUp,
 };

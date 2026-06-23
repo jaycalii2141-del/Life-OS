@@ -7,7 +7,7 @@
 // live here.
 // ─────────────────────────────────────────────────────────
 import { useState, useMemo, useRef } from 'react';
-import { SectionHead, ProgressBar, RadarChart } from '../components/atoms.jsx';
+import { SectionHead, ProgressBar, RadarChart, useCountUp } from '../components/atoms.jsx';
 import { Sheet } from '../components/Sheet.jsx';
 import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight, IconTarget, IconWarn, IconActivity } from '../components/icons.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
@@ -64,6 +64,7 @@ function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
   const down = (id) => () => { longRef.current = false; clearTimeout(timer.current); timer.current = setTimeout(() => { longRef.current = true; try { navigator.vibrate?.(12); } catch { /* */ } onLongPick(id); }, 440); };
   const up = (id) => () => { clearTimeout(timer.current); if (!longRef.current) onPick(id); };
   const leave = () => clearTimeout(timer.current);
+  const shownLevel = useCountUp(level ?? 0);
   const nodes = LIFE_MAP_DOMAINS.map((d, i) => {
     const angle = -Math.PI / 2 + (i / LIFE_MAP_DOMAINS.length) * Math.PI * 2;
     return { ...d, x: cx + orbit * Math.cos(angle), y: cy + orbit * Math.sin(angle), score: scores[d.id]?.score ?? 0 };
@@ -91,7 +92,7 @@ function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
         <circle cx={cx} cy={cy} r={47} fill="none" stroke="#45B7E8" strokeWidth="2.5" strokeLinecap="round"
           style={ringFor(alignment ?? 0, 47)} transform={`rotate(-90 ${cx} ${cy})`} />
         <text x={cx} y={cy - 6} textAnchor="middle" fill="#F5F5F7" style={{ font: '700 13px Inter, sans-serif', letterSpacing: '0.08em' }}>JAY</text>
-        <text x={cx} y={cy + 13} textAnchor="middle" fill="#45B7E8" style={{ font: '700 13px JetBrains Mono, monospace', letterSpacing: '0.04em' }}>LV {level ?? '—'}</text>
+        <text x={cx} y={cy + 13} textAnchor="middle" fill="#45B7E8" style={{ font: '700 13px JetBrains Mono, monospace', letterSpacing: '0.04em' }}>LV {level == null ? '—' : shownLevel}</text>
 
         {/* domain nodes */}
         {nodes.map((n) => (
