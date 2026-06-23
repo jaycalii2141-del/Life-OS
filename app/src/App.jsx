@@ -26,6 +26,7 @@ import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
 import { useMissionEngine } from './lib/useMissionEngine.js';
 import { maybeMorningNudge } from './lib/nudges.js';
+import { earnedFreezes, healFreezes, freezeState } from './lib/streak.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
@@ -152,6 +153,9 @@ function MainApp() {
   // Daily history — powers the real streak, momentum heatmap, and 7-day trend.
   const [history, setHistory] = useSyncedState('lifeos:history', {});
 
+  // Streak insurance — earned freeze tokens that heal a genuine 1-day gap.
+  const [freezes, setFreezes] = useSyncedState('lifeos:freezes', { used: {} });
+
   // App settings (e.g. connected Google Calendar iCal link).
   const [settings, setSettings] = useSyncedState('lifeos:settings', {});
 
@@ -168,9 +172,20 @@ function MainApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayScore, todayReadiness, doneCount]);
 
+  // Auto-apply freezes to heal recent 1-day gaps (re-runs when today is earned).
+  useEffect(() => {
+    const used = freezes.used || {};
+    const healed = healFreezes(history, used, todayScore, earnedFreezes(history));
+    if (Object.keys(healed).length !== Object.keys(used).length) {
+      setFreezes((f) => ({ ...f, used: healed }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history, todayScore]);
+
   const momentum = buildMomentum(history, today, todayScore);
-  const streak = computeStreak(history, today, todayScore);
+  const streak = computeStreak(history, today, todayScore, freezes.used || {});
   const trend = readinessTrend(history, today, todayReadiness);
+  const freezeInfo = freezeState(history, freezes.used || {});
 
   // Untriaged captures → a gentle badge on the Life tab.
   const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
@@ -202,6 +217,7 @@ function MainApp() {
           onRegenerate={regenerateMissions}
           momentum={momentum}
           streak={streak}
+          freezes={freezeInfo}
           trend={trend}
           icalUrl={settings.icalUrl}
           onOpenSettings={() => setSettingsOpen(true)}
@@ -365,13 +381,14 @@ function buildMomentum(history, today, todayScore) {
   return out;
 }
 
-// Consecutive days (ending today) with any activity.
-function computeStreak(history, today, todayScore) {
+// Consecutive days (ending today) with any activity. A frozen past day
+// (streak insurance) counts as kept; today is never frozen.
+function computeStreak(history, today, todayScore, frozen = {}) {
   let streak = 0;
   for (let i = 0; i < 365; i++) {
     const k = keyDaysAgo(i);
     const score = k === today ? todayScore : (history[k]?.score ?? 0);
-    if (score >= 1) streak += 1;
+    if (score >= 1 || frozen[k]) streak += 1;
     else break;
   }
   return streak;

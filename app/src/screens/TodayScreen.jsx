@@ -416,7 +416,8 @@ function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
 // ─────────────────────────────────────────────────────────
 // L2 — Momentum (14-day heatmap + streak)
 // ─────────────────────────────────────────────────────────
-function MomentumStrip({ momentum = [], streak = 0 }) {
+function MomentumStrip({ momentum = [], streak = 0, freezes }) {
+  const avail = freezes?.available ?? 0;
   return (
     <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 9 }}>
@@ -425,7 +426,14 @@ function MomentumStrip({ momentum = [], streak = 0 }) {
           <span className="display" style={{ fontSize: 20, color: 'var(--gold)' }}>{streak}</span>
           <span className="mono" style={{ fontSize: 9, color: 'var(--muted)' }}>DAY STREAK</span>
         </div>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14D</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {avail > 0 && (
+            <span className="mono" title="Streak freezes — each heals one missed day" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ fontSize: 10, lineHeight: 1 }}>❄</span>{avail}
+            </span>
+          )}
+          <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14D</span>
+        </div>
       </div>
       {momentum.length > 1 && (
         <div style={{ marginBottom: 9, opacity: 0.9 }}>
@@ -553,7 +561,7 @@ function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCale
 // ─────────────────────────────────────────────────────────
 export function TodayScreen({
   state, setState, missions, doneIds, adaptedAt, onToggleMission, onRegenerate,
-  momentum, streak, trend, icalUrl,
+  momentum, streak, freezes, trend, icalUrl,
   onOpenSettings, onOpenCalendar, onOpenCompanion, onGoTab,
 }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v, checkedIn: true }));
@@ -647,7 +655,7 @@ export function TodayScreen({
 
       <CheckInCard state={state} onMeter={setMeter} readiness={readiness} trend={trend} onOpenSettings={onOpenSettings} />
 
-      <MomentumStrip momentum={momentum} streak={streak} />
+      <MomentumStrip momentum={momentum} streak={streak} freezes={freezes} />
 
       <WinsStrip wins={wins} />
 
