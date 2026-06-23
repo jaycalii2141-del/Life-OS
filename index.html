@@ -372,6 +372,42 @@ html, body {
 
 .t-muted { color: var(--muted); }
 .t-dim { color: var(--dim); }
+
+/* ─── The Self ──────────────────────────────────────────── */
+@keyframes self-breathe {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.self-breathe { animation: self-breathe 4.5s ease-in-out infinite; }
+
+@keyframes self-aura-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+.self-aura-pulse { animation: self-aura-pulse 3.8s ease-in-out infinite; }
+
+/* ─── XP Float ──────────────────────────────────────────── */
+@keyframes xp-float-up {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(24px) scale(0.7); }
+  18%  { opacity: 1; transform: translateX(-50%) translateY(0px)  scale(1.05); }
+  65%  { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-44px) scale(0.9); }
+}
+.xp-float { animation: xp-float-up 1900ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+
+/* ─── Presence Whisper ──────────────────────────────────── */
+@keyframes presence-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.presence-in { animation: presence-in 500ms cubic-bezier(0.2,0.7,0.2,1) both; animation-delay: 800ms; }
+
+/* ─── Command Spotlight ─────────────────────────────────── */
+@keyframes spotlight-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.spotlight-up { animation: spotlight-up 280ms cubic-bezier(0.2,0.7,0.2,1); }
   </style>
 </head>
 <body>
@@ -889,18 +925,224 @@ const INITIATIVES = [
 ];
 
 const TODAY = {
-  date: 'Wed · May 27',
+  date: 'Mon · Jun 23',
   greeting: 'Good morning, Jay',
-  readiness: 84,
+  readiness: 87,
   energy: 8,
   focus: 7,
   body: 9,
   mood: 8,
   oneThing: 'Film the B-twist tutorial — full breakdown for JayMuvs',
-  streak: 12,
+  streak: 41,
 };
 
 Object.assign(window, { BRANDS, PIPELINE_STAGES, HOOKS, DISCIPLINES, SKILLS, RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, TIMELINE, MOMENTUM, ONA_STATS, SALES_STAGES, COACHES, BENCH, INITIATIVES, TODAY });
+  </script>
+
+  <!-- the-self + xp-float + presence + spotlight -->
+  <script type="text/babel">
+
+// ─── The Self — living identity aura ────────────────────────────────
+function TheSelf({ readiness, streak, oneThingDone }) {
+  const level = 14;
+  const title = 'ARCHITECT';
+  const bi = Math.min(100, Math.round(readiness * 0.5 + Math.min(streak, 60) * 0.7 + (oneThingDone ? 12 : 0)));
+  return (
+    <div className="hud glass-strong" style={{
+      padding: '14px 16px',
+      borderRadius: 20,
+      background: 'linear-gradient(135deg, rgba(177,76,255,0.08) 0%, rgba(0,212,255,0.04) 100%)',
+      borderColor: 'rgba(177,76,255,0.28)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <HUDTicks />
+
+      {/* ambient glow */}
+      <div className="self-aura-pulse" style={{
+        position: 'absolute',
+        left: -10, top: -10, width: 100, height: 100,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(177,76,255,0.30) 0%, transparent 70%)',
+        filter: 'blur(12px)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* identity orb */}
+      <div style={{ position: 'relative', width: 60, height: 60, flexShrink: 0 }}>
+        <div className="orb-spin" style={{
+          position: 'absolute', inset: 0, borderRadius: '50%',
+          background: 'conic-gradient(from 0deg, #00D4FF 0%, #B14CFF 35%, #FF3CC8 60%, #00D4FF 100%)',
+          WebkitMask: 'radial-gradient(circle, transparent 60%, #000 62%, #000 79%, transparent 81%)',
+          mask: 'radial-gradient(circle, transparent 60%, #000 62%, #000 79%, transparent 81%)',
+        }} />
+        <div className="self-breathe" style={{
+          position: 'absolute', inset: '18%', borderRadius: '50%',
+          background: 'radial-gradient(circle at 32% 30%, rgba(255,255,255,0.85), #B14CFF 55%, #06060A 100%)',
+          boxShadow: '0 0 18px rgba(177,76,255,0.7)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 2,
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 17, color: '#fff', lineHeight: 1,
+            filter: 'drop-shadow(0 0 5px rgba(177,76,255,0.9))',
+          }}>JM</span>
+        </div>
+      </div>
+
+      {/* identity text + progress */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+          <span className="display" style={{ fontSize: 22, color: 'var(--violet)', lineHeight: 1 }}>LVL {level}</span>
+          <span className="mono" style={{ fontSize: 8, color: 'var(--muted)', letterSpacing: '0.2em' }}>{title}</span>
+        </div>
+        <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.14em', marginBottom: 8 }}>JAY MARTINEZ</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <ProgressBar value={bi} color="#B14CFF" height={3} />
+          </div>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--violet)', fontWeight: 700, flexShrink: 0 }}>{bi}</span>
+        </div>
+        <div className="eyebrow" style={{ marginTop: 3, color: 'var(--dim)' }}>BECOMING INDEX</div>
+      </div>
+
+      {/* streak */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        gap: 1, flexShrink: 0,
+        padding: '8px 10px', borderRadius: 12,
+        background: 'rgba(255,210,60,0.08)',
+        border: '1px solid rgba(255,210,60,0.25)',
+      }}>
+        <IconFlame size={18} color="var(--gold)" />
+        <span className="display" style={{ fontSize: 20, color: 'var(--gold)', lineHeight: 1 }}>{streak}</span>
+        <span className="mono" style={{ fontSize: 7, color: 'var(--dim)', letterSpacing: '0.1em' }}>STREAK</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Presence Whisper — Claude nudge ────────────────────────────────
+const WHISPERS = [
+  'B-twist at 82% · 3 sessions away from closing it.',
+  '41-day streak · your longest run this year. Keep moving.',
+  'Recovery at 87 · green light for today\'s ninja session.',
+];
+
+function PresenceWhisper() {
+  const [idx] = useState(0);
+  return (
+    <div className="presence-in" style={{
+      padding: '10px 14px',
+      borderRadius: 14,
+      background: 'rgba(177,76,255,0.05)',
+      border: '1px solid rgba(177,76,255,0.18)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+    }}>
+      <span style={{ flexShrink: 0 }}>
+        <IconSparkles size={14} color="#B14CFF" />
+      </span>
+      <span style={{ flex: 1, fontSize: 12, color: 'var(--muted)', lineHeight: 1.4 }}>{WHISPERS[idx]}</span>
+      <span className="mono" style={{ fontSize: 8, color: 'var(--violet)', flexShrink: 0, letterSpacing: '0.12em' }}>CLAUDE</span>
+    </div>
+  );
+}
+
+// ─── XP Float ───────────────────────────────────────────────────────
+function XpFloat({ trigger }) {
+  const [floats, setFloats] = useState([]);
+  useEffect(() => {
+    if (!trigger) return;
+    const id = Date.now();
+    setFloats(f => [...f, { id }]);
+    setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 2000);
+  }, [trigger]);
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 400 }}>
+      {floats.map(fl => (
+        <div key={fl.id} className="xp-float" style={{
+          position: 'absolute', left: '50%', top: '40%',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+        }}>
+          <div className="display" style={{
+            fontSize: 48, color: '#B6FF3C', lineHeight: 1,
+            filter: 'drop-shadow(0 0 20px rgba(182,255,60,0.9))',
+          }}>+100 XP</div>
+          <span className="mono" style={{ fontSize: 10, letterSpacing: '0.2em', color: 'var(--lime)' }}>
+            ✦ ONE THING · COMPLETE
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Command Spotlight ───────────────────────────────────────────────
+const SPOTLIGHT_CMDS = [
+  { id: 'capture', Icon: IconPlus,      label: 'Capture',       color: '#00D4FF' },
+  { id: 'log',     Icon: IconActivity,  label: 'Log session',   color: '#B6FF3C' },
+  { id: 'hook',    Icon: IconFlame,     label: 'Write hook',    color: '#FF8A3C' },
+  { id: 'shoot',   Icon: IconCamera,    label: 'Shot list',     color: '#FF3CC8' },
+  { id: 'plan',    Icon: IconCalendar,  label: 'Plan my day',   color: '#B14CFF' },
+  { id: 'pulse',   Icon: IconTarget,    label: 'ONA pulse',     color: '#FF0033' },
+];
+
+function CommandSpotlight({ open, onClose, onCapture }) {
+  if (!open) return null;
+  return (
+    <>
+      <div className="scrim" onClick={onClose} />
+      <div className="spotlight-up" style={{
+        position: 'absolute',
+        left: 14, right: 14, bottom: 108,
+        zIndex: 200,
+        background: 'rgba(11,11,18,0.96)',
+        borderRadius: 24,
+        border: '1px solid rgba(255,255,255,0.1)',
+        padding: '16px 12px 18px',
+        backdropFilter: 'blur(32px)',
+        boxShadow: '0 -4px 48px rgba(0,0,0,0.7)',
+      }}>
+        <HUDTicks />
+        <div style={{ textAlign: 'center', marginBottom: 14 }}>
+          <div className="display" style={{ fontSize: 22, color: 'var(--violet)' }}>COMMAND</div>
+          <div className="eyebrow" style={{ marginTop: 2 }}>What do you need right now?</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {SPOTLIGHT_CMDS.map(cmd => (
+            <div
+              key={cmd.id}
+              className="pressable"
+              onClick={() => { if (cmd.id === 'capture') { onClose(); onCapture?.(); } else onClose(); }}
+              style={{
+                padding: '12px 6px',
+                borderRadius: 14,
+                background: `${cmd.color}10`,
+                border: `1px solid ${cmd.color}30`,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7,
+                boxShadow: `0 0 16px -6px ${cmd.color}`,
+              }}
+            >
+              <cmd.Icon size={20} color={cmd.color} />
+              <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text)', textAlign: 'center', lineHeight: 1.2 }}>{cmd.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+Object.assign(window, { TheSelf, PresenceWhisper, XpFloat, CommandSpotlight });
   </script>
 
   <!-- screen: mission control -->
@@ -1045,12 +1287,14 @@ function TodayTimeline() {
   );
 }
 
-function MissionControl({ state, setState }) {
+function MissionControl({ state, setState, onXp }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v }));
-  const markDone = () => setState((s) => ({ ...s, oneThingDone: true }));
+  const markDone = () => { setState((s) => ({ ...s, oneThingDone: true })); onXp?.(); };
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <ReadinessHero readiness={state.readiness} energy={state.energy} focus={state.focus} body={state.body} mood={state.mood} onMeter={setMeter} />
+      <TheSelf readiness={state.readiness} streak={TODAY.streak} oneThingDone={state.oneThingDone} />
+      <PresenceWhisper />
       <OneThingCard done={state.oneThingDone} onMark={markDone} />
       <MomentumStrip />
       <TodayTimeline />
@@ -1835,6 +2079,8 @@ function QuickCapture({ open, onClose, voiceMode = false }) {
 function App() {
   const [tab, setTab] = useState('home');
   const [capture, setCapture] = useState({ open: false, voice: false });
+  const [spotlight, setSpotlight] = useState(false);
+  const [xpTrigger, setXpTrigger] = useState(0);
   const [missionState, setMissionState] = useState({
     readiness: TODAY.readiness,
     energy: TODAY.energy,
@@ -1844,14 +2090,17 @@ function App() {
     oneThingDone: false,
   });
 
+  const fireXp = () => setXpTrigger(t => t + 1);
+  const openCapture = () => { setSpotlight(false); setCapture({ open: true, voice: false }); };
+
   let screen;
   switch (tab) {
-    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} />; break;
+    case 'home':   screen = <MissionControl state={missionState} setState={setMissionState} onXp={fireXp} />; break;
     case 'train':  screen = <TrainingHQ />; break;
     case 'create': screen = <ContentStudio />; break;
     case 'ona':    screen = <ONAHQ />; break;
     case 'ai':     screen = <AIScreen />; break;
-    default:       screen = <MissionControl state={missionState} setState={setMissionState} />;
+    default:       screen = <MissionControl state={missionState} setState={setMissionState} onXp={fireXp} />;
   }
 
   return (
@@ -1860,8 +2109,15 @@ function App() {
         <div className="screen-scroll" key={tab}>
           {screen}
         </div>
-        <TabBar active={tab} onChange={setTab} onFab={() => setCapture({ open: true, voice: false })} onFabLong={() => setCapture({ open: true, voice: true })} />
+        <TabBar
+          active={tab}
+          onChange={setTab}
+          onFab={openCapture}
+          onFabLong={() => setSpotlight(true)}
+        />
         <QuickCapture open={capture.open} voiceMode={capture.voice} onClose={() => setCapture({ open: false, voice: false })} />
+        <CommandSpotlight open={spotlight} onClose={() => setSpotlight(false)} onCapture={openCapture} />
+        <XpFloat trigger={xpTrigger} />
       </div>
     </IOSDevice>
   );
