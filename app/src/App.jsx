@@ -9,6 +9,7 @@ import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+import { XpLayer } from './components/XpLayer.jsx';
 // Today is the default tab → load it eagerly for an instant first paint.
 import { TodayScreen } from './screens/TodayScreen.jsx';
 // Everything else is split into its own chunk, loaded on demand.
@@ -232,6 +233,7 @@ function MainApp() {
     <IOSDevice dark width={402} height={874}>
       <div className="screen-host">
         <SyncBadge />
+        <XpLayer />
         <div className="screen-scroll" key={screenKey}>
           <ErrorBoundary resetKey={screenKey}>
             <Suspense fallback={<ScreenLoading />}>
