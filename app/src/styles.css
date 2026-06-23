@@ -147,9 +147,15 @@ html, body {
 
 .screen-content {
   padding: 0 16px;
-  animation: screenFade 320ms ease;
+  /* Spatial "arrive" — the screen settles into place (a camera move),
+     layered over the staggered card entrance. */
+  animation: screenArrive 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes screenArrive {
+  from { opacity: 0; transform: scale(0.985) translateY(9px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 
 /* Composed, staggered entrance — quick and weightless, never laggy.
    The app should feel like it was already there waiting for you. */
@@ -390,12 +396,13 @@ html, body {
 }
 .obj-pulse { animation: objPulse 520ms cubic-bezier(0.2, 0.7, 0.2, 1); }
 
-/* Content unfolds downward instead of popping in */
+/* Content grows out of its card — unfurls from the top edge it's attached to
+   (a lightweight shared-element-style continuity). */
 @keyframes unfold {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-6px) scaleY(0.94); }
+  to   { opacity: 1; transform: translateY(0) scaleY(1); }
 }
-.unfold { animation: unfold 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.unfold { animation: unfold 320ms cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: top center; }
 
 /* Contextual action rows stagger in */
 @keyframes actionIn {
