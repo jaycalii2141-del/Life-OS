@@ -32,6 +32,7 @@ import { maybeMorningNudge } from './lib/nudges.js';
 import { earnedFreezes, healFreezes, freezeState } from './lib/streak.js';
 import { becomingIndex } from './lib/becoming.js';
 import { lifeLevel } from './lib/level.js';
+import { fireCeremony } from './lib/ceremony.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
@@ -165,6 +166,9 @@ function MainApp() {
   // you're becoming can be replayed over time (the foundation of the time-lapse).
   const [selfHistory, setSelfHistory] = useSyncedState('lifeos:self-history', {});
 
+  // Level-up ceremony — fire when the Life Level crosses a new threshold.
+  const [lastLevel, setLastLevel] = useSyncedState('lifeos:last-level', null);
+
   // App settings (e.g. connected Google Calendar iCal link).
   const [settings, setSettings] = useSyncedState('lifeos:settings', {});
 
@@ -210,6 +214,17 @@ function MainApp() {
     } catch { /* first run */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayScore, doneCount]);
+
+  // Level-up ceremony.
+  useEffect(() => {
+    try {
+      const lvl = lifeLevel().level;
+      if (lastLevel == null) { setLastLevel(lvl); return; }
+      if (lvl > lastLevel) { fireCeremony({ kicker: 'LEVEL UP', title: `Level ${lvl}`, subtitle: 'you’ve become more' }); setLastLevel(lvl); }
+      else if (lvl !== lastLevel) setLastLevel(lvl);
+    } catch { /* */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayScore, doneCount, sessions]);
 
   // Untriaged captures → a gentle badge on the Life tab.
   const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;

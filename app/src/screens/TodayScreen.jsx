@@ -18,6 +18,7 @@ import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS
 import { becomingIndex, becomingLine } from '../lib/becoming.js';
 import { proactiveInsight } from '../lib/presence.js';
 import { awardXp } from '../lib/xp.js';
+import { fireCeremony } from '../lib/ceremony.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
@@ -273,7 +274,14 @@ function CampaignCard({ q, open, onToggleOpen, onToggleMilestone, onLongPress, m
         <div className="unfold" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {q.why && <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4 }}>{q.why}</div>}
           {(q.milestones || []).map((m) => (
-            <div key={m.id} className="pressable" onClick={() => { onToggleMilestone(q.id, m.id); if (!m.done) { celebrate(); awardXp(15, 'milestone'); } }}
+            <div key={m.id} className="pressable" onClick={() => {
+              const completesCampaign = !m.done && (q.milestones || []).every((x) => x.id === m.id || x.done);
+              onToggleMilestone(q.id, m.id);
+              if (!m.done) {
+                celebrate(); awardXp(15, 'milestone');
+                if (completesCampaign) fireCeremony({ kicker: 'CAMPAIGN COMPLETE', title: q.title, subtitle: 'a goal, finished · your Self grows' });
+              }
+            }}
               style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 0', marginTop: -6, marginBottom: -6 }}>
               <div style={{
                 width: 18, height: 18, borderRadius: 6, flexShrink: 0,
