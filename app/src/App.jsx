@@ -4,12 +4,13 @@
 // The Mission Engine lives here so every screen can feed it.
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture.
 // ─────────────────────────────────────────────────────────
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { XpLayer } from './components/XpLayer.jsx';
+import { CommandSpotlight } from './components/CommandSpotlight.jsx';
 // Today is the default tab → load it eagerly for an instant first paint.
 import { TodayScreen } from './screens/TodayScreen.jsx';
 // Everything else is split into its own chunk, loaded on demand.
@@ -194,6 +195,23 @@ function MainApp() {
   // Re-key the screen container on tab change so screenIn animation fires
   const screenKey = tab;
 
+  // ── The command bar ──
+  // Long-press anywhere that isn't itself actionable → summon the spotlight.
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const cmdTimer = useRef(null);
+  const cmdStart = useRef({ x: 0, y: 0 });
+  const clearCmd = () => { if (cmdTimer.current) { clearTimeout(cmdTimer.current); cmdTimer.current = null; } };
+  const onHostPointerDown = (e) => {
+    if (e.target?.closest?.('.pressable, input, textarea, button, a, [role="button"], svg')) return;
+    cmdStart.current = { x: e.clientX, y: e.clientY };
+    clearCmd();
+    cmdTimer.current = setTimeout(() => { try { navigator.vibrate?.(14); } catch { /* */ } setCmdOpen(true); }, 500);
+  };
+  const onHostPointerMove = (e) => {
+    if (!cmdTimer.current) return;
+    if (Math.abs(e.clientX - cmdStart.current.x) > 12 || Math.abs(e.clientY - cmdStart.current.y) > 12) clearCmd();
+  };
+
   let screen;
   switch (tab) {
     case 'life':
@@ -231,9 +249,18 @@ function MainApp() {
 
   return (
     <IOSDevice dark width={402} height={874}>
-      <div className="screen-host">
+      <div className="screen-host" onPointerDown={onHostPointerDown} onPointerMove={onHostPointerMove} onPointerUp={clearCmd} onPointerLeave={clearCmd} onPointerCancel={clearCmd}>
         <SyncBadge />
         <XpLayer />
+        <CommandSpotlight
+          open={cmdOpen}
+          onClose={() => setCmdOpen(false)}
+          onAsk={() => openCompanion(false)}
+          onCapture={() => setCapture({ open: true, voice: false })}
+          onCalendar={() => setCalendarOpen(true)}
+          onReview={() => setReviewOpen(true)}
+          onGoTab={changeTab}
+        />
         <div className="screen-scroll" key={screenKey}>
           <ErrorBoundary resetKey={screenKey}>
             <Suspense fallback={<ScreenLoading />}>
