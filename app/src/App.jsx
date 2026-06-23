@@ -200,6 +200,11 @@ function MainApp() {
   const trend = readinessTrend(history, today, todayReadiness);
   const freezeInfo = freezeState(history, freezes.used || {});
 
+  // The Becoming Index — computed ONCE here and passed to every screen, so the
+  // number is identical everywhere ("one true number"). Recomputes as state syncs.
+  let becoming = null;
+  try { becoming = becomingIndex(); } catch { /* first run */ }
+
   // Record today's Self snapshot (becoming + level) for the time-lapse.
   useEffect(() => {
     try {
@@ -252,7 +257,7 @@ function MainApp() {
   let screen;
   switch (tab) {
     case 'life':
-      screen = <LifeMapScreen captures={captures} setCaptures={setCaptures} readiness={todayReadiness} trend={trend} history={history} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} onGoTab={changeTab} />;
+      screen = <LifeMapScreen captures={captures} setCaptures={setCaptures} readiness={todayReadiness} trend={trend} history={history} becoming={becoming} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} onGoTab={changeTab} />;
       break;
     case 'perform':
       screen = <PerformScreen sessions={sessions} onLogSession={logSession} readiness={todayReadiness} />;
@@ -274,6 +279,7 @@ function MainApp() {
           momentum={momentum}
           streak={streak}
           freezes={freezeInfo}
+          becoming={becoming}
           trend={trend}
           icalUrl={settings.icalUrl}
           onOpenSettings={() => setSettingsOpen(true)}

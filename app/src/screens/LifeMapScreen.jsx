@@ -20,7 +20,7 @@ import { googleCalendarUrl, openExternal } from '../lib/actions.js';
 import { LIFE_MAP_DOMAINS, domainScores, alignmentScore } from '../lib/quests.js';
 import { snapshot } from '../lib/mission.js';
 import { lifeLevel } from '../lib/level.js';
-import { becomingIndex, becomingLine } from '../lib/becoming.js';
+import { becomingLine } from '../lib/becoming.js';
 import { TheSelf } from '../components/TheSelf.jsx';
 
 function folderForDomain(folders, domain) {
@@ -287,7 +287,7 @@ function DomainSheet({ domainId, onClose, ctx }) {
 // ─────────────────────────────────────────────────────────
 // The screen — map on top, daily mind tools below.
 // ─────────────────────────────────────────────────────────
-export function LifeMapScreen({ captures, setCaptures, readiness, trend, history, onOpenReview, onOpenUpgrade, onGoTab }) {
+export function LifeMapScreen({ captures, setCaptures, readiness, trend, history, becoming, onOpenReview, onOpenUpgrade, onGoTab }) {
   const [view, setView] = useState('inbox'); // inbox | journal
   const [journal, setJournal] = useSyncedState('lifeos:journal', []);
   const [folders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
@@ -300,7 +300,6 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const scores = useMemo(() => { try { return domainScores(); } catch { return {}; } }, [openDomain, learning, adventure]);
   const alignment = useMemo(() => { try { return alignmentScore(scores); } catch { return null; } }, [scores]);
   const lvl = useMemo(() => { try { return lifeLevel(); } catch { return null; } }, [scores]);
-  const becoming = useMemo(() => { try { return becomingIndex({ scores }); } catch { return null; } }, [scores]);
   const selfFacets = useMemo(() => LIFE_MAP_DOMAINS.map((d) => ({ id: d.id, score: scores[d.id]?.score ?? 0 })), [scores]);
   const [selfHistory] = useSyncedState('lifeos:self-history', {});
   const evolution = useMemo(() => Object.keys(selfHistory).sort().map((k) => selfHistory[k]?.becoming ?? 0).filter((v) => typeof v === 'number'), [selfHistory]);

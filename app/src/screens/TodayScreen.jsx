@@ -15,7 +15,7 @@ import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate, dayComplete } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
 import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
-import { becomingIndex, becomingLine } from '../lib/becoming.js';
+import { becomingLine } from '../lib/becoming.js';
 import { proactiveInsight } from '../lib/presence.js';
 import { awardXp } from '../lib/xp.js';
 import { fireCeremony } from '../lib/ceremony.js';
@@ -571,7 +571,7 @@ function TimelineCard({ events, calendarEvents = [], onAdd, onDelete, onOpenCale
 // ─────────────────────────────────────────────────────────
 export function TodayScreen({
   state, setState, missions, doneIds, adaptedAt, onToggleMission, onRegenerate,
-  momentum, streak, freezes, trend, icalUrl,
+  momentum, streak, freezes, becoming, trend, icalUrl,
   onOpenSettings, onOpenCalendar, onOpenCompanion, onGoTab,
 }) {
   const setMeter = (k, v) => setState((s) => ({ ...s, [k]: v, checkedIn: true }));
@@ -590,11 +590,11 @@ export function TodayScreen({
   const [goalOpen, setGoalOpen] = useState(false);
   const addQuest = (q) => setQuests((list) => [q, ...list]);
 
-  // Becoming Index + wins — computed fresh each open (cheap, local).
-  const [becoming, setBecoming] = useState(null);
+  // Recent wins — computed fresh each open (cheap, local). Becoming comes from
+  // App as a single source of truth so the number matches every screen.
   const [wins, setWins] = useState([]);
   useEffect(() => {
-    try { setBecoming(becomingIndex()); setWins(recentWins()); } catch { /* first run */ }
+    try { setWins(recentWins()); } catch { /* first run */ }
   }, [doneIds, quests]);
 
   // The Presence — one proactive, unasked observation.
