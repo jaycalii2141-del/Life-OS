@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C6 · ONA PULSE — JAM HQ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="../node_modules/react/umd/react.development.js"></script>
+  <script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+  <script src="../node_modules/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0A0B0D;
+      --text: #F5F5F7;
+      --muted: #A7ADBA;
+      --dim: #6B7280;
+      --cyan: #45B7E8;
+      --teal: #2DD4BF;
+      --lime: #34D399;
+      --gold: #E9C46A;
+      --orange: #F4A261;
+      --red: #FF6B5B;
+      --violet: #B14CFF;
+    }
+
+    body {
+      background: #0A0B0D;
+      background-image:
+        radial-gradient(ellipse 600px 400px at 20% 20%, rgba(45,212,191,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 500px at 80% 80%, rgba(255,107,91,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 60% 10%, rgba(69,183,232,0.05) 0%, transparent 70%);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 16px 64px;
+    }
+
+    .page-nav {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .page-nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .page-nav a:hover { color: var(--teal); }
+
+    .phone {
+      width: 402px;
+      height: 874px;
+      background: #06060A;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 48px;
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 0 80px rgba(0,0,0,0.9),
+        0 0 160px rgba(0,0,0,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 37px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 50;
+    }
+
+    .iphone-header {
+      padding: 16px 28px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 58px;
+      flex-shrink: 0;
+    }
+
+    .iphone-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+    }
+
+    .iphone-app-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      color: var(--teal);
+    }
+
+    .iphone-battery {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px 20px 16px;
+      scrollbar-width: none;
+    }
+    .screen-content::-webkit-scrollbar { display: none; }
+
+    .tab-bar {
+      display: flex;
+      gap: 6px;
+      padding: 12px 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: rgba(6,6,10,0.9);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+    }
+
+    .tab-chip {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-chip:hover { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .tab-chip.active {
+      background: rgba(45,212,191,0.12);
+      border-color: rgba(45,212,191,0.3);
+      color: var(--teal);
+      box-shadow: 0 0 12px rgba(45,212,191,0.1);
+    }
+
+    /* Glass card */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+    }
+
+    .glass-sm {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+      backdrop-filter: blur(20px);
+      border-radius: 10px;
+    }
+
+    /* Section label */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 8px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes tealPulse {
+      0% { background: rgba(255,255,255,0.04); }
+      50% { background: rgba(45,212,191,0.18); }
+      100% { background: rgba(255,255,255,0.04); }
+    }
+
+    .reach-out-flash {
+      animation: tealPulse 0.6s ease-out;
+    }
+
+    .screen-fade {
+      animation: fadeUp 0.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="page-nav">
+  <a href="index.html">← INDEX</a>
+  <a href="c5-forge.html">← C5</a>
+  <a href="c7-content-os.html">C7 →</a>
+</nav>
+
+<div class="phone">
+  <div class="dynamic-island"></div>
+  <div id="root" style="display:flex;flex-direction:column;height:100%;"></div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ─── DESIGN TOKENS ───────────────────────────────────────────────
+const T = {
+  teal: '#2DD4BF', cyan: '#45B7E8', lime: '#34D399',
+  gold: '#E9C46A', orange: '#F4A261', red: '#FF6B5B',
+  violet: '#B14CFF', text: '#F5F5F7', muted: '#A7ADBA', dim: '#6B7280',
+  bg: '#06060A',
+};
+
+function readinessColor(val) {
+  if (val >= 80) return T.teal;
+  if (val >= 60) return T.gold;
+  return T.red;
+}
+
+function readinessLabel(val) {
+  if (val >= 80) return 'PRIMED';
+  if (val >= 60) return 'MODERATE';
+  return 'REST DAY';
+}
+
+// ─── MINI SPARKLINE ──────────────────────────────────────────────
+function Sparkline({ data, highlight = data.length - 1, width = 48, height = 20 }) {
+  const max = Math.max(...data);
+  const min = Math.min(...data) - 2;
+  const range = max - min || 1;
+  const barW = (width - (data.length - 1) * 2) / data.length;
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      {data.map((v, i) => {
+        const bh = ((v - min) / range) * (height - 2) + 2;
+        const x = i * (barW + 2);
+        const y = height - bh;
+        const color = i === highlight ? readinessColor(v) : 'rgba(255,255,255,0.18)';
+        return (
+          <rect
+            key={i}
+            x={x} y={y} width={barW} height={bh}
+            rx={1.5}
+            fill={color}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─── READINESS RING ──────────────────────────────────────────────
+function ReadinessRing({ target = 87 }) {
+  const [val, setVal] = useState(0);
+  const r = 52;
+  const circ = 2 * Math.PI * r;
+  const dash = (val / 100) * circ;
+  const color = readinessColor(val);
+  const startTime = useRef(null);
+  const duration = 1200;
+
+  useEffect(() => {
+    let raf;
+    function tick(ts) {
+      if (!startTime.current) startTime.current = ts;
+      const elapsed = ts - startTime.current;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setVal(Math.round(eased * target));
+      if (progress < 1) raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8 }}>
+      <svg width={280} height={280} viewBox="0 0 280 280">
+        {/* bg track */}
+        <circle
+          cx={140} cy={140} r={r * 2}
+          fill="none"
+          stroke="rgba(255,255,255,0.06)"
+          strokeWidth={10}
+        />
+        {/* glow layer */}
+        <circle
+          cx={140} cy={140} r={r * 2}
+          fill="none"
+          stroke={color}
+          strokeWidth={10}
+          strokeOpacity={0.15}
+          strokeDasharray={`${(val / 100) * (2 * Math.PI * r * 2)} ${2 * Math.PI * r * 2}`}
+          strokeDashoffset={2 * Math.PI * r * 2 * 0.25}
+          strokeLinecap="round"
+          style={{ filter: `blur(6px)` }}
+          transform="rotate(-90 140 140)"
+        />
+        {/* main arc */}
+        <circle
+          cx={140} cy={140} r={r * 2}
+          fill="none"
+          stroke={color}
+          strokeWidth={10}
+          strokeDasharray={`${(val / 100) * (2 * Math.PI * r * 2)} ${2 * Math.PI * r * 2}`}
+          strokeDashoffset={0}
+          strokeLinecap="round"
+          transform="rotate(-90 140 140)"
+          style={{ transition: 'stroke 0.4s ease', filter: `drop-shadow(0 0 8px ${color}80)` }}
+        />
+        {/* inner decorative ring */}
+        <circle
+          cx={140} cy={140} r={r * 2 - 18}
+          fill="none"
+          stroke="rgba(255,255,255,0.03)"
+          strokeWidth={1}
+        />
+        {/* value text */}
+        <text
+          x={140} y={133}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontFamily="'Bebas Neue', sans-serif"
+          fontSize={62}
+          fill={color}
+          style={{ filter: `drop-shadow(0 0 12px ${color}80)` }}
+        >
+          {val}
+        </text>
+        {/* label */}
+        <text
+          x={140} y={168}
+          textAnchor="middle"
+          fontFamily="'JetBrains Mono', monospace"
+          fontSize={10}
+          fontWeight={700}
+          fill="rgba(255,255,255,0.4)"
+          letterSpacing={3}
+        >
+          READINESS
+        </text>
+      </svg>
+    </div>
+  );
+}
+
+// ─── METRIC PILL ─────────────────────────────────────────────────
+function MetricPill({ label, value, dotColor }) {
+  return (
+    <div style={{
+      flex: 1,
+      background: 'rgba(255,255,255,0.04)',
+      border: '1px solid rgba(255,255,255,0.08)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+      borderRadius: 10,
+      padding: '8px 6px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 4,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ width: 5, height: 5, borderRadius: '50%', background: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.10em', textTransform: 'uppercase' }}>{label}</span>
+      </div>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 700, color: T.text }}>{value}</span>
+    </div>
+  );
+}
+
+// ─── BAR CHART (Coach View) ───────────────────────────────────────
+function FloorLoadChart() {
+  const hours = ['8a','10a','12p','2p','4p','6p','8p'];
+  const data =  [12,  18,  22,   28,  35,  48,  20];
+  const max = Math.max(...data);
+  const peak = data.indexOf(max);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 56, padding: '0 2px' }}>
+      {data.map((v, i) => {
+        const h = Math.max((v / max) * 52, 4);
+        const color = i === peak ? T.teal : i >= 4 ? T.gold : 'rgba(255,255,255,0.18)';
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <div style={{
+              width: '100%', height: h, borderRadius: 3,
+              background: color,
+              boxShadow: i === peak ? `0 0 8px ${T.teal}60` : 'none',
+              transition: 'height 0.3s ease',
+            }} />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, color: T.dim }}>{hours[i]}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── COACH AVATAR ────────────────────────────────────────────────
+function CoachAvatar({ name, score, size = 48 }) {
+  const color = readinessColor(score);
+  const initial = name[0];
+  const ringOffset = (1 - score / 100) * (2 * Math.PI * ((size / 2) - 3));
+  const circ = 2 * Math.PI * ((size / 2) - 3);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ position: 'absolute', top: 0, left: 0 }}>
+          <circle cx={size/2} cy={size/2} r={(size/2)-3} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={2.5} />
+          <circle
+            cx={size/2} cy={size/2} r={(size/2)-3}
+            fill="none"
+            stroke={color}
+            strokeWidth={2.5}
+            strokeDasharray={`${(score / 100) * circ} ${circ}`}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${size/2} ${size/2})`}
+            style={{ filter: `drop-shadow(0 0 4px ${color}80)` }}
+          />
+        </svg>
+        <div style={{
+          position: 'absolute', top: 3, left: 3,
+          width: size - 6, height: size - 6,
+          borderRadius: '50%',
+          background: `rgba(${color === T.teal ? '45,212,191' : color === T.gold ? '233,196,106' : '255,107,91'},0.15)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: size * 0.38,
+          color: color,
+        }}>{initial}</div>
+      </div>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: T.muted }}>{name}</span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, color }}>{score}</span>
+    </div>
+  );
+}
+
+// ─── ATHLETES DATA ───────────────────────────────────────────────
+const ATHLETES = [
+  { name: 'Marcus', score: 92, trend: [78, 84, 80, 88, 92] },
+  { name: 'Leila',  score: 71, trend: [68, 72, 65, 74, 71] },
+  { name: 'Diego',  score: 88, trend: [82, 79, 85, 84, 88] },
+  { name: 'Sam',    score: 45, trend: [72, 65, 55, 48, 45] },
+  { name: 'Kai',    score: 83, trend: [76, 80, 78, 81, 83] },
+  { name: 'Zoe',    score: 67, trend: [70, 64, 69, 65, 67] },
+  { name: 'Tyler',  score: 91, trend: [85, 88, 84, 89, 91] },
+  { name: 'Mia',    score: 52, trend: [74, 68, 60, 55, 52] },
+];
+
+// ─── SCREEN 1 — MY PULSE ─────────────────────────────────────────
+function ScreenMyPulse() {
+  return (
+    <div className="screen-fade" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Readiness Ring */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <ReadinessRing target={87} />
+      </div>
+
+      {/* Metric Pills */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <MetricPill label="ENERGY" value="8/10" dotColor={T.lime} />
+        <MetricPill label="HRV" value="94ms" dotColor={T.teal} />
+        <MetricPill label="SLEEP" value="7.2h" dotColor={T.cyan} />
+        <MetricPill label="SORENESS" value="2/10" dotColor={T.gold} />
+      </div>
+
+      {/* Recovery Status */}
+      <div className="glass" style={{ padding: '14px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.lime, boxShadow: `0 0 8px ${T.lime}` }} />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700, color: T.lime, letterSpacing: '0.12em' }}>STATUS: OPTIMAL</span>
+        </div>
+        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: T.muted, lineHeight: 1.6 }}>
+          Body is primed for high-output work. Nervous system recovered. Green light on power training.
+        </p>
+      </div>
+
+      {/* Today's Recommendation */}
+      <div style={{
+        background: 'rgba(45,212,191,0.05)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderLeft: `3px solid ${T.teal}`,
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), -4px 0 12px rgba(45,212,191,0.12)`,
+        borderRadius: 16,
+        padding: '14px 16px',
+      }}>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, color: T.teal, letterSpacing: '0.12em', display: 'block', marginBottom: 6 }}>TODAY'S RECOMMENDATION</span>
+        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: T.muted, lineHeight: 1.6 }}>
+          High-skill work window. Focus B-twist progression. Save heavy conditioning for tomorrow.
+        </p>
+      </div>
+
+      {/* 5-Day Trend */}
+      <div className="glass" style={{ padding: '14px 16px' }}>
+        <div className="section-label" style={{ marginBottom: 12 }}>TREND: 5-DAY READINESS</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 44 }}>
+          {[72, 78, 65, 81, 87].map((v, i) => {
+            const maxV = 95;
+            const h = Math.max((v / maxV) * 40, 4);
+            const isToday = i === 4;
+            const color = isToday ? readinessColor(v) : 'rgba(255,255,255,0.15)';
+            return (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                {isToday && (
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: T.teal, fontWeight: 700 }}>{v}</span>
+                )}
+                <div style={{
+                  width: '100%', height: isToday ? h : h,
+                  borderRadius: 3,
+                  background: color,
+                  boxShadow: isToday ? `0 0 8px ${T.teal}60` : 'none',
+                  alignSelf: 'flex-end',
+                  position: 'relative',
+                }} />
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: isToday ? T.teal : T.dim }}>
+                  {['M', 'T', 'W', 'T', 'F'][i]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN 2 — GYM PULSE ────────────────────────────────────────
+function ScreenGymPulse() {
+  const [filter, setFilter] = useState('ALL');
+  const [flashedIds, setFlashedIds] = useState(new Set());
+
+  const filtered = ATHLETES.filter(a => {
+    if (filter === 'PRIMED') return a.score >= 80;
+    if (filter === 'NEEDS ATTENTION') return a.score < 60;
+    return true;
+  });
+
+  function handleReachOut(name) {
+    setFlashedIds(prev => new Set([...prev, name]));
+    setTimeout(() => {
+      setFlashedIds(prev => {
+        const next = new Set(prev);
+        next.delete(name);
+        return next;
+      });
+    }, 800);
+  }
+
+  return (
+    <div className="screen-fade" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: T.text, letterSpacing: '0.06em', lineHeight: 1 }}>GYM PULSE</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: T.dim, letterSpacing: '0.10em', marginTop: 2 }}>· TODAY</div>
+        </div>
+        <div style={{
+          background: 'rgba(45,212,191,0.1)',
+          border: '1px solid rgba(45,212,191,0.25)',
+          borderRadius: 20,
+          padding: '4px 10px',
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 10,
+          fontWeight: 700,
+          color: T.teal,
+        }}>24 checked in</div>
+      </div>
+
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        {['ALL', 'PRIMED', 'NEEDS ATTENTION'].map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{
+            flex: f === 'NEEDS ATTENTION' ? 2 : 1,
+            padding: '6px 8px',
+            borderRadius: 8,
+            border: filter === f ? `1px solid rgba(45,212,191,0.3)` : '1px solid rgba(255,255,255,0.08)',
+            background: filter === f ? 'rgba(45,212,191,0.1)' : 'rgba(255,255,255,0.03)',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 8,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            color: filter === f ? T.teal : T.dim,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            whiteSpace: 'nowrap',
+          }}>{f}</button>
+        ))}
+      </div>
+
+      {/* Athlete Rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {filtered.map((a, i) => {
+          const color = readinessColor(a.score);
+          const label = readinessLabel(a.score);
+          const isFlashed = flashedIds.has(a.name);
+          const isAttention = a.score < 60;
+
+          return (
+            <div
+              key={a.name}
+              className={isFlashed ? 'reach-out-flash' : ''}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '10px 12px',
+                background: isFlashed ? 'rgba(45,212,191,0.18)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${isFlashed ? 'rgba(45,212,191,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+                borderRadius: 12,
+                transition: 'all 0.2s',
+                animation: `fadeUp 0.3s ease-out ${i * 60}ms both`,
+              }}
+            >
+              {/* Avatar */}
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: `rgba(${color === T.teal ? '45,212,191' : color === T.gold ? '233,196,106' : '255,107,91'},0.15)`,
+                border: `2px solid ${color}40`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, color,
+                flexShrink: 0,
+              }}>{a.name[0]}</div>
+
+              {/* Name */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 2 }}>{a.name}</div>
+                <div style={{
+                  display: 'inline-block',
+                  padding: '2px 7px',
+                  borderRadius: 6,
+                  background: `rgba(${color === T.teal ? '45,212,191' : color === T.gold ? '233,196,106' : '255,107,91'},0.12)`,
+                  border: `1px solid ${color}30`,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 7,
+                  fontWeight: 700,
+                  color,
+                  letterSpacing: '0.08em',
+                }}>{label}</div>
+              </div>
+
+              {/* Score */}
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, color, lineHeight: 1, textShadow: `0 0 12px ${color}60` }}>
+                {a.score}
+              </div>
+
+              {/* Sparkline */}
+              <div style={{ flexShrink: 0 }}>
+                <Sparkline data={a.trend} width={40} height={22} />
+              </div>
+
+              {/* Reach out button */}
+              {isAttention && (
+                <button
+                  onClick={() => handleReachOut(a.name)}
+                  style={{
+                    padding: '5px 8px',
+                    borderRadius: 7,
+                    border: isFlashed ? `1px solid ${T.teal}` : '1px solid rgba(255,107,91,0.35)',
+                    background: isFlashed ? `rgba(45,212,191,0.2)` : 'rgba(255,107,91,0.1)',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 7,
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    color: isFlashed ? T.teal : T.red,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  {isFlashed ? '✓ SENT' : 'REACH OUT'}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {filter === 'NEEDS ATTENTION' && filtered.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 24, fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.dim }}>
+          All athletes in good standing
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SCREEN 3 — COACH VIEW ───────────────────────────────────────
+function ScreenCoachView() {
+  const sessions = [
+    { coach: 'Riley', time: '10am', type: 'Ninja Advanced', score: 89, color: '#A78BFA' },
+    { coach: 'Luke',  time: '2pm',  type: 'Gymnastics',     score: 76, color: '#60A5FA' },
+    { coach: 'Avery', time: '4pm',  type: 'Tricking',       score: 82, color: '#F472B6' },
+  ];
+
+  return (
+    <div className="screen-fade" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Header */}
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, color: T.text, letterSpacing: '0.08em' }}>COACHING OPS</div>
+
+      {/* Sessions */}
+      <div>
+        <div className="section-label">TODAY'S SESSIONS</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {sessions.map((s, i) => {
+            const scoreColor = readinessColor(s.score);
+            return (
+              <div key={s.coach} className="glass" style={{
+                padding: '12px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                animation: `fadeUp 0.3s ease-out ${i * 80}ms both`,
+              }}>
+                {/* Coach avatar */}
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: `${s.color}20`,
+                  border: `2px solid ${s.color}40`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, color: s.color,
+                  flexShrink: 0,
+                }}>{s.coach[0]}</div>
+
+                {/* Info */}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 1 }}>{s.coach}</div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, color: T.dim, letterSpacing: '0.06em' }}>{s.time} · {s.type}</div>
+                </div>
+
+                {/* Readiness chip */}
+                <div style={{
+                  padding: '4px 9px',
+                  borderRadius: 8,
+                  background: `rgba(${scoreColor === T.teal ? '45,212,191' : '233,196,106'},0.12)`,
+                  border: `1px solid ${scoreColor}30`,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: scoreColor,
+                }}>{s.score}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Alert */}
+      <div style={{
+        background: 'rgba(255,107,91,0.05)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        borderLeft: `3px solid ${T.red}`,
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), -4px 0 12px rgba(255,107,91,0.12)`,
+        borderRadius: 16,
+        padding: '12px 14px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.red, boxShadow: `0 0 6px ${T.red}` }} />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9, fontWeight: 700, color: T.red, letterSpacing: '0.10em' }}>INTENSITY ALERT</span>
+        </div>
+        <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: T.muted, lineHeight: 1.6 }}>
+          2 athletes below 60 readiness have sessions today — consider modifying intensity for <span style={{ color: T.red, fontWeight: 600 }}>Sam (45)</span> and <span style={{ color: T.red, fontWeight: 600 }}>Mia (52)</span>.
+        </p>
+      </div>
+
+      {/* Floor Load */}
+      <div className="glass" style={{ padding: '14px 16px' }}>
+        <div className="section-label" style={{ marginBottom: 10 }}>FLOOR LOAD · GYM OCCUPANCY</div>
+        <FloorLoadChart />
+        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 8, height: 8, borderRadius: 2, background: T.teal }} />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 8, color: T.dim }}>Peak at 6pm · 48 athletes</span>
+        </div>
+      </div>
+
+      {/* Coach Readiness */}
+      <div className="glass" style={{ padding: '14px 16px' }}>
+        <div className="section-label" style={{ marginBottom: 12 }}>COACH READINESS</div>
+        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+          <CoachAvatar name="Riley" score={89} size={52} />
+          <CoachAvatar name="Luke" score={76} size={52} />
+          <CoachAvatar name="Avery" score={82} size={52} />
+          <CoachAvatar name="Eric" score={71} size={52} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ────────────────────────────────────────────────────
+function App() {
+  const [activeTab, setActiveTab] = useState('MY PULSE');
+  const tabs = ['MY PULSE', 'GYM PULSE', 'COACH VIEW'];
+
+  const tabKeys = { 'MY PULSE': 'my', 'GYM PULSE': 'gym', 'COACH VIEW': 'coach' };
+
+  return (
+    <>
+      {/* iPhone Header */}
+      <div className="iphone-header">
+        <span className="iphone-time">9:41</span>
+        <span className="iphone-app-name">ONA PULSE</span>
+        <div className="iphone-battery">
+          <svg width="16" height="8" viewBox="0 0 16 8">
+            <rect x="0" y="1" width="13" height="6" rx="1.5" stroke="currentColor" strokeWidth="0.8" fill="none" />
+            <rect x="13.5" y="2.5" width="2" height="3" rx="0.5" fill="currentColor" opacity="0.6" />
+            <rect x="1" y="2" width="9" height="4" rx="0.8" fill={T.lime} />
+          </svg>
+          <span>84%</span>
+        </div>
+      </div>
+
+      {/* Screen Content */}
+      <div className="screen-content" key={activeTab}>
+        {activeTab === 'MY PULSE' && <ScreenMyPulse />}
+        {activeTab === 'GYM PULSE' && <ScreenGymPulse />}
+        {activeTab === 'COACH VIEW' && <ScreenCoachView />}
+      </div>
+
+      {/* Tab Bar */}
+      <div className="tab-bar">
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            className={`tab-chip${activeTab === tab ? ' active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+          >{tab}</button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+
+<style>
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</body>
+</html>

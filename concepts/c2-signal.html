@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JAM HQ · C2 · The Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="../node_modules/react/umd/react.development.js"></script>
+<script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+<script src="../node_modules/@babel/standalone/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0A0B0D;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: #F5F5F7;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 20% 20%, rgba(255,107,91,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(45,212,191,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 60% 40%, rgba(69,183,232,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scene-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .phone {
+    width: 402px;
+    height: 874px;
+    background: #06060A;
+    border-radius: 48px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.8);
+  }
+
+  .dynamic-island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 50;
+  }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 3px;
+    z-index: 40;
+  }
+
+  .phone-screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
+
+  /* Navigation controls */
+  .nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #6B7280;
+  }
+
+  .nav-controls a {
+    color: #6B7280;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-controls a:hover { color: #A7ADBA; }
+
+  .nav-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255,107,91,0.5);
+  }
+
+  /* Screen fade transition */
+  .screen-fade {
+    position: absolute;
+    inset: 0;
+    transition: opacity 300ms ease;
+  }
+
+  .screen-fade.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Glass card */
+  .glass-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+  }
+
+  /* Signal card animations */
+  @keyframes signal-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes ona-pulse {
+    0%, 100% { border-left-color: rgba(255,107,91,0.6); box-shadow: -3px 0 12px rgba(255,107,91,0.2); }
+    50%       { border-left-color: rgba(255,107,91,1);   box-shadow: -3px 0 24px rgba(255,107,91,0.5); }
+  }
+
+  @keyframes check-spring {
+    0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+    60%  { transform: scale(1.2) rotate(4deg); opacity: 1; }
+    80%  { transform: scale(0.92) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%       { opacity: 0.7; transform: scale(1.05); }
+  }
+
+  .signal-card-1 { animation: signal-in 0.4s ease both; }
+  .signal-card-2 { animation: signal-in 0.4s 0.1s ease both; }
+  .signal-card-3 { animation: signal-in 0.4s 0.2s ease both; }
+
+  .ona-card {
+    animation: signal-in 0.4s ease both, ona-pulse 2.4s 0.6s ease-in-out infinite;
+  }
+
+  .check-anim {
+    animation: check-spring 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  .fade-up-1 { animation: fade-up 0.4s 0.15s ease both; }
+  .fade-up-2 { animation: fade-up 0.4s 0.25s ease both; }
+  .fade-up-3 { animation: fade-up 0.4s 0.35s ease both; }
+  .fade-up-4 { animation: fade-up 0.4s 0.45s ease both; }
+  .fade-up-5 { animation: fade-up 0.4s 0.55s ease both; }
+
+  /* Scrollable screen content */
+  .screen-scroll {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .screen-scroll::-webkit-scrollbar { display: none; }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 58px 28px 0;
+    flex-shrink: 0;
+  }
+
+  .status-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: #F5F5F7;
+    letter-spacing: -0.5px;
+  }
+
+  .status-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6B7280;
+    letter-spacing: 0.06em;
+  }
+
+  /* Action button */
+  .action-btn {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    border-radius: 8px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    padding: 9px 14px;
+    white-space: nowrap;
+  }
+
+  .action-btn:active { transform: scale(0.97); }
+
+  .btn-red {
+    background: linear-gradient(135deg, #FF6B5B, #e84c3a);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255,107,91,0.35);
+  }
+  .btn-red:hover { box-shadow: 0 6px 24px rgba(255,107,91,0.5); }
+
+  .btn-lime {
+    background: linear-gradient(135deg, #34D399, #1db87a);
+    color: #0A0B0D;
+    box-shadow: 0 4px 16px rgba(52,211,153,0.35);
+  }
+  .btn-lime:hover { box-shadow: 0 6px 24px rgba(52,211,153,0.5); }
+
+  .btn-cyan {
+    background: linear-gradient(135deg, #45B7E8, #2893c4);
+    color: #0A0B0D;
+    box-shadow: 0 4px 16px rgba(69,183,232,0.35);
+  }
+  .btn-cyan:hover { box-shadow: 0 6px 24px rgba(69,183,232,0.5); }
+
+  .btn-teal {
+    background: linear-gradient(135deg, #2DD4BF, #1aaa97);
+    color: #0A0B0D;
+    font-size: 12px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(45,212,191,0.4);
+  }
+  .btn-teal:hover { box-shadow: 0 6px 28px rgba(45,212,191,0.55); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: #A7ADBA;
+    font-size: 12px;
+    padding: 12px 20px;
+    border-radius: 12px;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.10); }
+
+  /* Tabs */
+  .tab-row {
+    display: flex;
+    gap: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 7px 10px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 7px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+    background: transparent;
+    color: #6B7280;
+  }
+
+  .tab.active {
+    background: rgba(255,255,255,0.10);
+    color: #F5F5F7;
+  }
+
+  /* Glow orb */
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: glow-pulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Related signal mini cards */
+  .mini-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    flex: 1;
+  }
+
+  .mini-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.14);
+  }
+
+  /* Queue indicator dots */
+  .queue-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .q-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+
+  /* Dimmed handled signal */
+  .signal-handled {
+    opacity: 0.35;
+    pointer-events: none;
+    position: relative;
+  }
+
+  .signal-handled::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    color: #2DD4BF;
+    font-size: 18px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ─── DATA ──────────────────────────────────────────────────────────────────────
+
+const SIGNALS = [
+  {
+    id: 'ona',
+    tag: 'ONA ALERT',
+    accent: '#FF6B5B',
+    accentDim: 'rgba(255,107,91,0.15)',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          stroke="#FF6B5B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    iconLarge: (
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+        <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          stroke="#FF6B5B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'ONA ALERT',
+    headline: '2 leads going cold',
+    body: '2 leads haven\'t been contacted in 48h. Marcus & Leila. They\'ll go cold by tonight.',
+    actionLabel: 'VIEW LEADS →',
+    btnClass: 'btn-red',
+    context: 'Marcus reached out 48 hours ago after seeing your B-twist reel. Leila messaged Monday requesting a coaching consult. Your conversion rate drops 60% after 72h without response. Both have high purchase-intent signals based on message content. Today is the last optimal window.',
+    primaryAction: 'VIEW LEADS',
+    secondaryAction: 'SCHEDULE FOLLOW-UP',
+    relatedIds: ['training', 'content'],
+  },
+  {
+    id: 'training',
+    tag: 'TRAINING SIGNAL',
+    accent: '#34D399',
+    accentDim: 'rgba(52,211,153,0.12)',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+          stroke="#34D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    iconLarge: (
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+          stroke="#34D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'TRAINING SIGNAL',
+    headline: 'Peak window open now',
+    body: 'B-twist is at 82%. One focused session could push it to mastery. Body score is 9 today — optimal window.',
+    actionLabel: 'LOG SESSION →',
+    btnClass: 'btn-lime',
+    context: 'Your HRV is elevated, sleep score was 91, and you\'ve had 2 rest days. B-twist mastery at 82% means you\'re in the final adaptation window — this is where athletes plateau or break through. Your body score of 9/10 today is a biological green light. The next comparable window is 4-5 days out.',
+    primaryAction: 'LOG SESSION',
+    secondaryAction: 'SCHEDULE FOR LATER',
+    relatedIds: ['ona', 'content'],
+  },
+  {
+    id: 'content',
+    tag: 'CONTENT PULSE',
+    accent: '#45B7E8',
+    accentDim: 'rgba(69,183,232,0.12)',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M23 7l-7 5 7 5V7z" stroke="#45B7E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke="#45B7E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    iconLarge: (
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+        <path d="M23 7l-7 5 7 5V7z" stroke="#45B7E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke="#45B7E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    title: 'CONTENT PULSE',
+    headline: 'High-leverage hook ready',
+    body: 'B-twist tutorial hook: "I\'ve been training this for 4 years — here\'s what finally clicked." Trending format. High-leverage today.',
+    actionLabel: 'CAPTURE HOOK →',
+    btnClass: 'btn-cyan',
+    context: '"4-year journey" format hooks are up 340% engagement this week in the movement niche. Your B-twist story is authentic, documented (you\'ve logged 47 sessions in JAM HQ), and timely since you\'re near mastery. Three of your top competitors posted similar hooks this week — your authentic version cuts through. Optimal post time: next 6 hours.',
+    primaryAction: 'CAPTURE HOOK',
+    secondaryAction: 'SAVE DRAFT',
+    relatedIds: ['ona', 'training'],
+  },
+];
+
+const SIGNAL_MAP = Object.fromEntries(SIGNALS.map(s => [s.id, s]));
+
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+
+function IconBack() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M19 12H5M12 5l-7 7 7 7" stroke="#F5F5F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function IconChevronDown({ color = '#6B7280' }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M6 9l6 6 6-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function IconArrow({ dir = 'right', color = '#6B7280' }) {
+  const d = dir === 'right' ? 'M5 12h14M12 5l7 7-7 7' : 'M19 12H5M12 19l-7-7 7-7';
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d={d} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// ─── STATUS BAR ───────────────────────────────────────────────────────────────
+
+function StatusBar() {
+  return (
+    <div style={{ paddingTop: 58, paddingLeft: 28, paddingRight: 28, paddingBottom: 0,
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexShrink: 0 }}>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 15,
+        color: '#F5F5F7', letterSpacing: '-0.5px' }}>08:14</span>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+        color: '#6B7280', letterSpacing: '0.06em' }}>MON JUN 23</span>
+    </div>
+  );
+}
+
+// ─── SCREEN 1 — SIGNAL FEED ───────────────────────────────────────────────────
+
+function SignalFeed({ handled, onCardTap }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="screen-scroll">
+      <div style={{ padding: '0 0 40px 0', minHeight: '100%' }}>
+        <StatusBar />
+
+        {/* Header */}
+        <div style={{ padding: '20px 24px 0' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700,
+            color: '#6B7280', letterSpacing: '0.14em', marginBottom: 6 }}>
+            INTELLIGENCE BRIEF · MON JUN 23
+          </div>
+          <div style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 36, color: '#F5F5F7',
+            lineHeight: 1, marginBottom: 4 }}>
+            YOUR SIGNALS
+          </div>
+          <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#A7ADBA', fontWeight: 300 }}>
+            {3 - handled.size} thing{3 - handled.size !== 1 ? 's' : ''} require your attention
+          </div>
+        </div>
+
+        {/* Ambient gradient line */}
+        <div style={{ margin: '16px 24px', height: 1,
+          background: 'linear-gradient(90deg, rgba(255,107,91,0.4) 0%, rgba(69,183,232,0.3) 50%, transparent 100%)' }} />
+
+        {/* Signal cards */}
+        <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {SIGNALS.map((signal, i) => {
+            const isHandled = handled.has(signal.id);
+            const cardStyle = {
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: 16,
+              borderLeft: `3px solid ${signal.accent}`,
+              padding: '14px 14px 14px 16px',
+              cursor: isHandled ? 'default' : 'pointer',
+              transition: 'border-color 0.25s, box-shadow 0.25s, opacity 0.4s',
+              opacity: isHandled ? 0.3 : 1,
+              position: 'relative',
+            };
+            const animClass = signal.id === 'ona' && !isHandled
+              ? 'ona-card'
+              : `signal-card-${i + 1}`;
+
+            return (
+              <div
+                key={signal.id}
+                className={animClass}
+                style={cardStyle}
+                onClick={() => !isHandled && onCardTap(signal.id)}
+                onMouseEnter={e => {
+                  if (!isHandled) {
+                    e.currentTarget.style.boxShadow =
+                      `inset 0 1px 0 rgba(255,255,255,0.10), 0 0 20px ${signal.accentDim}, -2px 0 16px ${signal.accentDim}`;
+                    e.currentTarget.style.borderLeftColor = signal.accent;
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isHandled) {
+                    e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.10)';
+                  }
+                }}
+              >
+                {isHandled && (
+                  <div style={{ position: 'absolute', top: '50%', right: 16,
+                    transform: 'translateY(-50%)', color: '#2DD4BF', fontSize: 18, fontWeight: 700 }}>
+                    ✓
+                  </div>
+                )}
+                {/* Card top row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8,
+                      background: signal.accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0 }}>
+                      {signal.icon}
+                    </div>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+                      fontWeight: 700, color: signal.accent, letterSpacing: '0.12em' }}>
+                      {signal.tag}
+                    </span>
+                  </div>
+                  {!isHandled && (
+                    <button
+                      className={`action-btn ${signal.btnClass}`}
+                      onClick={e => { e.stopPropagation(); onCardTap(signal.id); }}
+                      style={{ fontSize: 10, padding: '7px 12px', letterSpacing: '0.09em' }}
+                    >
+                      {signal.actionLabel}
+                    </button>
+                  )}
+                </div>
+                {/* Card body */}
+                <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#F5F5F7',
+                  lineHeight: 1.5, fontWeight: 400 }}>
+                  {signal.body}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Low priority queue */}
+        <div
+          style={{ margin: '14px 16px 0', padding: '12px 16px', borderRadius: 12,
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+            cursor: 'pointer', transition: 'background 0.2s' }}
+          onClick={() => setExpanded(!expanded)}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+              color: '#6B7280', letterSpacing: '0.10em' }}>
+              2 more signals in low-priority queue
+            </span>
+            <div style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+              <IconChevronDown />
+            </div>
+          </div>
+          {expanded && (
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {[
+                { label: 'GYM REVENUE · +12% MoM', color: '#E9C46A' },
+                { label: 'COMMUNITY · 3 new DMs unread', color: '#B14CFF' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 0', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+                    color: '#A7ADBA', letterSpacing: '0.06em' }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN 2 — SIGNAL DETAIL ─────────────────────────────────────────────────
+
+function SignalDetail({ signalId, handled, onBack, onAction }) {
+  const [activeTab, setActiveTab] = useState(signalId || 'ona');
+  const signal = SIGNAL_MAP[activeTab];
+  const related = signal.relatedIds.map(id => SIGNAL_MAP[id]);
+
+  useEffect(() => {
+    if (signalId) setActiveTab(signalId);
+  }, [signalId]);
+
+  return (
+    <div className="screen-scroll">
+      <div style={{ padding: '0 0 40px 0', minHeight: '100%' }}>
+        {/* Top bar */}
+        <div style={{ paddingTop: 58, padding: '58px 20px 0', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between' }}>
+          <button
+            onClick={onBack}
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.10)',
+              borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <IconBack />
+          </button>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+            color: '#6B7280', letterSpacing: '0.12em' }}>SIGNAL DETAIL</span>
+          <div style={{ width: 36 }} />
+        </div>
+
+        {/* Tabs */}
+        <div style={{ padding: '16px 20px 0' }}>
+          <div className="tab-row">
+            {SIGNALS.map(s => (
+              <button
+                key={s.id}
+                className={`tab ${activeTab === s.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(s.id)}
+                style={{ color: activeTab === s.id ? s.accent : '#6B7280' }}
+              >
+                {s.tag.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Hero section */}
+        <div style={{ margin: '20px 20px 0', borderRadius: 20, position: 'relative',
+          background: `linear-gradient(160deg, ${signal.accentDim} 0%, rgba(6,6,10,0) 70%)`,
+          border: `1px solid ${signal.accent}22`,
+          padding: '24px 20px 20px', overflow: 'hidden' }}>
+          {/* Glow orb */}
+          <div className="glow-orb" style={{ width: 120, height: 120, top: -30, right: -30,
+            background: signal.accent, opacity: 0.25 }} />
+          {/* Icon */}
+          <div className="fade-up-1" style={{ width: 64, height: 64, borderRadius: 18,
+            background: `${signal.accentDim}`, border: `1px solid ${signal.accent}44`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+            boxShadow: `0 0 32px ${signal.accentDim}` }}>
+            {signal.iconLarge}
+          </div>
+          <div className="fade-up-2" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+            color: signal.accent, letterSpacing: '0.14em', fontWeight: 700, marginBottom: 6 }}>
+            {signal.tag}
+          </div>
+          <div className="fade-up-3" style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 28,
+            color: '#F5F5F7', lineHeight: 1.1, marginBottom: 8 }}>
+            {signal.headline.toUpperCase()}
+          </div>
+          <div className="fade-up-4" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13,
+            color: '#A7ADBA', lineHeight: 1.55, fontWeight: 300 }}>
+            {signal.body}
+          </div>
+        </div>
+
+        {/* Context */}
+        <div style={{ margin: '16px 20px 0' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700,
+            color: '#6B7280', letterSpacing: '0.14em', marginBottom: 10 }}>CONTEXT</div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 14, padding: '14px 16px' }}>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#A7ADBA',
+              lineHeight: 1.65, fontWeight: 300 }}>
+              {signal.context}
+            </p>
+          </div>
+        </div>
+
+        {/* Recommended Action */}
+        <div style={{ margin: '16px 20px 0' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700,
+            color: '#6B7280', letterSpacing: '0.14em', marginBottom: 10 }}>RECOMMENDED ACTION</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              className={`action-btn ${signal.btnClass}`}
+              style={{ fontSize: 12, padding: '13px 20px', borderRadius: 12, letterSpacing: '0.10em', width: '100%' }}
+              onClick={() => onAction(activeTab, signal.primaryAction)}
+            >
+              {signal.primaryAction} →
+            </button>
+            <button
+              className="action-btn btn-ghost"
+              style={{ width: '100%' }}
+              onClick={() => onAction(activeTab, signal.secondaryAction)}
+            >
+              {signal.secondaryAction}
+            </button>
+          </div>
+        </div>
+
+        {/* Related signals */}
+        <div style={{ margin: '16px 20px 0' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, fontWeight: 700,
+            color: '#6B7280', letterSpacing: '0.14em', marginBottom: 10 }}>RELATED SIGNALS</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {related.map(rel => (
+              <div key={rel.id} className="mini-card" onClick={() => setActiveTab(rel.id)}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: `${rel.accentDim}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {rel.icon}
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
+                    color: rel.accent, letterSpacing: '0.08em', fontWeight: 700, marginBottom: 2 }}>
+                    {rel.tag.split(' ')[0]}
+                  </div>
+                  <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, color: '#A7ADBA', lineHeight: 1.3 }}>
+                    {rel.headline}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Swipe hint */}
+        <div style={{ margin: '20px 20px 0', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <IconArrow dir="left" color="rgba(107,114,128,0.5)" />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
+              color: 'rgba(107,114,128,0.5)', letterSpacing: '0.10em' }}>PREV</span>
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {SIGNALS.map(s => (
+              <div key={s.id} style={{ width: 6, height: 6, borderRadius: '50%', transition: 'all 0.3s',
+                background: activeTab === s.id ? s.accent : 'rgba(107,114,128,0.3)',
+                transform: activeTab === s.id ? 'scale(1.3)' : 'scale(1)' }} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
+              color: 'rgba(107,114,128,0.5)', letterSpacing: '0.10em' }}>NEXT</span>
+            <IconArrow dir="right" color="rgba(107,114,128,0.5)" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCREEN 3 — ACKNOWLEDGED ──────────────────────────────────────────────────
+
+function Acknowledged({ signalId, action, handledCount, onNext }) {
+  const signal = SIGNAL_MAP[signalId];
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', padding: '0 32px' }}>
+
+      {/* Background glow */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(45,212,191,0.08) 0%, transparent 70%)' }} />
+
+      {/* Checkmark */}
+      <div className="check-anim" style={{ width: 80, height: 80, borderRadius: '50%',
+        background: 'rgba(45,212,191,0.08)', border: '1.5px solid rgba(45,212,191,0.25)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24,
+        boxShadow: '0 0 40px rgba(45,212,191,0.2), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17l-5-5" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+
+      {/* Title */}
+      <div className="fade-up-1" style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 32,
+        color: '#F5F5F7', letterSpacing: '0.04em', textAlign: 'center', marginBottom: 8 }}>
+        SIGNAL ROUTED
+      </div>
+
+      {/* Action taken */}
+      <div className="fade-up-2" style={{ background: 'rgba(45,212,191,0.08)', border: '1px solid rgba(45,212,191,0.15)',
+        borderRadius: 12, padding: '10px 18px', marginBottom: 6, textAlign: 'center' }}>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11,
+          color: '#2DD4BF', letterSpacing: '0.10em', fontWeight: 700 }}>
+          {action}
+        </div>
+      </div>
+
+      {/* Timestamp */}
+      <div className="fade-up-2" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+        color: '#6B7280', letterSpacing: '0.08em', marginBottom: 32 }}>
+        {timeStr} · {signal.tag}
+      </div>
+
+      {/* Queue indicator */}
+      <div className="fade-up-3" style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 24 }}>
+        {SIGNALS.map((s, i) => {
+          const isDone = i < handledCount;
+          return (
+            <div key={s.id} style={{ width: 32, height: 4, borderRadius: 2, transition: 'all 0.4s',
+              background: isDone ? s.accent : 'rgba(107,114,128,0.25)' }} />
+          );
+        })}
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
+          color: '#6B7280', letterSpacing: '0.08em', marginLeft: 4 }}>
+          {handledCount} of {SIGNALS.length} handled
+        </span>
+      </div>
+
+      {/* Next button */}
+      <button
+        className="action-btn btn-teal fade-up-4"
+        onClick={onNext}
+        style={{ letterSpacing: '0.10em' }}
+      >
+        NEXT SIGNAL →
+      </button>
+
+      {/* Divider */}
+      <div className="fade-up-5" style={{ margin: '20px 0', display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
+        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9,
+          color: '#6B7280', letterSpacing: '0.10em' }}>WELL DONE</span>
+        <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+      </div>
+
+      {/* Body score */}
+      <div className="fade-up-5" style={{ fontFamily: "'Inter', sans-serif", fontSize: 12,
+        color: '#6B7280', textAlign: 'center', lineHeight: 1.5 }}>
+        You're moving with clarity today, Jay.
+      </div>
+    </div>
+  );
+}
+
+// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+
+function App() {
+  const [screen, setScreen] = useState('feed'); // 'feed' | 'detail' | 'ack'
+  const [activeSignal, setActiveSignal] = useState(null);
+  const [lastAction, setLastAction] = useState(null);
+  const [handled, setHandled] = useState(new Set());
+
+  function handleCardTap(signalId) {
+    setActiveSignal(signalId);
+    setScreen('detail');
+  }
+
+  function handleAction(signalId, action) {
+    const newHandled = new Set(handled);
+    newHandled.add(signalId);
+    setHandled(newHandled);
+    setLastAction(action);
+    setActiveSignal(signalId);
+    setScreen('ack');
+  }
+
+  function handleNext() {
+    setScreen('feed');
+    setActiveSignal(null);
+  }
+
+  return (
+    <div className="scene-wrapper">
+      {/* Phone shell */}
+      <div className="phone">
+        <div className="dynamic-island" />
+        <div className="home-indicator" />
+
+        {/* Background mesh */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `
+            radial-gradient(ellipse 60% 40% at 80% 10%, rgba(255,107,91,0.10) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 35% at 10% 90%, rgba(45,212,191,0.07) 0%, transparent 55%)
+          ` }} />
+
+        {/* Screens */}
+        <div className={`screen-fade ${screen === 'feed' ? '' : 'hidden'}`}>
+          <SignalFeed handled={handled} onCardTap={handleCardTap} />
+        </div>
+
+        <div className={`screen-fade ${screen === 'detail' ? '' : 'hidden'}`}>
+          {screen === 'detail' && (
+            <SignalDetail
+              signalId={activeSignal}
+              handled={handled}
+              onBack={() => setScreen('feed')}
+              onAction={handleAction}
+            />
+          )}
+        </div>
+
+        <div className={`screen-fade ${screen === 'ack' ? '' : 'hidden'}`}>
+          {screen === 'ack' && (
+            <Acknowledged
+              signalId={activeSignal}
+              action={lastAction}
+              handledCount={handled.size}
+              onNext={handleNext}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Outside navigation */}
+      <div className="nav-controls">
+        <a href="index.html">← INDEX</a>
+        <div className="nav-dot" />
+        <span style={{ color: '#FF6B5B', fontWeight: 700 }}>C2 · THE SIGNAL</span>
+        <div className="nav-dot" />
+        <a href="c3-future-self.html">C3 →</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

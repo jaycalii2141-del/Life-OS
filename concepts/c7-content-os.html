@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>C7 · Content OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;707&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0A0B0D; --text: #F5F5F7; --muted: #A7ADBA; --dim: #6B7280;
+  --cyan: #45B7E8; --teal: #2DD4BF; --lime: #34D399; --gold: #E9C46A;
+  --orange: #F4A261; --red: #FF6B5B; --violet: #B14CFF; --magenta: #FF3CC8;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+html, body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse 50% 40% at 20% 30%, rgba(255,60,200,0.05) 0%, transparent 60%),
+              radial-gradient(ellipse 45% 35% at 80% 70%, rgba(177,76,255,0.06) 0%, transparent 60%);
+}
+.stage { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 60px; min-height: 100vh; }
+.phone {
+  width: 402px; height: 874px; border-radius: 48px;
+  background: #06060A; border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 40px 120px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04);
+  position: relative; overflow: hidden;
+}
+.island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #000; border-radius: 20px; z-index: 50; }
+.screen { position: absolute; inset: 0; border-radius: 48px; overflow: hidden; display: flex; flex-direction: column; }
+@keyframes screenIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.screen-in { animation: screenIn 300ms cubic-bezier(0.2,0.7,0.2,1) both; }
+.status-bar { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+.status-time { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+.screen-body { flex: 1; overflow-y: auto; padding: 10px 18px 24px; }
+.screen-body::-webkit-scrollbar { display: none; }
+.eyebrow { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+.display { font-family: var(--font-display); letter-spacing: 0.04em; }
+.glass { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.10); backdrop-filter: blur(20px); border-radius: 14px; }
+.brand-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.fade-up { animation: fadeSlideUp 300ms cubic-bezier(0.2,0.7,0.2,1) both; }
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 48px; border-radius: 12px; font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.14em; font-weight: 700; text-transform: uppercase;
+  cursor: pointer; transition: transform 120ms, box-shadow 200ms;
+  border: none; color: #06060A;
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center;
+  height: 44px; border-radius: 12px; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer; transition: all 200ms; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1); color: var(--muted);
+}
+.back-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; padding: 0 18px 8px; flex-shrink: 0; }
+.stage-pill {
+  padding: 3px 10px; border-radius: 20px; font-family: var(--font-mono);
+  font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;
+}
+.controls { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+.ctrl-link { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); text-decoration: none; transition: color 200ms; }
+.ctrl-link:hover { color: var(--magenta); }
+</style>
+</head>
+<body>
+<script src="../node_modules/react/umd/react.development.js"></script>
+<script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+<script src="../node_modules/@babel/standalone/babel.min.js"></script>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const BRANDS = [
+  { id: 'jaymuvs',  label: 'JayMuvs',   color: '#FF6B5B', dot: '#FF6B5B' },
+  { id: 'motionmob',label: 'Motion Mob', color: '#45B7E8', dot: '#45B7E8' },
+  { id: 'ona',      label: 'ONA Elite',  color: '#34D399', dot: '#34D399' },
+  { id: 'jkacro',   label: 'JK Acro',   color: '#B14CFF', dot: '#B14CFF' },
+  { id: 'acrowooks',label: 'Acro Wooks', color: '#F4A261', dot: '#F4A261' },
+  { id: 'ppp',      label: 'PPP',        color: '#F5F5F7', dot: '#F5F5F7' },
+];
+
+const STAGE_COLORS = {
+  IDEAS: '#6B7280', HOOKS: '#45B7E8', SHOOT: '#F4A261',
+  EDIT: '#B14CFF', SCHEDULED: '#E9C46A', LIVE: '#34D399',
+};
+
+const ALL_CONTENT = [
+  { id:1, brand:'jaymuvs', title:'B-twist full breakdown — what finally clicked', stage:'HOOKS' },
+  { id:2, brand:'jaymuvs', title:'Morning routine for movement athletes', stage:'SHOOT' },
+  { id:3, brand:'jaymuvs', title:'ONA gym transformation story', stage:'IDEAS' },
+  { id:4, brand:'jaymuvs', title:'Acro collab with local creator', stage:'EDIT' },
+  { id:5, brand:'jaymuvs', title:'How I structure my training week', stage:'SCHEDULED', date:'Jun 26' },
+  { id:6, brand:'motionmob', title:'Flow state training principles', stage:'IDEAS' },
+  { id:7, brand:'motionmob', title:'Street parkour tutorial series', stage:'HOOKS' },
+  { id:8, brand:'ona', title:'ONA member success story — Marcus', stage:'SHOOT' },
+  { id:9, brand:'ona', title:'Ninja warrior training tips', stage:'LIVE', date:'Jun 18' },
+  { id:10, brand:'jkacro', title:'Partner acrobatics basics', stage:'EDIT' },
+];
+
+const HOOKS = [
+  "I've been training the B-twist for 4 years. Here's what finally clicked in the last 30 days.",
+  "Nobody tells you the B-twist secret. I figured it out the hard way so you don't have to.",
+  "The #1 reason most tricksters never land the B-twist (and how I fixed it)",
+  "B-twist: easy trick or hardest trick? Depends on this one thing.",
+  "POV: You've drilled B-twists for years and suddenly it clicks. Here's what changed.",
+];
+
+const STAGE_ORDER = ['IDEAS','HOOKS','SHOOT','EDIT','SCHEDULED','LIVE'];
+
+const STEP_ADVICE = {
+  IDEAS: 'Flesh out this idea. What's the hook? Who's the audience? What format works best?',
+  HOOKS: 'Write 3-5 hook variations. Short, punchy, curiosity-driven. Test with your audience.',
+  SHOOT: 'Shot list: intro (wide), skill slow-mo, reaction, outro. Golden hour for best light.',
+  EDIT: 'Edit lean. Cut every second that doesn't add value. Use your template for brand consistency.',
+  SCHEDULED: 'Content is scheduled. Check optimal time for your audience. First hour engagement matters.',
+  LIVE: 'It\'s live! Monitor comments for the first 30 min. Reply to boost algorithm signals.',
+};
+
+function Pipeline({ content, onSelect, brand }) {
+  const items = content.filter(c => c.brand === brand);
+  const stages = STAGE_ORDER.reduce((acc, s) => {
+    acc[s] = items.filter(c => c.stage === s).length;
+    return acc;
+  }, {});
+
+  return (
+    <div style={{display:'flex',gap:0,marginBottom:14,borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,0.08)'}}>
+      {STAGE_ORDER.map(s => (
+        <div key={s} style={{
+          flex:1, padding:'6px 0', textAlign:'center',
+          borderRight: s!=='LIVE' ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        }}>
+          <div style={{fontFamily:'var(--font-display)',fontSize:14,color: stages[s]>0 ? STAGE_COLORS[s] : 'var(--dim)'}}>{stages[s]}</div>
+          <div style={{fontFamily:'var(--font-mono)',fontSize:6,letterSpacing:'0.1em',color:'var(--dim)',marginTop:1}}>{s}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PipelineScreen({ content, setContent, onNew, onSelect }) {
+  const [brand, setBrand] = useState('jaymuvs');
+
+  const items = content.filter(c => c.brand === brand);
+
+  return (
+    <div className="screen screen-in">
+      <div className="status-bar">
+        <span className="status-time">09:41</span>
+        <span style={{fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.2em',color:'var(--magenta)'}}>CONTENT OS</span>
+      </div>
+
+      <div style={{padding:'0 18px 0',flexShrink:0}}>
+        <div className="display" style={{fontSize:26,marginBottom:2}}>PIPELINE</div>
+        <div style={{display:'flex',gap:10,overflowX:'auto',paddingBottom:10,scrollbarWidth:'none'}}>
+          {BRANDS.map(b => (
+            <div key={b.id} onClick={()=>setBrand(b.id)} style={{
+              display:'flex',alignItems:'center',gap:6,
+              padding:'5px 10px',borderRadius:20,flexShrink:0,cursor:'pointer',
+              transition:'all 200ms',
+              background: brand===b.id ? `${b.color}18` : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${brand===b.id ? b.color+'60' : 'rgba(255,255,255,0.08)'}`,
+            }}>
+              <div className="brand-dot" style={{background:b.color,boxShadow: brand===b.id?`0 0 6px ${b.color}`:undefined}} />
+              <span style={{fontFamily:'var(--font-mono)',fontSize:8,letterSpacing:'0.12em',color: brand===b.id ? b.color : 'var(--muted)'}}>{b.label.toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="screen-body">
+        <Pipeline content={content} onSelect={onSelect} brand={brand} />
+
+        {items.map((item, i) => {
+          const col = STAGE_COLORS[item.stage];
+          return (
+            <div key={item.id} className="fade-up glass" onClick={()=>onSelect(item)}
+              style={{padding:'12px 14px',marginBottom:8,cursor:'pointer',animationDelay:`${i*60}ms`,
+                borderLeft:`3px solid ${col}`,transition:'box-shadow 200ms'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                <div style={{padding:'3px 8px',borderRadius:20,background:`${col}18`,border:`1px solid ${col}40`,
+                  fontFamily:'var(--font-mono)',fontSize:8,letterSpacing:'0.12em',color:col}}>{item.stage}</div>
+                {item.date && <span style={{fontFamily:'var(--font-mono)',fontSize:8,color:'var(--dim)'}}>{item.date}</span>}
+                <div style={{marginLeft:'auto',color:'var(--dim)',fontSize:14}}>→</div>
+              </div>
+              <div style={{fontSize:13,fontWeight:500,lineHeight:1.4,color:'var(--text)'}}>{item.title}</div>
+            </div>
+          );
+        })}
+
+        {items.length === 0 && (
+          <div style={{textAlign:'center',padding:'40px 0',color:'var(--dim)'}}>
+            <div style={{fontFamily:'var(--font-display)',fontSize:22,marginBottom:6}}>EMPTY PIPELINE</div>
+            <div style={{fontSize:12}}>Tap + to add your first idea</div>
+          </div>
+        )}
+      </div>
+
+      {/* FAB */}
+      <div onClick={onNew} style={{
+        position:'absolute',bottom:32,right:20,
+        width:52,height:52,borderRadius:16,
+        background:'linear-gradient(135deg, #FF3CC8 0%, #B14CFF 100%)',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:26,color:'#06060A',fontWeight:300,cursor:'pointer',
+        boxShadow:'0 8px 24px rgba(255,60,200,0.4)',
+        transition:'transform 150ms',
+      }}>+</div>
+    </div>
+  );
+}
+
+function CaptureScreen({ onSave, onBack }) {
+  const [text, setText] = useState("B-twist full breakdown — what finally clicked after 4 years of training");
+  const [brand, setBrand] = useState('jaymuvs');
+  const inputRef = useRef(null);
+
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 300); }, []);
+
+  const b = BRANDS.find(b => b.id === brand);
+
+  return (
+    <div className="screen screen-in">
+      <div className="status-bar">
+        <span onClick={onBack} style={{cursor:'pointer',color:'var(--muted)',fontSize:13}}>✕</span>
+        <span style={{fontFamily:'var(--font-display)',fontSize:18,letterSpacing:'0.08em'}}>NEW IDEA</span>
+        <span style={{width:20}} />
+      </div>
+
+      <div className="screen-body">
+        <div className="eyebrow" style={{marginBottom:8}}>SELECT BRAND</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+          {BRANDS.map(b => (
+            <div key={b.id} onClick={()=>setBrand(b.id)} style={{
+              width:36,height:36,borderRadius:'50%',cursor:'pointer',
+              background: brand===b.id ? b.color : `${b.color}20`,
+              border:`2px solid ${brand===b.id ? b.color : 'transparent'}`,
+              boxShadow: brand===b.id ? `0 0 12px ${b.color}80` : 'none',
+              transition:'all 200ms',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              fontFamily:'var(--font-mono)',fontSize:8,
+              color: brand===b.id ? '#06060A' : b.color,
+            }}>{b.label[0]}</div>
+          ))}
+        </div>
+
+        <div className="eyebrow" style={{marginBottom:8}}>WHAT'S THE IDEA?</div>
+        <div className="glass" style={{padding:'12px 14px',marginBottom:16}}>
+          <textarea ref={inputRef} value={text} onChange={e=>setText(e.target.value)}
+            style={{
+              width:'100%',background:'transparent',border:'none',outline:'none',
+              color:'var(--text)',fontSize:14,fontFamily:'var(--font-body)',
+              lineHeight:1.6,resize:'none',minHeight:80,
+            }} placeholder="What's the idea?" />
+        </div>
+
+        <div className="glass" style={{padding:'10px 14px',marginBottom:16,display:'flex',gap:10,alignItems:'center'}}>
+          <div className="brand-dot" style={{background:b?.color}} />
+          <div style={{flex:1}}>
+            <div style={{fontFamily:'var(--font-mono)',fontSize:8,color:'var(--dim)',letterSpacing:'0.12em'}}>AUTO-TAGGED</div>
+            <div style={{fontSize:12,color:'var(--muted)',marginTop:1}}>{b?.label} · Stage: IDEAS</div>
+          </div>
+        </div>
+
+        <button className="btn-primary" onClick={()=>onSave(text,brand)} style={{
+          width:'100%',background:'linear-gradient(135deg, #45B7E8, #2DD4BF)',marginBottom:10
+        }}>GENERATE HOOKS →</button>
+
+        <button className="btn-secondary" style={{width:'100%'}} onClick={()=>onSave(text,brand)}>
+          SAVE IDEA
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HookScreen({ idea, brand, onSelect, onBack }) {
+  const [selected, setSelected] = useState(null);
+  const b = BRANDS.find(x => x.id === brand);
+
+  return (
+    <div className="screen screen-in">
+      <div className="status-bar">
+        <span style={{cursor:'pointer',color:'var(--muted)',fontSize:13}} onClick={onBack}>←</span>
+        <span style={{fontFamily:'var(--font-display)',fontSize:18,letterSpacing:'0.08em'}}>HOOK BANK</span>
+        <span style={{width:20}} />
+      </div>
+
+      <div className="screen-body">
+        <div className="glass" style={{padding:'10px 12px',marginBottom:14,display:'flex',gap:8,alignItems:'center'}}>
+          <div className="brand-dot" style={{background:b?.color}} />
+          <div style={{fontSize:12,color:'var(--muted)',lineHeight:1.4}}>{idea}</div>
+        </div>
+
+        <div className="eyebrow" style={{marginBottom:10}}>AI-GENERATED HOOKS</div>
+
+        {HOOKS.map((hook, i) => {
+          const isSelected = selected === i;
+          return (
+            <div key={i} className="fade-up" onClick={()=>setSelected(i)} style={{
+              padding:'12px 14px',borderRadius:12,marginBottom:8,cursor:'pointer',
+              background: isSelected ? 'rgba(69,183,232,0.08)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${isSelected ? 'rgba(69,183,232,0.5)' : 'rgba(255,255,255,0.08)'}`,
+              boxShadow: isSelected ? '0 0 20px rgba(69,183,232,0.15)' : 'none',
+              transition:'all 200ms',
+              animationDelay:`${i*80}ms`,
+            }}>
+              <div style={{display:'flex',gap:8,alignItems:'flex-start'}}>
+                <div style={{
+                  width:16,height:16,borderRadius:'50%',flexShrink:0,marginTop:1,
+                  border:`2px solid ${isSelected?'var(--cyan)':'rgba(255,255,255,0.2)'}`,
+                  background: isSelected ? 'var(--cyan)' : 'transparent',
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  transition:'all 200ms',
+                }}>
+                  {isSelected && <span style={{color:'#06060A',fontSize:9}}>✓</span>}
+                </div>
+                <div style={{fontSize:13,color:'var(--text)',lineHeight:1.5,flex:1}}>{hook}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {selected !== null && (
+        <div style={{padding:'12px 18px 28px',flexShrink:0}}>
+          <button className="btn-primary" onClick={()=>onSelect(selected)} style={{
+            width:'100%',background:'linear-gradient(135deg, #45B7E8, #2DD4BF)',
+          }}>USE THIS HOOK →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailScreen({ item, onBack, onAdvance }) {
+  const stageIdx = STAGE_ORDER.indexOf(item.stage);
+  const col = STAGE_COLORS[item.stage];
+  const nextStage = STAGE_ORDER[stageIdx + 1];
+  const [advanced, setAdvanced] = useState(false);
+
+  const handleAdvance = () => {
+    setAdvanced(true);
+    setTimeout(() => { onAdvance(item.id); onBack(); }, 700);
+  };
+
+  return (
+    <div className="screen screen-in">
+      <div className="status-bar">
+        <span style={{cursor:'pointer',color:'var(--muted)',fontSize:13}} onClick={onBack}>←</span>
+        <span style={{fontFamily:'var(--font-display)',fontSize:16,letterSpacing:'0.06em'}}>DETAIL</span>
+        <span style={{width:20}} />
+      </div>
+
+      <div className="screen-body">
+        <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:10}}>
+          <div className="brand-dot" style={{background:BRANDS.find(b=>b.id===item.brand)?.color||'#fff'}} />
+          <div style={{padding:'3px 10px',borderRadius:20,background:`${col}18`,border:`1px solid ${col}40`,
+            fontFamily:'var(--font-mono)',fontSize:8,letterSpacing:'0.12em',color:col}}>{item.stage}</div>
+        </div>
+
+        <div className="display" style={{fontSize:26,lineHeight:1.1,marginBottom:14}}>{item.title.toUpperCase()}</div>
+
+        {/* Stage stepper */}
+        <div style={{display:'flex',gap:0,alignItems:'center',marginBottom:16}}>
+          {STAGE_ORDER.map((s,i) => {
+            const done = i < stageIdx;
+            const current = i === stageIdx;
+            const sc = STAGE_COLORS[s];
+            return (
+              <React.Fragment key={s}>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                  <div style={{
+                    width:10,height:10,borderRadius:'50%',
+                    background: done||current ? sc : 'rgba(255,255,255,0.1)',
+                    border: current ? `2px solid ${sc}` : 'none',
+                    boxShadow: current ? `0 0 8px ${sc}` : 'none',
+                    transition:'all 300ms',
+                  }} />
+                  <div style={{fontFamily:'var(--font-mono)',fontSize:6,color: current?sc:'var(--dim)'}}>{s.slice(0,3)}</div>
+                </div>
+                {i < STAGE_ORDER.length-1 && <div style={{flex:1,height:1,background: done?`${STAGE_COLORS[STAGE_ORDER[i+1]]}40`:'rgba(255,255,255,0.06)',margin:'0 2px 12px'}} />}
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        {STEP_ADVICE[item.stage] && (
+          <div style={{padding:'12px 14px',borderRadius:12,marginBottom:12,background:`${col}08`,borderLeft:`3px solid ${col}`,
+            borderTop:`1px solid ${col}20`,borderRight:`1px solid ${col}10`,borderBottom:`1px solid ${col}10`}}>
+            <div className="eyebrow" style={{color:col,marginBottom:4}}>NEXT STEP</div>
+            <div style={{fontSize:13,color:'var(--muted)',lineHeight:1.5}}>{STEP_ADVICE[item.stage]}</div>
+          </div>
+        )}
+
+        <div className="glass" style={{padding:'10px 14px',marginBottom:12}}>
+          <div style={{display:'flex',gap:16}}>
+            {[['Created','3d ago'],['Est. reach','12K'],['Format','Reel']].map(([k,v])=>(
+              <div key={k} style={{textAlign:'center'}}>
+                <div style={{fontFamily:'var(--font-mono)',fontSize:11,fontWeight:700,color:'var(--text)'}}>{v}</div>
+                <div style={{fontFamily:'var(--font-mono)',fontSize:7,color:'var(--dim)',marginTop:1,letterSpacing:'0.1em'}}>{k.toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass" style={{padding:'10px 14px',marginBottom:16}}>
+          <div className="eyebrow" style={{marginBottom:6}}>NOTES</div>
+          <textarea style={{
+            width:'100%',background:'transparent',border:'none',outline:'none',
+            color:'var(--muted)',fontSize:12,fontFamily:'var(--font-body)',
+            lineHeight:1.6,resize:'none',minHeight:48,
+          }} placeholder="Add notes…" />
+        </div>
+
+        {nextStage && (
+          <button className="btn-primary" onClick={handleAdvance} style={{
+            width:'100%',
+            background: advanced ? 'linear-gradient(135deg,#34D399,#2DD4BF)' : `linear-gradient(135deg,${col},${col}90)`,
+            transition:'background 400ms',
+          }}>
+            {advanced ? '✓ ADVANCED!' : `ADVANCE TO ${nextStage} →`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [screen, setScreen] = useState('pipeline'); // pipeline | capture | hooks | detail
+  const [content, setContent] = useState(ALL_CONTENT);
+  const [newIdea, setNewIdea] = useState({ text:'', brand:'jaymuvs' });
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const handleSave = (text, brand) => {
+    setNewIdea({ text, brand });
+    setScreen('hooks');
+  };
+
+  const handleHookSelect = () => {
+    const newItem = {
+      id: Date.now(),
+      brand: newIdea.brand,
+      title: newIdea.text,
+      stage: 'HOOKS',
+    };
+    setContent(c => [newItem, ...c]);
+    setScreen('pipeline');
+  };
+
+  const handleAdvance = (id) => {
+    setContent(c => c.map(item => {
+      if (item.id !== id) return item;
+      const idx = STAGE_ORDER.indexOf(item.stage);
+      return { ...item, stage: STAGE_ORDER[Math.min(idx+1, STAGE_ORDER.length-1)] };
+    }));
+  };
+
+  return (
+    <div className="stage">
+      <div style={{position:'relative',width:402,height:874}}>
+        <div className="phone">
+          <div className="island" />
+          {screen === 'pipeline' && (
+            <PipelineScreen
+              content={content}
+              onNew={() => setScreen('capture')}
+              onSelect={(item) => { setSelectedItem(item); setScreen('detail'); }}
+            />
+          )}
+          {screen === 'capture' && (
+            <CaptureScreen onSave={handleSave} onBack={() => setScreen('pipeline')} />
+          )}
+          {screen === 'hooks' && (
+            <HookScreen
+              idea={newIdea.text} brand={newIdea.brand}
+              onSelect={handleHookSelect}
+              onBack={() => setScreen('capture')}
+            />
+          )}
+          {screen === 'detail' && selectedItem && (
+            <DetailScreen
+              item={selectedItem}
+              onBack={() => setScreen('pipeline')}
+              onAdvance={handleAdvance}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="controls">
+        <a href="index.html" className="ctrl-link">← INDEX</a>
+        <span style={{color:'var(--dim)'}}>·</span>
+        <a href="c6-ona-pulse.html" className="ctrl-link">← C6 ONA</a>
+        <span style={{color:'var(--dim)'}}>·</span>
+        <a href="c8-jam-ai.html" className="ctrl-link">C8 AI →</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

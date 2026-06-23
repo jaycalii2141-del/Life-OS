@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>C5 · The Forge — JAM HQ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="../node_modules/react/umd/react.development.js"></script>
+  <script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+  <script src="../node_modules/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0A0B0D;
+      --text-primary: #F5F5F7;
+      --text-secondary: #A7ADBA;
+      --text-muted: #6B7280;
+      --cyan: #45B7E8;
+      --teal: #2DD4BF;
+      --lime: #34D399;
+      --gold: #E9C46A;
+      --orange: #F4A261;
+      --red: #FF6B5B;
+      --violet: #B14CFF;
+      --glass-bg: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.08);
+      --glass-inset: rgba(255,255,255,0.10);
+    }
+
+    body {
+      background: #0A0B0D;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 16px 48px;
+      background-image:
+        radial-gradient(ellipse 600px 400px at 50% 0%, rgba(244,162,97,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 300px at 20% 80%, rgba(255,107,91,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 300px 200px at 80% 60%, rgba(180,76,255,0.04) 0%, transparent 60%);
+    }
+
+    .page-nav {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .page-nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .page-nav a:hover { color: var(--orange); }
+    .page-nav .nav-center {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* ── PHONE SHELL ── */
+    .phone {
+      width: 402px;
+      height: 874px;
+      background: #06060A;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 48px;
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 40px 120px rgba(0,0,0,0.9),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 37px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 50;
+    }
+
+    /* Screen wrapper */
+    .screen-wrap {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    .screen-wrap::-webkit-scrollbar { display: none; }
+
+    .screen {
+      width: 100%;
+      min-height: 874px;
+      padding: 60px 20px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .display {
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.04em;
+      line-height: 1.0;
+      color: var(--text-primary);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── GLASS ── */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .btn:active { transform: translateY(0); filter: brightness(0.95); }
+
+    .btn-orange {
+      background: linear-gradient(135deg, #FF7849, #F4A261);
+      box-shadow: 0 4px 20px rgba(244,162,97,0.35);
+    }
+    .btn-lime {
+      background: linear-gradient(135deg, #16A34A, #34D399);
+      box-shadow: 0 4px 20px rgba(52,211,153,0.3);
+    }
+    .btn-glass {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-secondary);
+    }
+    .btn-glass:hover { background: rgba(255,255,255,0.10); }
+
+    /* ── HEADER ── */
+    .forge-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+    .header-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .flame-icon {
+      font-size: 14px;
+      filter: drop-shadow(0 0 6px rgba(244,162,97,0.8));
+    }
+
+    /* ── EMBER ORB ── */
+    .orb-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .orb-outer-ring {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: conic-gradient(
+        rgba(244,162,97,0.6) 0%,
+        rgba(255,107,91,0.4) 25%,
+        rgba(244,162,97,0.1) 50%,
+        rgba(255,107,91,0.6) 75%,
+        rgba(244,162,97,0.6) 100%
+      );
+      animation: spin-ring 4s linear infinite;
+    }
+
+    .orb-outer-ring::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      background: #06060A;
+      border-radius: 50%;
+    }
+
+    .orb-core {
+      position: relative;
+      z-index: 1;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #FF9F5E, #FF6B35, #CC3300);
+      box-shadow:
+        0 0 20px rgba(244,162,97,0.6),
+        0 0 50px rgba(255,107,91,0.3),
+        inset 0 -8px 20px rgba(0,0,0,0.3);
+      animation: orb-breathe 4s ease-in-out infinite;
+    }
+
+    .orb-core.dim {
+      background: radial-gradient(circle at 35% 35%, #CC7A3A, #A0522D, #6B2A00);
+      box-shadow:
+        0 0 12px rgba(160,82,45,0.5),
+        0 0 30px rgba(107,42,0,0.25),
+        inset 0 -8px 20px rgba(0,0,0,0.4);
+      animation: orb-breathe-slow 6s ease-in-out infinite;
+    }
+
+    @keyframes orb-breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    @keyframes orb-breathe-slow {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    @keyframes spin-ring {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── DISCIPLINE GRID ── */
+    .discipline-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .disc-tile {
+      padding: 10px 8px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: all 0.25s;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .disc-tile:active { transform: scale(0.96); }
+
+    .disc-tile-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+    .disc-tile-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* ── FOCUS CHIPS ── */
+    .focus-chips {
+      display: flex;
+      gap: 8px;
+    }
+    .focus-chip {
+      flex: 1;
+      padding: 9px 4px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .focus-chip:active { transform: scale(0.96); }
+    .focus-chip.active {
+      color: #fff;
+    }
+
+    /* ── SKILL HIGHLIGHT ── */
+    .skill-highlight {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(69,183,232,0.08);
+      border: 1px solid rgba(69,183,232,0.2);
+    }
+    .skill-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .skill-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      color: var(--cyan);
+    }
+    .skill-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .progress-track {
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--teal));
+      box-shadow: 0 0 8px rgba(69,183,232,0.5);
+      transition: width 0.4s ease;
+    }
+    .skill-note {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── BREATHING PROMPT ── */
+    .breath-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+    }
+    .breath-ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid rgba(244,162,97,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .breath-ring-inner {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(244,162,97,0.25), rgba(244,162,97,0.05));
+      border: 1px solid rgba(244,162,97,0.4);
+      transition: transform 4s ease-in-out;
+    }
+    .breath-ring-inner.inhale {
+      transform: scale(1.3);
+    }
+    .breath-ring-inner.exhale {
+      transform: scale(1.0);
+    }
+    .breath-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(244,162,97,0.7);
+      min-height: 14px;
+      text-align: center;
+    }
+
+    /* ── TIMER SCREEN ── */
+    .timer-display {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 0.06em;
+      color: var(--text-primary);
+      text-align: center;
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(244,162,97,0.2);
+    }
+
+    .session-meta-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .meta-chip {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── ACTIVE SKILL CARD ── */
+    .active-skill-card {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(69,183,232,0.3);
+      box-shadow: 0 0 20px rgba(69,183,232,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .active-skill-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .active-skill-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      color: var(--cyan);
+    }
+    .glow-badge {
+      padding: 3px 8px;
+      border-radius: 5px;
+      background: rgba(69,183,232,0.15);
+      border: 1px solid rgba(69,183,232,0.3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .skill-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .attempt-counter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .counter-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+    .counter-btn:hover { background: rgba(255,255,255,0.12); }
+    .counter-btn:active { transform: scale(0.92); }
+    .counter-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: var(--text-primary);
+      min-width: 32px;
+      text-align: center;
+    }
+    .quality-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .q-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .q-dot.active {
+      background: var(--lime);
+      border-color: var(--lime);
+      box-shadow: 0 0 6px rgba(52,211,153,0.5);
+    }
+    .skill-note-input {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      outline: none;
+      margin-top: 10px;
+    }
+    .skill-note-input::placeholder { color: var(--text-muted); }
+    .skill-note-input:focus { border-color: rgba(69,183,232,0.3); }
+
+    /* ── XP BAR ── */
+    .xp-section {
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .xp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .xp-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .xp-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .xp-track {
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .xp-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--orange));
+      box-shadow: 0 0 8px rgba(233,196,106,0.4);
+      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ── LOG LIST ── */
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .log-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      animation: slide-in 0.3s ease;
+    }
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .log-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+    }
+    .log-stars {
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+    .log-result {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .log-result.landed { color: var(--lime); }
+    .log-result.bail { color: var(--red); }
+
+    /* ── SESSION ACTIONS ── */
+    .session-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .session-btns .btn { flex: 1; }
+
+    .end-link {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 4px 0;
+    }
+    .end-link:hover { color: var(--text-secondary); }
+
+    /* ── POST FORGE ── */
+    .forged-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      text-align: center;
+      line-height: 1;
+      position: relative;
+      display: inline-block;
+      text-shadow: 0 0 40px rgba(233,196,106,0.4);
+      animation: forged-emerge 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes forged-emerge {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .forged-underline {
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      border-radius: 2px;
+      margin-top: 4px;
+      animation: underline-expand 0.5s 0.3s ease both;
+    }
+    @keyframes underline-expand {
+      from { opacity: 0; transform: scaleX(0); }
+      to { opacity: 1; transform: scaleX(1); }
+    }
+    .forged-header-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      animation: stat-in 0.4s ease both;
+    }
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    @keyframes stat-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.lime { color: var(--lime); }
+
+    .reflection-card {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(45,212,191,0.06);
+      border: 1px solid rgba(45,212,191,0.15);
+      border-left: 3px solid var(--teal);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      animation: stat-in 0.4s 0.5s ease both;
+    }
+    .reflection-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 6px;
+    }
+    .reflection-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .next-session-card {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      animation: stat-in 0.4s 0.6s ease both;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .next-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(177,76,255,0.15);
+      border: 1px solid rgba(177,76,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .next-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .next-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      color: var(--text-primary);
+    }
+    .next-date {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .post-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .post-btns .btn { flex: 1; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.05);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top navigation -->
+  <nav class="page-nav">
+    <a href="index.html">← INDEX</a>
+    <span class="nav-center">C5 · THE FORGE</span>
+    <a href="c4-seasons.html" style="margin-right:4px">← C4</a>
+    <a href="c6-ona-pulse.html">C6 →</a>
+  </nav>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ── Discipline config ──
+    const DISCIPLINES = [
+      { id: 'gymnastics', label: 'GYMNASTICS', color: '#2DD4BF' },
+      { id: 'tricking',   label: 'TRICKING',   color: '#F4A261' },
+      { id: 'calisthenics', label: 'CALISTHENICS', color: '#34D399' },
+      { id: 'acro',       label: 'ACRO',        color: '#B14CFF' },
+      { id: 'parkour',    label: 'PARKOUR',     color: '#45B7E8' },
+      { id: 'ninja',      label: 'NINJA',       color: '#FF6B5B' },
+    ];
+
+    const FOCUS_OPTIONS = ['POWER', 'SKILL', 'ENDURANCE'];
+
+    // ── Helpers ──
+    function useTime() {
+      const [time, setTime] = useState(() => {
+        const now = new Date();
+        return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      });
+      useEffect(() => {
+        const id = setInterval(() => {
+          const now = new Date();
+          setTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }));
+        }, 10000);
+        return () => clearInterval(id);
+      }, []);
+      return time;
+    }
+
+    function formatTimer(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    // ── Screen 1: PRE-FORGE ──
+    function PreForge({ onEnter }) {
+      const time = useTime();
+      const [selectedDisc, setSelectedDisc] = useState('tricking');
+      const [selectedFocus, setSelectedFocus] = useState('SKILL');
+      const [inhale, setInhale] = useState(true);
+      const [breathLabel, setBreathLabel] = useState('BREATHE IN…');
+
+      useEffect(() => {
+        const id = setInterval(() => {
+          setInhale(prev => {
+            const next = !prev;
+            setBreathLabel(next ? 'BREATHE IN…' : 'BREATHE OUT…');
+            return next;
+          });
+        }, 4000);
+        return () => clearInterval(id);
+      }, []);
+
+      return (
+        <div className="screen">
+          {/* Header */}
+          <div className="forge-header">
+            <span className="header-time">{time}</span>
+            <span className="header-title">
+              <span className="flame-icon">🔥</span>
+              THE FORGE
+            </span>
+          </div>
+
+          {/* Eyebrow */}
+          <div className="eyebrow">SESSION RITUAL · PRE-FORGE</div>
+
+          {/* Ember Orb */}
+          <div className="orb-container">
+            <div className="orb-outer-ring" />
+            <div className="orb-core" />
+          </div>
+
+          {/* Intention title */}
+          <div style={{ textAlign: 'center', paddingBottom: 4 }}>
+            <div className="display" style={{ fontSize: 28, letterSpacing: '0.06em' }}>SET YOUR INTENTION</div>
+          </div>
+
+          {/* Discipline selector */}
+          <div>
+            <div className="section-label" style={{ marginBottom: 8 }}>DISCIPLINE</div>
+            <div className="discipline-grid">
+              {DISCIPLINES.map(d => {
+                const active = selectedDisc === d.id;
+                return (
+                  <div
+                    key={d.id}
+                    className="disc-tile"
+                    onClick={() => setSelectedDisc(d.id)}
+                    style={active ? {
+                      background: `${d.color}18`,
+                      border: `1px solid ${d.color}55`,
+                      boxShadow: `0 0 12px ${d.color}25`,
+                    } : {}}
+                  >
+                    <div
+                      className="disc-tile-dot"
+                      style={{ background: active ? d.color : 'rgba(255,255,255,0.12)' }}
+                    />
+                    <span
+                      className="disc-tile-label"
+                      style={{ color: active ? d.color : 'var(--text-muted)' }}
+                    >
+                      {d.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Today's Focus */}
+          <div>
+            <div className="section-label" style={{ marginBottom: 8 }}>TODAY'S FOCUS</div>
+            <div className="focus-chips">
+              {FOCUS_OPTIONS.map(f => {
+                const active = selectedFocus === f;
+                const colors = { POWER: '#FF6B5B', SKILL: '#45B7E8', ENDURANCE: '#34D399' };
+                const c = colors[f];
+                return (
+                  <div
+                    key={f}
+                    className={`focus-chip${active ? ' active' : ''}`}
+                    onClick={() => setSelectedFocus(f)}
+                    style={active ? {
+                      background: `${c}18`,
+                      border: `1px solid ${c}55`,
+                      color: c,
+                      boxShadow: `0 0 10px ${c}20`,
+                    } : {}}
+                  >
+                    {f}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active skill */}
+          <div className="skill-highlight">
+            <div className="skill-name-row">
+              <span className="skill-name">B-TWIST</span>
+              <span className="skill-pct">82%</span>
+            </div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: '82%' }} />
+            </div>
+            <span className="skill-note">Primary target today</span>
+          </div>
+
+          {/* Breathing prompt */}
+          <div className="breath-container">
+            <div className="breath-ring">
+              <div className={`breath-ring-inner ${inhale ? 'inhale' : 'exhale'}`} />
+            </div>
+            <span className="breath-text">{breathLabel}</span>
+          </div>
+
+          {/* CTA */}
+          <button className="btn btn-orange" onClick={onEnter} style={{ marginTop: 4 }}>
+            ENTER THE FORGE →
+          </button>
+        </div>
+      );
+    }
+
+    // ── Screen 2: THE WORK ──
+    const INITIAL_LOG = [
+      { id: 1, label: 'Attempt 1', result: 'Landed', stars: 3 },
+      { id: 2, label: 'Attempt 2', result: 'Bail',   stars: 1 },
+      { id: 3, label: 'Attempt 3', result: 'Landed', stars: 3 },
+    ];
+
+    function TheWork({ onEnd }) {
+      const [elapsed, setElapsed] = useState(0);
+      const [attempts, setAttempts] = useState(0);
+      const [quality, setQuality] = useState(2);
+      const [noteVal, setNoteVal] = useState('');
+      const [xp, setXp] = useState(24); // 3 pre-seeded attempts × 8%
+      const [log, setLog] = useState(INITIAL_LOG);
+      const nextId = useRef(4);
+
+      useEffect(() => {
+        const id = setInterval(() => setElapsed(e => e + 1), 1000);
+        return () => clearInterval(id);
+      }, []);
+
+      function logAttempt() {
+        const results = ['Landed', 'Landed', 'Bail'];
+        const result = results[Math.floor(Math.random() * results.length)];
+        const newEntry = {
+          id: nextId.current++,
+          label: `Attempt ${log.length + 1}`,
+          result,
+          stars: quality,
+        };
+        setLog(prev => [newEntry, ...prev]);
+        setAttempts(a => a + 1);
+        setXp(x => Math.min(100, x + 8));
+        setNoteVal('');
+      }
+
+      function renderStars(n) {
+        return '★'.repeat(n) + '☆'.repeat(3 - n);
+      }
+
+      return (
+        <div className="screen" style={{ gap: 12 }}>
+          {/* Timer */}
+          <div style={{ textAlign: 'center', paddingTop: 4 }}>
+            <div className="timer-display">{formatTimer(elapsed)}</div>
+          </div>
+
+          {/* Session meta */}
+          <div className="session-meta-row">
+            <span className="meta-chip" style={{ background: 'rgba(244,162,97,0.15)', color: 'var(--orange)', border: '1px solid rgba(244,162,97,0.25)' }}>
+              TRICKING
+            </span>
+            <span className="meta-chip" style={{ background: 'rgba(69,183,232,0.12)', color: 'var(--cyan)', border: '1px solid rgba(69,183,232,0.22)' }}>
+              SKILL
+            </span>
+          </div>
+
+          {/* Active Skill Card */}
+          <div className="active-skill-card">
+            <div className="active-skill-header">
+              <span className="active-skill-name">B-TWIST</span>
+              <span className="glow-badge">ACTIVE</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              {/* Attempt counter */}
+              <div>
+                <div className="section-label" style={{ marginBottom: 6 }}>ATTEMPTS</div>
+                <div className="attempt-counter">
+                  <button className="counter-btn" onClick={() => setAttempts(a => Math.max(0, a - 1))}>−</button>
+                  <span className="counter-value">{attempts}</span>
+                  <button className="counter-btn" onClick={() => setAttempts(a => a + 1)}>+</button>
+                </div>
+              </div>
+              {/* Quality dots */}
+              <div>
+                <div className="section-label" style={{ marginBottom: 6 }}>QUALITY</div>
+                <div className="quality-dots">
+                  {[1,2,3].map(n => (
+                    <div
+                      key={n}
+                      className={`q-dot${quality >= n ? ' active' : ''}`}
+                      onClick={() => setQuality(n)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <input
+              className="skill-note-input"
+              placeholder="Session note…"
+              value={noteVal}
+              onChange={e => setNoteVal(e.target.value)}
+            />
+          </div>
+
+          {/* XP Bar */}
+          <div className="xp-section">
+            <div className="xp-header">
+              <span className="xp-label">SESSION XP</span>
+              <span className="xp-value">+{xp * 3.4 | 0} XP</span>
+            </div>
+            <div className="xp-track">
+              <div className="xp-fill" style={{ width: `${xp}%` }} />
+            </div>
+          </div>
+
+          {/* Recent log */}
+          <div>
+            <div className="section-label" style={{ marginBottom: 8 }}>RECENT LOG</div>
+            <div className="log-list" style={{ maxHeight: 160, overflowY: 'auto' }}>
+              {log.map(entry => (
+                <div key={entry.id} className="log-entry">
+                  <span className="log-label">{entry.label}</span>
+                  <span className={`log-result ${entry.result.toLowerCase()}`}>{entry.result}</span>
+                  <span className="log-stars">{'★'.repeat(entry.stars)}{'☆'.repeat(3 - entry.stars)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="session-btns">
+            <button className="btn btn-lime" onClick={logAttempt}>LOG ATTEMPT</button>
+            <button className="btn btn-glass">CHANGE SKILL</button>
+          </div>
+
+          <div className="end-link" onClick={onEnd}>End Session →</div>
+        </div>
+      );
+    }
+
+    // ── Screen 3: POST-FORGE ──
+    function PostForge({ onDone }) {
+      return (
+        <div className="screen" style={{ gap: 14 }}>
+          {/* Ember orb (dim) */}
+          <div className="orb-container">
+            <div className="orb-outer-ring" style={{ opacity: 0.5 }} />
+            <div className="orb-core dim" />
+          </div>
+
+          {/* FORGED */}
+          <div className="forged-header-wrap">
+            <span className="forged-title">FORGED</span>
+            <div className="forged-underline" style={{ width: 120 }} />
+          </div>
+
+          {/* Stats grid */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-label">DURATION</div>
+              <div className="stat-value">27:41</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">ATTEMPTS</div>
+              <div className="stat-value lime">12</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">QUALITY</div>
+              <div className="stat-value gold" style={{ fontSize: 18 }}>★★★</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">XP EARNED</div>
+              <div className="stat-value gold">+340</div>
+            </div>
+          </div>
+
+          {/* AI Reflection */}
+          <div className="reflection-card">
+            <div className="reflection-eyebrow">AI REFLECTION</div>
+            <p className="reflection-text">
+              Today's B-twist session shows a 12% improvement in landing rate vs last week.
+              Your skill is approaching a breakthrough — 3–4 more focused sessions at this
+              quality could push it to mastery.
+            </p>
+          </div>
+
+          {/* Next session */}
+          <div>
+            <div className="section-label" style={{ marginBottom: 8 }}>SUGGESTED NEXT</div>
+            <div className="next-session-card">
+              <div className="next-icon">🤸</div>
+              <div>
+                <div className="next-label">SUGGESTED NEXT</div>
+                <div className="next-title">ACRO — DYNAMIC THROWS</div>
+                <div className="next-date">Wed Jun 25</div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="post-btns">
+            <button
+              className="btn"
+              style={{ background: 'linear-gradient(135deg,#45B7E8,#2DD4BF)', boxShadow: '0 4px 16px rgba(45,212,191,0.3)', flex: 1 }}
+            >
+              SHARE SESSION
+            </button>
+            <button className="btn btn-orange" onClick={onDone} style={{ flex: 1 }}>
+              DONE →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Root App ──
+    function App() {
+      const [screen, setScreen] = useState('pre');  // 'pre' | 'work' | 'post'
+
+      return (
+        <div className="phone">
+          <div className="dynamic-island" />
+          <div className="screen-wrap">
+            {screen === 'pre'  && <PreForge onEnter={() => setScreen('work')} />}
+            {screen === 'work' && <TheWork  onEnd={() => setScreen('post')} />}
+            {screen === 'post' && <PostForge onDone={() => setScreen('pre')} />}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

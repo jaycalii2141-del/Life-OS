@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JAM HQ · C9 · The Becoming Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="../node_modules/react/umd/react.development.js"></script>
+<script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+<script src="../node_modules/@babel/standalone/babel.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0A0B0D;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: #F5F5F7;
+}
+
+.page-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, rgba(177,76,255,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 70%, rgba(233,196,106,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 60% 10%, rgba(177,76,255,0.06) 0%, transparent 50%),
+    #0A0B0D;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.scene-wrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.phone {
+  width: 402px;
+  height: 874px;
+  background: #06060A;
+  border-radius: 48px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.8), 0 40px 120px rgba(0,0,0,0.8), 0 0 80px rgba(177,76,255,0.08);
+}
+
+.dynamic-island {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 37px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 50;
+}
+
+.phone-screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+}
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+  z-index: 40;
+}
+
+.screen-content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.screen-content::-webkit-scrollbar { display: none; }
+
+.status-bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 56px 28px 10px;
+  z-index: 40;
+  background: rgba(6,6,10,0.85);
+  backdrop-filter: blur(20px);
+  flex-shrink: 0;
+}
+.status-time {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: #F5F5F7;
+  letter-spacing: -0.3px;
+}
+.status-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.status-dot {
+  width: 16px;
+  height: 8px;
+  border-radius: 2px;
+  background: #F5F5F7;
+  opacity: 0.8;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  margin-top: 4px;
+}
+.nav-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #6B7280;
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+.nav-link:hover { color: #A7ADBA; }
+
+/* Glass card utility */
+.glass {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+}
+
+/* SCREEN 1 */
+.s1-header {
+  padding: 0 20px 0;
+}
+.s1-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  color: #F5F5F7;
+  line-height: 1;
+}
+.s1-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.s1-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #A7ADBA;
+  letter-spacing: 0.1em;
+}
+.s1-lvl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #E9C46A;
+  background: rgba(233,196,106,0.12);
+  border: 1px solid rgba(233,196,106,0.25);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.s1-archetype {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  color: #B14CFF;
+  margin-top: 2px;
+}
+
+.radar-container {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 4px;
+}
+
+.becoming-score-wrap {
+  text-align: center;
+  margin: 0 20px 12px;
+}
+.becoming-score-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #A7ADBA;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.becoming-score-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: #E9C46A;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(233,196,106,0.4), 0 0 40px rgba(233,196,106,0.2);
+}
+.becoming-score-denom {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: #6B7280;
+}
+
+.attr-bars {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.attr-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.attr-bar-row:hover { background: rgba(255,255,255,0.04); }
+.attr-bar-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #A7ADBA;
+  width: 56px;
+  flex-shrink: 0;
+}
+.attr-bar-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #F5F5F7;
+  width: 30px;
+  flex-shrink: 0;
+}
+.attr-bar-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.attr-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s ease;
+}
+.attr-trend {
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.north-star-card {
+  margin: 0 20px 14px;
+  padding: 14px 16px;
+  border-color: rgba(233,196,106,0.25) !important;
+}
+.north-star-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: #E9C46A;
+  margin-bottom: 8px;
+}
+.north-star-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #F5F5F7;
+}
+
+.cta-bar {
+  padding: 0 20px 32px;
+}
+.cta-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(177,76,255,0.15);
+  border: 1px solid rgba(177,76,255,0.35);
+  color: #B14CFF;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.cta-btn:hover {
+  background: rgba(177,76,255,0.25);
+  box-shadow: 0 0 20px rgba(177,76,255,0.2);
+}
+
+/* SCREEN 2 */
+.s2-header {
+  padding: 0 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.back-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: rgba(255,255,255,0.1); }
+.s2-dim-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.s2-arc-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 12px;
+}
+
+.s2-meaning {
+  margin: 0 20px 14px;
+  padding: 14px 16px;
+}
+.s2-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: #6B7280;
+  margin-bottom: 10px;
+}
+.s2-meaning-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #F5F5F7;
+}
+
+.s2-evidence {
+  padding: 0 20px 14px;
+}
+.evidence-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.evidence-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.evidence-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.evidence-text {
+  font-size: 12px;
+  color: #F5F5F7;
+}
+
+.s2-grow {
+  padding: 0 20px 14px;
+}
+.grow-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.grow-card {
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  font-size: 12px;
+  color: #A7ADBA;
+  line-height: 1.5;
+}
+
+.s2-sparkline {
+  padding: 0 20px 14px;
+}
+.sparkline-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 48px;
+}
+.sparkline-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.6s ease;
+  position: relative;
+}
+.sparkline-labels {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.sparkline-label {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  color: #6B7280;
+  text-align: center;
+}
+
+.dim-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 20px 32px;
+  scrollbar-width: none;
+}
+.dim-chips::-webkit-scrollbar { display: none; }
+.dim-chip {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all 0.2s;
+}
+.dim-chip.active { opacity: 1; }
+.dim-chip:not(.active) { opacity: 0.45; }
+
+/* SCREEN 3 */
+.s3-header {
+  padding: 0 20px 6px;
+}
+.s3-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  color: #F5F5F7;
+  line-height: 1;
+}
+.s3-subtitle {
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+.season-cards {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.season-card {
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.season-card-header {
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.season-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+.season-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.season-dates {
+  font-size: 11px;
+  color: #6B7280;
+  margin-top: 2px;
+}
+.season-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid;
+}
+
+.season-expand {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.3s ease;
+  max-height: 0;
+  opacity: 0;
+}
+.season-expand.open {
+  max-height: 500px;
+  opacity: 1;
+}
+.season-expand-inner {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.season-achievements {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.achievement-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #F5F5F7;
+}
+.achievement-check {
+  font-size: 13px;
+}
+.highlight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.highlight-cell {
+  height: 52px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  opacity: 0.6;
+}
+.ai-narration {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: #A7ADBA;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+.score-arc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.score-arc-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: #6B7280;
+  letter-spacing: 0.1em;
+}
+.score-arc-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #E9C46A;
+}
+.score-arc-arrow {
+  font-size: 14px;
+  color: #6B7280;
+}
+.score-arc-val2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #B14CFF;
+}
+
+.milestones-section {
+  padding: 0 20px 14px;
+}
+.milestones-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: #6B7280;
+  margin-bottom: 10px;
+}
+.milestones-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.milestones-scroll::-webkit-scrollbar { display: none; }
+.milestone-chip {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.milestone-chip.unlocked {
+  background: rgba(233,196,106,0.12);
+  border: 1px solid rgba(233,196,106,0.3);
+  color: #E9C46A;
+}
+.milestone-chip.locked {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #6B7280;
+}
+.milestone-lock { font-size: 12px; opacity: 0.5; }
+</style>
+</head>
+<body>
+<div class="page-bg"></div>
+
+<div class="scene-wrapper">
+  <div class="phone">
+    <div class="dynamic-island"></div>
+    <div class="phone-screen">
+      <div id="root"></div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+  <div style="display:flex;gap:24px;align-items:center;">
+    <a href="index.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#6B7280;text-decoration:none;letter-spacing:0.08em;transition:color 0.2s;" onmouseover="this.style.color='#A7ADBA'" onmouseout="this.style.color='#6B7280'">← INDEX</a>
+    <a href="c8-jam-ai.html" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#6B7280;text-decoration:none;letter-spacing:0.08em;transition:color 0.2s;" onmouseover="this.style.color='#A7ADBA'" onmouseout="this.style.color='#6B7280'">← C8</a>
+  </div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const DIMS = [
+  { key: 'ATHLETE',  val: 88, goal: 95, color: '#34D399', trend: '↑' },
+  { key: 'COACH',    val: 74, goal: 85, color: '#45B7E8', trend: '↑' },
+  { key: 'CREATOR',  val: 82, goal: 90, color: '#FF3CC8', trend: '↑' },
+  { key: 'BUILDER',  val: 65, goal: 80, color: '#E9C46A', trend: '→' },
+  { key: 'FATHER',   val: 71, goal: 82, color: '#2DD4BF', trend: '↑' },
+  { key: 'SPIRIT',   val: 68, goal: 78, color: '#B14CFF', trend: '→' },
+];
+
+const DIM_DATA = {
+  ATHLETE: {
+    meaning: 'You train with elite consistency and push your physical limits at the highest level. Your body is your art form.',
+    evidence: [
+      { text: 'Training streak: 41 days', color: '#34D399' },
+      { text: 'B-twist at 82% — near mastery', color: '#45B7E8' },
+      { text: '6 disciplines active', color: '#2DD4BF' },
+    ],
+    grow: ['Record a peak-output training session and review form weekly', 'Add one new movement skill to active rotation this month'],
+    sparkline: [58, 62, 67, 72, 80, 88],
+  },
+  COACH: {
+    meaning: 'You transfer hard-won insight to others, shaping champions with presence and precision. Your students become proof of your mastery.',
+    evidence: [
+      { text: 'ONA client retention: 94%', color: '#45B7E8' },
+      { text: '3 athletes hit PRs this week', color: '#34D399' },
+      { text: 'New curriculum module drafted', color: '#B14CFF' },
+    ],
+    grow: ['Schedule a deep-dive session with your top 3 athletes', 'Publish one coaching insight reel this week'],
+    sparkline: [52, 58, 60, 65, 70, 74],
+  },
+  CREATOR: {
+    meaning: 'You shape culture with your lens. Every reel, every post, every idea you release shifts what people believe is possible.',
+    evidence: [
+      { text: '14.2K avg views per reel', color: '#FF3CC8' },
+      { text: 'Posted 18 of 20 days this month', color: '#34D399' },
+      { text: 'Series concept drafted + filmed', color: '#E9C46A' },
+    ],
+    grow: ['Batch film the next 5 reels in one session', 'Test one long-form storytelling format this week'],
+    sparkline: [64, 68, 72, 76, 79, 82],
+  },
+  BUILDER: {
+    meaning: 'You architect systems that outlast the moment. The programs, products, and platforms you build compound over time.',
+    evidence: [
+      { text: 'ONA platform v2 in progress', color: '#E9C46A' },
+      { text: 'Revenue up 18% this quarter', color: '#34D399' },
+      { text: '2 automations shipped this month', color: '#45B7E8' },
+    ],
+    grow: ['Define the 90-day product roadmap for ONA v2', 'Delegate one recurring system task this week'],
+    sparkline: [44, 49, 53, 57, 61, 65],
+  },
+  FATHER: {
+    meaning: 'Your presence is the gift. The way you show up shapes everything your child believes about strength, love, and what's possible.',
+    evidence: [
+      { text: '5 quality evenings this week', color: '#2DD4BF' },
+      { text: 'Morning ritual with family: 6/7', color: '#34D399' },
+      { text: 'Planned weekend adventure trip', color: '#B14CFF' },
+    ],
+    grow: ['Create a weekly "Dad Day" ritual that's phone-free', 'Write a note to your child about who they're becoming'],
+    sparkline: [58, 61, 64, 66, 68, 71],
+  },
+  SPIRIT: {
+    meaning: 'Your inner world feeds everything else. Stillness, clarity, and conviction are the foundation beneath your performance.',
+    evidence: [
+      { text: 'Meditation streak: 12 days', color: '#B14CFF' },
+      { text: 'Journaled 5 of 7 days', color: '#45B7E8' },
+      { text: 'Nature walk this morning', color: '#34D399' },
+    ],
+    grow: ['Add a 5-minute breathwork practice before training', 'Write your belief statement and read it daily this week'],
+    sparkline: [50, 54, 57, 61, 65, 68],
+  },
+};
+
+// ─── Hexagonal Radar Chart ───────────────────────────────────────────────────
+function RadarChart({ progress }) {
+  const cx = 140, cy = 140, maxR = 120;
+  const gridRings = [0.25, 0.5, 0.75, 1.0];
+
+  function getPoint(i, r) {
+    const angle = (i * 60 - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  }
+
+  function polyPoints(vals, scale = 1) {
+    return vals.map((v, i) => {
+      const r = (v / 100) * maxR * scale;
+      const [x, y] = getPoint(i, r);
+      return `${x},${y}`;
+    }).join(' ');
+  }
+
+  const currentVals = DIMS.map(d => d.val);
+  const goalVals = DIMS.map(d => d.goal);
+
+  // Grid polygon at each ring level
+  function gridRingPoints(frac) {
+    return DIMS.map((_, i) => {
+      const [x, y] = getPoint(i, maxR * frac);
+      return `${x},${y}`;
+    }).join(' ');
+  }
+
+  return (
+    <svg width="280" height="280" viewBox="0 0 280 280">
+      {/* Grid rings */}
+      {gridRings.map(frac => (
+        <polygon
+          key={frac}
+          points={gridRingPoints(frac)}
+          fill="none"
+          stroke="rgba(107,114,128,0.25)"
+          strokeWidth="1"
+        />
+      ))}
+
+      {/* Axis lines */}
+      {DIMS.map((_, i) => {
+        const [x, y] = getPoint(i, maxR);
+        return (
+          <line
+            key={i}
+            x1={cx} y1={cy}
+            x2={x} y2={y}
+            stroke="rgba(107,114,128,0.2)"
+            strokeWidth="1"
+          />
+        );
+      })}
+
+      {/* Goal polygon (dashed gold outline) */}
+      <polygon
+        points={polyPoints(goalVals)}
+        fill="none"
+        stroke="#E9C46A"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+        opacity="0.5"
+      />
+
+      {/* Current polygon (violet fill, animated) */}
+      <polygon
+        points={polyPoints(currentVals, progress)}
+        fill="rgba(177,76,255,0.18)"
+        stroke="#B14CFF"
+        strokeWidth="2"
+      />
+
+      {/* Axis labels */}
+      {DIMS.map((dim, i) => {
+        const labelR = maxR + 20;
+        const [lx, ly] = getPoint(i, labelR);
+        const [sx, sy] = getPoint(i, maxR + 34);
+        let ta = 'middle';
+        if (lx < cx - 10) ta = 'end';
+        if (lx > cx + 10) ta = 'start';
+
+        return (
+          <g key={dim.key}>
+            <text
+              x={lx}
+              y={ly + 4}
+              textAnchor={ta}
+              fill={dim.color}
+              fontSize="9"
+              fontFamily="'JetBrains Mono', monospace"
+              letterSpacing="0.08em"
+              fontWeight="600"
+            >
+              {dim.key}
+            </text>
+            <text
+              x={sx}
+              y={sy + 4}
+              textAnchor={ta}
+              fill="rgba(167,173,186,0.7)"
+              fontSize="8"
+              fontFamily="'JetBrains Mono', monospace"
+            >
+              {dim.val}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Center dot */}
+      <circle cx={cx} cy={cy} r="3" fill="#B14CFF" opacity="0.8" />
+    </svg>
+  );
+}
+
+// ─── Arc Progress Ring ────────────────────────────────────────────────────────
+function ArcRing({ value, color, progress }) {
+  const r = 64, cx = 80, cy = 80;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * (value / 100) * progress;
+  const gap = circ - dash;
+
+  return (
+    <svg width="160" height="160" viewBox="0 0 160 160">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray={`${dash} ${gap}`}
+        strokeDashoffset={circ * 0.25}
+        style={{ filter: `drop-shadow(0 0 6px ${color}66)` }}
+      />
+      <text x={cx} y={cy - 8} textAnchor="middle" fill={color} fontSize="36" fontFamily="'Bebas Neue',sans-serif">
+        {Math.round(value * progress)}
+      </text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fill="rgba(167,173,186,0.6)" fontSize="12" fontFamily="'Inter',sans-serif">
+        / 100
+      </text>
+    </svg>
+  );
+}
+
+// ─── Sparkline ────────────────────────────────────────────────────────────────
+function Sparkline({ data, color }) {
+  const max = Math.max(...data);
+  const weeks = ['W1','W2','W3','W4','W5','W6'];
+  return (
+    <div>
+      <div className="sparkline-bars">
+        {data.map((v, i) => (
+          <div
+            key={i}
+            className="sparkline-bar"
+            style={{
+              height: `${(v / max) * 100}%`,
+              background: `linear-gradient(180deg, ${color}, ${color}66)`,
+              borderRadius: '3px 3px 0 0',
+            }}
+          />
+        ))}
+      </div>
+      <div className="sparkline-labels">
+        {weeks.map(w => (
+          <div key={w} className="sparkline-label">{w}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Screen 1 ─────────────────────────────────────────────────────────────────
+function Screen1({ onDimTap, onLegacy }) {
+  const [radarProg, setRadarProg] = useState(0);
+  const [barProgs, setBarProgs] = useState(DIMS.map(() => 0));
+  const [scoreCount, setScoreCount] = useState(0);
+  const raf = useRef(null);
+  const startTime = useRef(null);
+
+  useEffect(() => {
+    const duration = 1200;
+    const animate = (ts) => {
+      if (!startTime.current) startTime.current = ts;
+      const elapsed = ts - startTime.current;
+      const t = Math.min(elapsed / duration, 1);
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+      setRadarProg(ease);
+      setScoreCount(Math.round(79 * ease));
+      setBarProgs(DIMS.map((_, i) => {
+        const delay = i * 80;
+        const barT = Math.max(0, Math.min((elapsed - delay) / 800, 1));
+        return barT < 0.5 ? 2*barT*barT : -1+(4-2*barT)*barT;
+      }));
+      if (t < 1) raf.current = requestAnimationFrame(animate);
+    };
+    raf.current = requestAnimationFrame(animate);
+    return () => raf.current && cancelAnimationFrame(raf.current);
+  }, []);
+
+  return (
+    <div className="screen-content">
+      {/* Status bar */}
+      <div className="status-bar">
+        <span className="status-time">9:41</span>
+        <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'#6B7280',letterSpacing:'0.08em'}}>JAM HQ</span>
+        <div className="status-icons">
+          <div className="status-dot" style={{width:14,height:8}}></div>
+        </div>
+      </div>
+
+      {/* Header */}
+      <div className="s1-header" style={{paddingTop:10}}>
+        <div className="s1-title">BECOMING INDEX</div>
+        <div className="s1-identity">
+          <span className="s1-name">JAY MARTINEZ</span>
+          <span className="s1-lvl">LVL 14</span>
+        </div>
+        <div className="s1-archetype">ARCHITECT OF MOTION</div>
+      </div>
+
+      {/* Radar chart */}
+      <div className="radar-container">
+        <RadarChart progress={radarProg} />
+      </div>
+
+      {/* Becoming score */}
+      <div className="becoming-score-wrap">
+        <div className="becoming-score-label">BECOMING SCORE</div>
+        <div>
+          <span className="becoming-score-val">{scoreCount}</span>
+          <span className="becoming-score-denom">/100</span>
+        </div>
+      </div>
+
+      {/* Attribute bars */}
+      <div className="attr-bars">
+        {DIMS.map((dim, i) => (
+          <div
+            key={dim.key}
+            className="attr-bar-row"
+            onClick={() => onDimTap(dim.key)}
+          >
+            <div className="attr-bar-name">{dim.key}</div>
+            <div className="attr-bar-score">{dim.val}</div>
+            <div className="attr-bar-track">
+              <div
+                className="attr-bar-fill"
+                style={{
+                  width: `${dim.val * barProgs[i]}%`,
+                  background: `linear-gradient(90deg, ${dim.color}99, ${dim.color})`,
+                  boxShadow: `0 0 6px ${dim.color}55`,
+                }}
+              />
+            </div>
+            <div className="attr-trend" style={{color: dim.trend === '↑' ? '#34D399' : '#6B7280'}}>
+              {dim.trend}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* North Star card */}
+      <div className="north-star-card glass" style={{margin:'0 20px 14px',padding:'14px 16px',borderColor:'rgba(233,196,106,0.25)'}}>
+        <div className="north-star-label">✦ YOUR NORTH STAR</div>
+        <div className="north-star-text">
+          World-class hybrid athlete who coaches champions, creates culture-shifting content, and builds systems that outlast him.
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="cta-bar">
+        <div className="cta-btn" onClick={onLegacy}>VIEW LEGACY →</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Screen 2 ─────────────────────────────────────────────────────────────────
+function Screen2({ dimKey, onBack }) {
+  const [activeDim, setActiveDim] = useState(dimKey);
+  const [arcProg, setArcProg] = useState(0);
+  const raf = useRef(null);
+  const startTime = useRef(null);
+
+  const dim = DIMS.find(d => d.key === activeDim);
+  const data = DIM_DATA[activeDim];
+
+  useEffect(() => {
+    setArcProg(0);
+    startTime.current = null;
+    const duration = 1000;
+    const animate = (ts) => {
+      if (!startTime.current) startTime.current = ts;
+      const elapsed = ts - startTime.current;
+      const t = Math.min(elapsed / duration, 1);
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+      setArcProg(ease);
+      if (t < 1) raf.current = requestAnimationFrame(animate);
+    };
+    raf.current = requestAnimationFrame(animate);
+    return () => raf.current && cancelAnimationFrame(raf.current);
+  }, [activeDim]);
+
+  return (
+    <div className="screen-content">
+      <div className="status-bar">
+        <span className="status-time">9:41</span>
+        <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'#6B7280',letterSpacing:'0.08em'}}>JAM HQ</span>
+        <div className="status-icons">
+          <div className="status-dot" style={{width:14,height:8}}></div>
+        </div>
+      </div>
+
+      <div style={{padding:'10px 20px 0'}}>
+        <div style={{display:'flex',alignItems:'center',gap:14}}>
+          <div className="back-btn" onClick={onBack}>←</div>
+          <div className="s2-dim-name" style={{color: dim.color}}>{activeDim}</div>
+        </div>
+      </div>
+
+      {/* Arc ring */}
+      <div className="s2-arc-wrap">
+        <ArcRing value={dim.val} color={dim.color} progress={arcProg} />
+      </div>
+
+      {/* What this means */}
+      <div className="s2-meaning glass" style={{margin:'0 20px 12px',padding:'14px 16px'}}>
+        <div className="s2-section-label">WHAT THIS MEANS</div>
+        <div className="s2-meaning-text">{data.meaning}</div>
+      </div>
+
+      {/* Evidence */}
+      <div className="s2-evidence">
+        <div className="s2-section-label" style={{padding:'0 0 10px'}}>HOW YOU'RE BUILDING IT</div>
+        <div className="evidence-cards">
+          {data.evidence.map((e, i) => (
+            <div key={i} className="evidence-card">
+              <div className="evidence-dot" style={{background: e.color, boxShadow: `0 0 6px ${e.color}88`}}></div>
+              <div className="evidence-text">{e.text}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Grow section */}
+      <div className="s2-grow" style={{paddingTop:12}}>
+        <div className="s2-section-label">TO GROW FROM {dim.val} → {dim.val + 2}</div>
+        <div className="grow-cards">
+          {data.grow.map((g, i) => (
+            <div key={i} className="grow-card">
+              <span style={{color: dim.color, marginRight:6}}>→</span>
+              {g}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Sparkline */}
+      <div className="s2-sparkline" style={{paddingTop:12}}>
+        <div className="s2-section-label">DIMENSION HISTORY — 6 WEEKS</div>
+        <Sparkline data={data.sparkline} color={dim.color} />
+      </div>
+
+      {/* Dim chips */}
+      <div style={{paddingLeft:20,paddingBottom:4}}>
+        <div className="s2-section-label">SWITCH DIMENSION</div>
+      </div>
+      <div className="dim-chips">
+        {DIMS.map(d => (
+          <div
+            key={d.key}
+            className={`dim-chip${activeDim === d.key ? ' active' : ''}`}
+            style={{
+              borderColor: d.color,
+              color: activeDim === d.key ? d.color : '#6B7280',
+              background: activeDim === d.key ? `${d.color}18` : 'transparent',
+            }}
+            onClick={() => setActiveDim(d.key)}
+          >
+            {d.key}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Screen 3 ─────────────────────────────────────────────────────────────────
+const SEASONS = [
+  {
+    num: 'SEASON 1',
+    name: 'THE FOUNDATION',
+    dates: 'Jan – Mar 2026',
+    border: '#E9C46A',
+    status: 'COMPLETE',
+    statusColor: '#E9C46A',
+    achievements: [
+      'Established daily movement practice',
+      'Launched ONA coaching platform',
+      'Hit 10K followers on JayMuvs',
+      'Completed 90-day B-twist progression',
+    ],
+    aiNarration: '"This was the season you decided to stop preparing and start becoming. Every rep, every post, every session was a vote for who you were choosing to be."',
+    scoreFrom: 68,
+    scoreTo: 72,
+    expand: false,
+  },
+  {
+    num: 'SEASON 2',
+    name: 'THE SIGNAL',
+    dates: 'Apr – Jun 2026',
+    border: '#2DD4BF',
+    status: 'COMPLETE',
+    statusColor: '#2DD4BF',
+    achievements: [
+      'Viral reel: 2.1M views',
+      '50 ONA members milestone',
+      'Front lever 5-second hold achieved',
+      'Signed first brand partnership',
+    ],
+    aiNarration: '"You found your voice this season. The signal you were broadcasting became unmistakable — and the world started tuning in."',
+    scoreFrom: 72,
+    scoreTo: 76,
+    expand: false,
+  },
+  {
+    num: 'SEASON 3',
+    name: 'THE FORGE',
+    dates: 'Jun – Sep 2026',
+    border: '#B14CFF',
+    status: 'ACTIVE',
+    statusColor: '#B14CFF',
+    achievements: [
+      'B-twist at 82% mastery',
+      'ONA v2 platform in development',
+      '14.2K avg reel views',
+      '41-day training streak',
+    ],
+    aiNarration: '"This is the season of fire. You are being tested and refined — and you are not breaking. The Forge is where the architect is made."',
+    scoreFrom: 76,
+    scoreTo: 79,
+    expand: true,
+  },
+];
+
+function Screen3({ onBack }) {
+  const [expanded, setExpanded] = useState({ 2: true });
+
+  const toggle = (i) => {
+    setExpanded(prev => ({ ...prev, [i]: !prev[i] }));
+  };
+
+  return (
+    <div className="screen-content">
+      <div className="status-bar">
+        <span className="status-time">9:41</span>
+        <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'#6B7280',letterSpacing:'0.08em'}}>JAM HQ</span>
+        <div className="status-icons">
+          <div className="status-dot" style={{width:14,height:8}}></div>
+        </div>
+      </div>
+
+      <div style={{padding:'10px 20px 0'}}>
+        <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16}}>
+          <div className="back-btn" onClick={onBack}>←</div>
+          <div>
+            <div className="s3-title">LEGACY ARCHIVE</div>
+          </div>
+        </div>
+        <div className="s3-subtitle" style={{marginBottom:4}}>The record of who you were and what you built</div>
+      </div>
+
+      {/* Season cards */}
+      <div className="season-cards">
+        {SEASONS.map((s, i) => (
+          <div
+            key={i}
+            className="season-card glass"
+            style={{borderColor: `${s.border}40`}}
+          >
+            <div className="season-card-header" onClick={() => toggle(i)} style={{cursor:'pointer'}}>
+              <div>
+                <div className="season-num">{s.num}</div>
+                <div className="season-name" style={{color: s.border}}>{s.name}</div>
+                <div className="season-dates">{s.dates}</div>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}}>
+                <div
+                  className="season-status"
+                  style={{
+                    color: s.statusColor,
+                    borderColor: `${s.statusColor}40`,
+                    background: `${s.statusColor}14`,
+                  }}
+                >
+                  {s.status}
+                </div>
+                <div style={{color:'#6B7280',fontSize:16}}>
+                  {expanded[i] ? '▲' : '▼'}
+                </div>
+              </div>
+            </div>
+
+            <div className={`season-expand${expanded[i] ? ' open' : ''}`}>
+              <div className="season-expand-inner">
+                <div className="s2-section-label" style={{paddingTop:12}}>ACHIEVEMENTS</div>
+                <div className="season-achievements">
+                  {s.achievements.map((a, j) => (
+                    <div key={j} className="achievement-row">
+                      <span className="achievement-check" style={{color: s.border}}>✓</span>
+                      <span style={{fontSize:12,color:'#F5F5F7'}}>{a}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="s2-section-label" style={{marginBottom:8}}>HIGHLIGHT REEL</div>
+                <div className="highlight-grid">
+                  {['🎯','⚡','🔥','🏆'].map((icon,j) => (
+                    <div key={j} className="highlight-cell">{icon}</div>
+                  ))}
+                </div>
+
+                <div className="s2-section-label">AI NARRATION</div>
+                <div className="ai-narration">{s.aiNarration}</div>
+
+                <div className="s2-section-label">BECOMING INDEX ARC</div>
+                <div className="score-arc-row">
+                  <div>
+                    <div style={{fontFamily:'JetBrains Mono',fontSize:8,color:'#6B7280',marginBottom:2}}>START</div>
+                    <div className="score-arc-val">{s.scoreFrom}</div>
+                  </div>
+                  <div style={{fontSize:20,color:'#6B7280',marginTop:12}}>→</div>
+                  <div>
+                    <div style={{fontFamily:'JetBrains Mono',fontSize:8,color:'#6B7280',marginBottom:2}}>END</div>
+                    <div className="score-arc-val2">{s.scoreTo}</div>
+                  </div>
+                  <div style={{flex:1}}></div>
+                  <div style={{
+                    fontSize:11,
+                    color: s.statusColor,
+                    fontFamily:'JetBrains Mono',
+                    background: `${s.statusColor}14`,
+                    border: `1px solid ${s.statusColor}30`,
+                    borderRadius:8,
+                    padding:'4px 10px',
+                    alignSelf:'center'
+                  }}>
+                    +{s.scoreTo - s.scoreFrom} pts
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Milestones */}
+      <div className="milestones-section">
+        <div className="milestones-label">MILESTONES</div>
+        <div className="milestones-scroll">
+          <div className="milestone-chip unlocked">
+            <span>✓</span> Movement Architect
+          </div>
+          <div className="milestone-chip locked">
+            <span className="milestone-lock">🔒</span> B-twist MASTERED
+          </div>
+          <div className="milestone-chip locked">
+            <span className="milestone-lock">🔒</span> Front Lever MASTERED
+          </div>
+          <div className="milestone-chip locked">
+            <span className="milestone-lock">🔒</span> ONA 100 Members
+          </div>
+          <div className="milestone-chip locked">
+            <span className="milestone-lock">🔒</span> 100K JayMuvs
+          </div>
+        </div>
+      </div>
+
+      <div style={{height:32}}></div>
+    </div>
+  );
+}
+
+// ─── App Root ─────────────────────────────────────────────────────────────────
+function App() {
+  const [screen, setScreen] = useState('index');
+  const [activeDim, setActiveDim] = useState('ATHLETE');
+
+  const goToDim = (key) => {
+    setActiveDim(key);
+    setScreen('dim');
+  };
+
+  return (
+    <div style={{position:'absolute',inset:0}}>
+      {/* Ambient glow */}
+      <div style={{
+        position:'absolute',inset:0,
+        background:'radial-gradient(ellipse 70% 50% at 50% 20%, rgba(177,76,255,0.08) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 80%, rgba(233,196,106,0.05) 0%, transparent 55%)',
+        pointerEvents:'none',
+        zIndex:0
+      }}/>
+
+      {/* Screens */}
+      <div style={{position:'absolute',inset:0,zIndex:1}}>
+        {screen === 'index' && (
+          <Screen1
+            onDimTap={goToDim}
+            onLegacy={() => setScreen('legacy')}
+          />
+        )}
+        {screen === 'dim' && (
+          <Screen2
+            dimKey={activeDim}
+            onBack={() => setScreen('index')}
+          />
+        )}
+        {screen === 'legacy' && (
+          <Screen3
+            onBack={() => setScreen('index')}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
