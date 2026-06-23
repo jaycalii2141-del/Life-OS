@@ -10,6 +10,7 @@ import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
 import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { XpLayer } from './components/XpLayer.jsx';
+import { CeremonyLayer } from './components/CeremonyLayer.jsx';
 import { CommandSpotlight } from './components/CommandSpotlight.jsx';
 // Today is the default tab → load it eagerly for an instant first paint.
 import { TodayScreen } from './screens/TodayScreen.jsx';
@@ -273,6 +274,7 @@ function MainApp() {
       <div className="screen-host" onPointerDown={onHostPointerDown} onPointerMove={onHostPointerMove} onPointerUp={clearCmd} onPointerLeave={clearCmd} onPointerCancel={clearCmd}>
         <SyncBadge />
         <XpLayer />
+        <CeremonyLayer />
         <CommandSpotlight
           open={cmdOpen}
           onClose={() => setCmdOpen(false)}

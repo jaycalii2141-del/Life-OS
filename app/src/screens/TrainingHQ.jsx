@@ -6,6 +6,7 @@ import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
 import { askCompanion } from '../lib/aiActions.js';
 import { awardXp } from '../lib/xp.js';
+import { fireCeremony } from '../lib/ceremony.js';
 import { RADAR_AXES, RADAR_CURRENT, RADAR_GOAL, SKILLS, DISCIPLINES } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { CoachSheet } from '../CoachSheet.jsx';
@@ -455,7 +456,7 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
     if (status === 'done') pct = 100;
     else if (status === 'locked') pct = 0;
     else if (status === 'active' && (skill.pct <= 0 || skill.pct >= 100)) pct = 50;
-    if (status === 'done' && skill.status !== 'done') { setParty((p) => p + 1); celebrate(); awardXp(130, 'skill mastered'); }
+    if (status === 'done' && skill.status !== 'done') { setParty((p) => p + 1); celebrate(); awardXp(130, 'skill mastered'); fireCeremony({ kicker: 'SKILL MASTERED', title: skill.name, subtitle: '+130 XP · your Self grows' }); }
     onChange?.({ status, pct });
   };
   const adjust = (delta) => {

@@ -56,7 +56,7 @@ function domainActions(dom, enter) {
   ];
 }
 
-function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
+function LifeMapViz({ scores, facets, becoming, level, trend, onPick, onLongPick }) {
   const size = 340;
   const cx = size / 2, cy = size / 2;
   const orbit = 128;
@@ -66,7 +66,6 @@ function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
   const down = (id) => () => { longRef.current = false; clearTimeout(timer.current); timer.current = setTimeout(() => { longRef.current = true; try { navigator.vibrate?.(12); } catch { /* */ } onLongPick(id); }, 440); };
   const up = (id) => () => { clearTimeout(timer.current); if (!longRef.current) onPick(id); };
   const leave = () => clearTimeout(timer.current);
-  const shownLevel = useCountUp(level ?? 0);
   const nodes = LIFE_MAP_DOMAINS.map((d, i) => {
     const angle = -Math.PI / 2 + (i / LIFE_MAP_DOMAINS.length) * Math.PI * 2;
     return { ...d, x: cx + orbit * Math.cos(angle), y: cy + orbit * Math.sin(angle), score: scores[d.id]?.score ?? 0 };
@@ -78,6 +77,7 @@ function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
 
   return (
     <div className="hud glass-strong mesh-readiness" style={{ borderRadius: 22, padding: '10px 0 4px', position: 'relative' }}>
+      <div style={{ position: 'relative' }}>
       <svg viewBox={`0 0 ${size} ${size}`} style={{ width: '100%', display: 'block' }}>
         {/* connections — everything feeds everything */}
         {nodes.map((n) => (
@@ -89,14 +89,7 @@ function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
           return <line key={`c-${n.id}`} x1={n.x} y1={n.y} x2={next.x} y2={next.y} stroke="rgba(255,255,255,0.035)" strokeWidth="1" strokeDasharray="2 5" />;
         })}
 
-        {/* center — the person all of it serves */}
-        <circle cx={cx} cy={cy} r={42} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
-        <circle cx={cx} cy={cy} r={47} fill="none" stroke="#45B7E8" strokeWidth="2.5" strokeLinecap="round"
-          style={ringFor(alignment ?? 0, 47)} transform={`rotate(-90 ${cx} ${cy})`} />
-        <text x={cx} y={cy - 6} textAnchor="middle" fill="#F5F5F7" style={{ font: '700 13px Inter, sans-serif', letterSpacing: '0.08em' }}>JAY</text>
-        <text x={cx} y={cy + 13} textAnchor="middle" fill="#45B7E8" style={{ font: '700 13px JetBrains Mono, monospace', letterSpacing: '0.04em' }}>LV {level == null ? '—' : shownLevel}</text>
-
-        {/* domain nodes */}
+        {/* domain nodes orbit The Self */}
         {nodes.map((n) => (
           <g key={n.id} onPointerDown={down(n.id)} onPointerUp={up(n.id)} onPointerLeave={leave} style={{ cursor: 'pointer', touchAction: 'manipulation' }}>
             <circle cx={n.x} cy={n.y} r={26} fill="rgba(16,18,20,0.85)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
@@ -108,6 +101,11 @@ function LifeMapViz({ scores, alignment, level, onPick, onLongPick }) {
           </g>
         ))}
       </svg>
+        {/* The Self lives at the heart, with the domains orbiting it */}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+          <TheSelf facets={facets} becoming={becoming} level={level} trend={trend} size={150} />
+        </div>
+      </div>
       <div className="eyebrow" style={{ textAlign: 'center', paddingBottom: 8, color: 'var(--dim)' }}>tap a domain to enter it</div>
     </div>
   );
@@ -337,21 +335,22 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
 
-      {/* The Self — the living identity artifact */}
-      <div className="hud glass-strong mesh-readiness" style={{ borderRadius: 22, padding: '18px 0 16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <TheSelf facets={selfFacets} becoming={becoming?.score ?? 0} level={lvl?.level} trend={becoming?.trend} />
-        {becoming && <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 8, textAlign: 'center', padding: '0 16px', textWrap: 'pretty' }}>{becomingLine(becoming)}</div>}
-        {evolution.length >= 2 && (
-          <div style={{ width: '82%', marginTop: 12 }}>
-            <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.14em', textAlign: 'center', marginBottom: 5 }}>BECOMING · {evolution.length}-DAY EVOLUTION</div>
-            <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
-          </div>
-        )}
-      </div>
-
-      <LifeMapViz scores={scores} alignment={alignment} level={lvl?.level}
+      {/* The Self at the heart, domains orbiting it — one unified hero */}
+      <LifeMapViz scores={scores} facets={selfFacets} becoming={becoming?.score ?? 0} level={lvl?.level} trend={becoming?.trend}
         onPick={(id) => { setOpenDomain(id); logEvent('map', 'domain', id); }}
         onLongPick={(id) => setMenuDomain(id)} />
+
+      {becoming && (
+        <div style={{ textAlign: 'center', marginTop: -4 }}>
+          <div style={{ fontSize: 12.5, color: 'var(--text-2)', padding: '0 16px', textWrap: 'pretty' }}>{becomingLine(becoming)}</div>
+          {evolution.length >= 2 && (
+            <div style={{ width: '82%', margin: '12px auto 0' }}>
+              <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.14em', marginBottom: 5 }}>BECOMING · {evolution.length}-DAY EVOLUTION</div>
+              <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
+            </div>
+          )}
+        </div>
+      )}
 
       {(() => {
         const dom = menuDomain ? LIFE_MAP_DOMAINS.find((d) => d.id === menuDomain) : null;

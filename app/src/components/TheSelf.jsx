@@ -8,18 +8,33 @@
 // ─────────────────────────────────────────────────────────
 import { useCountUp } from './atoms.jsx';
 
+// A smooth, closed Catmull-Rom curve through the points — an organic aura
+// instead of a faceted polygon.
+function smoothClosed(p) {
+  const n = p.length;
+  if (n < 3) return '';
+  let d = `M${p[0][0].toFixed(1)},${p[0][1].toFixed(1)}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = p[(i - 1 + n) % n], p1 = p[i], p2 = p[(i + 1) % n], p3 = p[(i + 2) % n];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d + ' Z';
+}
+
 export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', size = 196 }) {
   const cx = size / 2, cy = size / 2;
   const n = facets.length || 8;
-  const baseR = size * 0.17;
-  const maxR = size * 0.40;
+  const baseR = size * 0.19;
+  const maxR = size * 0.42;
 
   const pts = (facets.length ? facets : Array.from({ length: 8 }, () => ({ score: 0 }))).map((f, i) => {
     const ang = -Math.PI / 2 + (i / n) * Math.PI * 2;
     const r = baseR + (Math.max(0, Math.min(100, f.score || 0)) / 100) * (maxR - baseR);
     return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
   });
-  const blob = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ') + ' Z';
+  const blob = smoothClosed(pts);
 
   const shown = useCountUp(Math.round(becoming || 0));
   const trendColor = trend === 'rising' ? '#34D399' : trend === 'dipping' ? '#FF6B5B' : '#45B7E8';
