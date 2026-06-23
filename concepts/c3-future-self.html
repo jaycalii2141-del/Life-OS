@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JAM HQ · C3 · Future Self</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="../node_modules/react/umd/react.development.js"></script>
+<script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+<script src="../node_modules/@babel/standalone/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0A0B0D;
+    color: #F5F5F7;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 30%, rgba(177,76,255,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 70%, rgba(69,183,232,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 90%, rgba(45,212,191,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #6B7280;
+    letter-spacing: 0.08em;
+  }
+
+  .nav-links a {
+    color: #6B7280;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: #A7ADBA; }
+
+  .concept-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6B7280;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  /* Phone shell */
+  .phone-shell {
+    width: 402px;
+    height: 874px;
+    background: #111316;
+    border-radius: 44px;
+    border: 1.5px solid rgba(255,255,255,0.10);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 40px 80px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Dynamic island */
+  .dynamic-island {
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    margin: 14px auto 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Screen content area */
+  .screen {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Glass utility */
+  .glass {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ===== ORB ===== */
+  .orb-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .orb {
+    position: relative;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .orb-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    animation: orb-spin 12s linear infinite;
+  }
+
+  .orb-ring-mid {
+    position: absolute;
+    inset: 2px;
+    border-radius: 50%;
+    animation: orb-spin 7s linear infinite reverse;
+    opacity: 0.5;
+  }
+
+  .orb-core {
+    position: relative;
+    z-index: 2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    animation: orb-breathe 3s ease-in-out infinite;
+  }
+
+  .orb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #A7ADBA;
+    text-align: center;
+  }
+
+  @keyframes orb-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes orb-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  @keyframes orb-breathe-future {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.06); opacity: 0.92; }
+  }
+
+  /* ===== PHASE 1 ===== */
+  .phase1 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 28px 32px;
+    gap: 0;
+    position: relative;
+  }
+
+  .phase1-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.12em;
+    text-align: center;
+    background: linear-gradient(135deg, #B14CFF 0%, #45B7E8 50%, #2DD4BF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 32px;
+  }
+
+  .orbs-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .connector {
+    flex: 1;
+    max-width: 70px;
+    height: 2px;
+    background: linear-gradient(90deg, #B14CFF, #45B7E8);
+    position: relative;
+    margin: 0 4px;
+  }
+
+  .connector::after {
+    content: '›';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #45B7E8;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .phase1-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #6B7280;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+    line-height: 1.6;
+  }
+
+  /* ===== PHASE 2 ===== */
+  .phase2 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+
+  .chat-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .chat-header-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    background: linear-gradient(90deg, #E9C46A, #B14CFF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chat-header-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #6B7280;
+    letter-spacing: 0.1em;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: none;
+  }
+
+  .chat-messages::-webkit-scrollbar { display: none; }
+
+  .msg-wrap {
+    display: flex;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .msg-wrap.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .msg-wrap.jay { justify-content: flex-end; }
+  .msg-wrap.future { justify-content: flex-start; }
+
+  .msg-bubble {
+    max-width: 78%;
+    padding: 10px 13px;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #F5F5F7;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .msg-bubble.jay {
+    border-left: 3px solid #45B7E8;
+  }
+
+  .msg-bubble.future {
+    border-left: 3px solid transparent;
+    border-image: linear-gradient(180deg, #B14CFF, #E9C46A) 1;
+    border-left-width: 3px;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 13px;
+    background: #E9C46A;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 0.8s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .chat-footer {
+    padding: 12px 16px 20px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ===== PHASE 3 ===== */
+  .phase3 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 24px 32px;
+    gap: 0;
+  }
+
+  .phase3-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.18em;
+    color: #F5F5F7;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .phase3-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #6B7280;
+    letter-spacing: 0.15em;
+    text-align: center;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+
+  .pact-card {
+    width: 100%;
+    padding: 24px 20px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(233,196,106,0.30);
+    box-shadow:
+      0 0 40px rgba(233,196,106,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #F5F5F7;
+    min-height: 100px;
+    position: relative;
+    margin-bottom: 20px;
+    transition: box-shadow 0.3s;
+  }
+
+  .pact-card.sealed {
+    border-color: rgba(233,196,106,0.60);
+    box-shadow:
+      0 0 60px rgba(233,196,106,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  @keyframes pact-bloom {
+    0% { box-shadow: 0 0 40px rgba(233,196,106,0.12), inset 0 1px 0 rgba(255,255,255,0.10); }
+    100% {
+      box-shadow:
+        0 0 40px rgba(233,196,106,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.10);
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes pact-pulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(233,196,106,0.12), inset 0 1px 0 rgba(255,255,255,0.10); }
+    50% { box-shadow: 0 0 80px rgba(233,196,106,0.45), inset 0 1px 0 rgba(255,255,255,0.20); }
+  }
+
+  .pact-card.pulsing {
+    animation: pact-pulse 0.5s ease-in-out 3;
+  }
+
+  .pact-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 14px;
+    background: #E9C46A;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: blink 0.8s step-end infinite;
+  }
+
+  .sealed-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #E9C46A;
+    letter-spacing: 0.12em;
+  }
+
+  .witness-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .witness-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #6B7280;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.15em;
+    padding: 13px 32px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-violet {
+    background: linear-gradient(135deg, #B14CFF 0%, #7C3AED 100%);
+    color: #fff;
+    box-shadow: 0 4px 24px rgba(177,76,255,0.35);
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #E9C46A 0%, #F4A261 100%);
+    color: #0A0B0D;
+    box-shadow: 0 4px 24px rgba(233,196,106,0.40);
+  }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: #A7ADBA;
+    font-size: 13px;
+  }
+
+  .btn-appear {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+
+  .btn-appear.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ===== ORB COMPONENT ===== */
+function Orb({ size = 90, variant = 'current', label, labelColor }) {
+  const isFuture = variant === 'future';
+  const isMin = size <= 32;
+
+  const ringGrad = isFuture
+    ? `conic-gradient(from 0deg, #E9C46A, #B14CFF, #2DD4BF, #E9C46A)`
+    : `conic-gradient(from 0deg, #B14CFF, #45B7E8, #B14CFF, #6B7280, #B14CFF)`;
+
+  const midGrad = isFuture
+    ? `conic-gradient(from 90deg, #2DD4BF, #E9C46A, #B14CFF, #2DD4BF)`
+    : `conic-gradient(from 90deg, #45B7E8, #B14CFF, #45B7E8)`;
+
+  const coreGrad = isFuture
+    ? `radial-gradient(circle at 35% 35%, #fff 0%, #E9C46A 40%, #B14CFF 70%, #1a0a2e 100%)`
+    : `radial-gradient(circle at 35% 35%, rgba(177,76,255,0.8) 0%, #2D1B4E 60%, #0A0B0D 100%)`;
+
+  const glowColor = isFuture
+    ? `rgba(233,196,106,0.45)`
+    : `rgba(177,76,255,0.30)`;
+
+  const fontSize = isMin ? Math.max(size * 0.28, 7) : Math.max(size * 0.22, 10);
+
+  return (
+    <div className="orb-wrapper">
+      <div
+        className="orb"
+        style={{
+          width: size,
+          height: size,
+          filter: `drop-shadow(0 0 ${isFuture ? 18 : 10}px ${glowColor})`,
+        }}
+      >
+        {/* Outer spinning ring */}
+        <div
+          className="orb-ring"
+          style={{ background: ringGrad }}
+        />
+        {/* Mid counter-spin ring */}
+        <div
+          className="orb-ring-mid"
+          style={{ background: midGrad }}
+        />
+        {/* Core */}
+        <div
+          className="orb-core"
+          style={{
+            background: coreGrad,
+            margin: 3,
+            width: size - 6,
+            height: size - 6,
+            animation: isFuture ? 'orb-breathe-future 2.5s ease-in-out infinite' : 'orb-breathe 3s ease-in-out infinite',
+          }}
+        >
+          {!isMin && (
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: fontSize,
+              letterSpacing: '0.08em',
+              color: isFuture ? '#FFF9E6' : 'rgba(245,245,247,0.9)',
+              position: 'relative',
+              zIndex: 3,
+              textShadow: isFuture ? '0 0 8px rgba(255,240,180,0.8)' : 'none',
+            }}>
+              JM
+            </span>
+          )}
+        </div>
+      </div>
+      {label && (
+        <div className="orb-label" style={labelColor ? { color: labelColor } : {}}>
+          {label}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ===== PHASE 1: MEET ===== */
+function Phase1({ onNext }) {
+  return (
+    <div className="phase1">
+      <div className="phase1-title">MEET YOUR<br />FUTURE SELF</div>
+
+      <div className="orbs-row">
+        <Orb
+          size={90}
+          variant="current"
+          label="YOU · NOW · LVL 14"
+        />
+        <div className="connector" />
+        <Orb
+          size={110}
+          variant="future"
+          label="YOU · +18 MONTHS · LVL 30"
+          labelColor="#34D399"
+        />
+      </div>
+
+      <div className="phase1-desc">
+        World-Class Hybrid Athlete<br />
+        Movement Architect
+      </div>
+
+      <button className="btn btn-violet" onClick={onNext}>
+        BEGIN DIALOGUE →
+      </button>
+    </div>
+  );
+}
+
+/* ===== TYPEWRITER HOOK ===== */
+function useTypewriter(text, speed = 28, active = false) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!active) {
+      setDisplayed('');
+      setDone(false);
+      return;
+    }
+    setDisplayed('');
+    setDone(false);
+    let i = 0;
+    ref.current = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(ref.current);
+        setDone(true);
+      }
+    }, speed);
+    return () => clearInterval(ref.current);
+  }, [active, text]);
+
+  return { displayed, done };
+}
+
+/* ===== MESSAGES ===== */
+const MESSAGES = [
+  { id: 1, who: 'jay', text: "What did you figure out that I haven't yet?" },
+  { id: 2, who: 'future', text: "That the B-twist was never the goal. The goal was becoming someone who shows up." },
+  { id: 3, who: 'jay', text: "What should I protect right now?" },
+  { id: 4, who: 'future', text: "Your Tuesday mornings. ONA 6am. Don't let anyone book that slot. That's where the athlete lives." },
+  { id: 5, who: 'jay', text: "What would you change?" },
+  { id: 6, who: 'future', text: "Ship Move in Q3. Your audience is ready before you think they are. Trust the signal." },
+];
+
+/* ===== SINGLE MESSAGE BUBBLE ===== */
+function MessageBubble({ msg, visibleIdx, activeTypewriterIdx }) {
+  const isVisible = msg.id <= visibleIdx;
+  const isTyping = msg.who === 'future' && msg.id === activeTypewriterIdx;
+  const isTyped = msg.who === 'future' && msg.id < activeTypewriterIdx;
+  const isInstant = msg.who === 'jay';
+
+  const { displayed, done } = useTypewriter(msg.text, 28, isTyping);
+
+  const shownText = isInstant || isTyped ? msg.text : displayed;
+  const showCursor = isTyping && !done;
+
+  return (
+    <div className={`msg-wrap ${msg.who} ${isVisible ? 'visible' : ''}`}>
+      <div className={`msg-bubble ${msg.who}`}>
+        {shownText}
+        {showCursor && <span className="cursor" />}
+      </div>
+    </div>
+  );
+}
+
+/* ===== PHASE 2: DIALOGUE ===== */
+function Phase2({ onNext }) {
+  const [visibleIdx, setVisibleIdx] = useState(0);
+  const [activeTypewriterIdx, setActiveTypewriterIdx] = useState(null);
+  const [allDone, setAllDone] = useState(false);
+  const scrollRef = useRef(null);
+  const seqRef = useRef(null);
+
+  useEffect(() => {
+    // Sequence: reveal each message with 800ms gaps
+    let step = 0;
+
+    function showNext() {
+      if (step >= MESSAGES.length) {
+        setTimeout(() => setAllDone(true), 600);
+        return;
+      }
+      const msg = MESSAGES[step];
+      setVisibleIdx(msg.id);
+      if (msg.who === 'future') {
+        setActiveTypewriterIdx(msg.id);
+        // estimate typewriter duration + 800ms
+        const duration = msg.text.length * 28 + 800;
+        seqRef.current = setTimeout(() => {
+          step++;
+          showNext();
+        }, duration);
+      } else {
+        // Jay messages: instant, 800ms delay then next
+        seqRef.current = setTimeout(() => {
+          step++;
+          showNext();
+        }, 800);
+      }
+      step++;
+    }
+
+    // Reset, then start
+    setVisibleIdx(0);
+    setActiveTypewriterIdx(null);
+    setAllDone(false);
+    seqRef.current = setTimeout(() => {
+      step = 0;
+      showNext();
+    }, 300);
+
+    return () => clearTimeout(seqRef.current);
+  }, []);
+
+  // Auto-scroll
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [visibleIdx, activeTypewriterIdx]);
+
+  return (
+    <div className="phase2">
+      <div className="chat-header glass" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <Orb size={28} variant="future" />
+        <div className="chat-header-text">
+          <div className="chat-header-name">FUTURE JAY</div>
+          <div className="chat-header-sub">· LVL 30 · +18 MONTHS</div>
+        </div>
+      </div>
+
+      <div className="chat-messages" ref={scrollRef}>
+        {MESSAGES.map(msg => (
+          <MessageBubble
+            key={msg.id}
+            msg={msg}
+            visibleIdx={visibleIdx}
+            activeTypewriterIdx={activeTypewriterIdx}
+          />
+        ))}
+      </div>
+
+      <div className="chat-footer">
+        <button
+          className={`btn btn-violet btn-appear ${allDone ? 'visible' : ''}`}
+          onClick={onNext}
+        >
+          MAKE A PACT →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ===== PACT TEXT ===== */
+const PACT_TEXT = "I will show up on Tuesdays no matter what. I will ship Move by Q3. I will become someone who trains through discomfort.";
+
+/* ===== PHASE 3: PACT ===== */
+function Phase3({ onBack }) {
+  const [typingActive, setTypingActive] = useState(false);
+  const [sealed, setSealed] = useState(false);
+  const [pulsing, setPulsing] = useState(false);
+  const [showSealed, setShowSealed] = useState(false);
+  const cardRef = useRef(null);
+
+  const { displayed: pactText, done: pactDone } = useTypewriter(PACT_TEXT, 30, typingActive);
+
+  useEffect(() => {
+    const t = setTimeout(() => setTypingActive(true), 400);
+    return () => clearTimeout(t);
+  }, []);
+
+  function handleSeal() {
+    if (sealed) return;
+    setPulsing(true);
+    setTimeout(() => {
+      setPulsing(false);
+      setSealed(true);
+      setTimeout(() => setShowSealed(true), 200);
+    }, 1600);
+  }
+
+  return (
+    <div className="phase3">
+      <div className="phase3-title">YOUR NORTH STAR</div>
+      <div className="phase3-sub">A commitment to who you're becoming</div>
+
+      <div
+        ref={cardRef}
+        className={`pact-card ${sealed ? 'sealed' : ''} ${pulsing ? 'pulsing' : ''}`}
+      >
+        <span>{pactText}</span>
+        {!pactDone && <span className="pact-cursor" />}
+
+        {showSealed && (
+          <div className="sealed-badge" style={{ animation: 'none', marginTop: 16 }}>
+            <span style={{ fontSize: 16 }}>✦</span>
+            <span>SEALED · LIVES IN YOUR SEASON</span>
+          </div>
+        )}
+      </div>
+
+      <div className="witness-row">
+        <Orb size={32} variant="future" />
+        <span className="witness-label">WITNESSED BY FUTURE JAY</span>
+      </div>
+
+      {!sealed ? (
+        <button
+          className={`btn btn-gold btn-appear ${pactDone ? 'visible' : ''}`}
+          onClick={handleSeal}
+        >
+          SEAL THE PACT ✦
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: 22,
+            letterSpacing: '0.15em',
+            color: '#E9C46A',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            textShadow: '0 0 20px rgba(233,196,106,0.5)',
+          }}>
+            ✦ PACT SEALED
+          </div>
+          <button
+            className="btn btn-ghost"
+            style={{ marginTop: 4 }}
+            onClick={onBack}
+          >
+            ← RETURN TO START
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ===== MAIN APP ===== */
+function App() {
+  const [phase, setPhase] = useState(1);
+
+  return (
+    <div className="page-wrap">
+      <div className="nav-links">
+        <a href="c1-athlete-core.html">← C1</a>
+        <a href="c4-mission-control.html">C4 →</a>
+      </div>
+
+      <div className="concept-label">JAM HQ · C3 · FUTURE SELF</div>
+
+      <div className="phone-shell">
+        <div className="dynamic-island" />
+        <div className="screen">
+          {phase === 1 && <Phase1 onNext={() => setPhase(2)} />}
+          {phase === 2 && <Phase2 onNext={() => setPhase(3)} />}
+          {phase === 3 && <Phase3 onBack={() => setPhase(1)} />}
+        </div>
+      </div>
+
+      <div style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '9px',
+        color: '#6B7280',
+        letterSpacing: '0.12em',
+        textAlign: 'center',
+      }}>
+        PHASE {phase} / 3 &nbsp;·&nbsp; {['MEET', 'DIALOGUE', 'PACT'][phase - 1]}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>

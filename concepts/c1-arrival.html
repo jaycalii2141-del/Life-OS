@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JAM HQ · C1 · The Arrival</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="../node_modules/react/umd/react.development.js"></script>
+<script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+<script src="../node_modules/@babel/standalone/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0A0B0D;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: #F5F5F7;
+    overflow: hidden;
+  }
+
+  .scene-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  /* Phone shell */
+  .phone {
+    width: 402px;
+    height: 874px;
+    background: #0A0B0D;
+    border-radius: 48px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.8), 0 40px 120px rgba(0,0,0,0.8);
+  }
+
+  /* Dynamic Island */
+  .dynamic-island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 37px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 50;
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 58px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 28px 8px;
+    z-index: 40;
+  }
+
+  .status-time {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: #F5F5F7;
+    letter-spacing: -0.3px;
+  }
+
+  .status-app {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6B7280;
+    letter-spacing: 0.08em;
+  }
+
+  /* Home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    z-index: 40;
+  }
+
+  /* Phone screen content area */
+  .phone-screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
+
+  /* Ambient environment gradient */
+  .env-gradient {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .env-gradient.visible { opacity: 1; }
+
+  .env-gradient.cyan-dawn {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(69,183,232,0.28) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(45,212,191,0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 70%, rgba(69,183,232,0.10) 0%, transparent 55%);
+  }
+
+  .env-gradient.quiet-ember {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(244,162,97,0.28) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 20% 80%, rgba(233,196,106,0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 70%, rgba(244,162,97,0.10) 0%, transparent 55%);
+  }
+
+  /* Particles */
+  .particles-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+  }
+
+  /* The Self Orb */
+  .orb-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    z-index: 10;
+    opacity: 0;
+    scale: 0.4;
+    transition: opacity 0.9s cubic-bezier(0.34,1.56,0.64,1), scale 0.9s cubic-bezier(0.34,1.56,0.64,1);
+    margin-top: -60px;
+  }
+  .orb-container.visible {
+    opacity: 1;
+    scale: 1;
+  }
+
+  .orb-outer {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    animation: orb-spin 12s linear infinite;
+  }
+  .orb-outer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 2px;
+    background: conic-gradient(from 0deg, transparent 0%, #45B7E8 25%, transparent 50%, #2DD4BF 75%, transparent 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), white calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), white calc(100% - 2px));
+  }
+
+  .orb-outer.ember::before {
+    background: conic-gradient(from 0deg, transparent 0%, #F4A261 25%, transparent 50%, #E9C46A 75%, transparent 100%);
+  }
+
+  .orb-mid {
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    animation: orb-counter 7s linear infinite;
+  }
+  .orb-mid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 1.5px;
+    background: conic-gradient(from 180deg, transparent 0%, rgba(69,183,232,0.5) 30%, transparent 60%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), white calc(100% - 1.5px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), white calc(100% - 1.5px));
+  }
+
+  .orb-mid.ember::before {
+    background: conic-gradient(from 180deg, transparent 0%, rgba(244,162,97,0.5) 30%, transparent 60%);
+  }
+
+  .orb-core {
+    position: absolute;
+    inset: 28%;
+    border-radius: 50%;
+    animation: breathe 3s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .orb-core.cyan-core {
+    background: radial-gradient(circle, rgba(69,183,232,0.6) 0%, rgba(45,212,191,0.3) 50%, rgba(69,183,232,0.1) 100%);
+  }
+  .orb-core.ember-core {
+    background: radial-gradient(circle, rgba(244,162,97,0.6) 0%, rgba(233,196,106,0.3) 50%, rgba(244,162,97,0.1) 100%);
+  }
+
+  .orb-label {
+    font-family: 'Bebas Neue', display;
+    font-size: 20px;
+    letter-spacing: 0.05em;
+    color: #F5F5F7;
+    line-height: 1;
+  }
+
+  @keyframes orb-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes orb-counter {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+
+  /* Readiness block */
+  .readiness-block {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 52px;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    white-space: nowrap;
+  }
+  .readiness-block.visible { opacity: 1; }
+
+  .readiness-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .readiness-label.cyan { color: #45B7E8; }
+  .readiness-label.ember { color: #F4A261; }
+
+  .readiness-score {
+    font-family: 'Bebas Neue', display;
+    font-size: 48px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .readiness-score.cyan { color: #45B7E8; }
+  .readiness-score.ember { color: #F4A261; }
+
+  .readiness-mode {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: #6B7280;
+    text-transform: uppercase;
+  }
+
+  /* Oracle line */
+  .oracle-block {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    top: 50%;
+    margin-top: 128px;
+  }
+  .oracle-block.visible { opacity: 1; }
+
+  .oracle-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: #A7ADBA;
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    min-height: 46px;
+  }
+
+  .oracle-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 14px;
+    background: #A7ADBA;
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: cursor-blink 0.7s ease infinite;
+  }
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Directive card */
+  .directive-card {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 74%;
+    z-index: 15;
+    border-radius: 18px;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    scale: 0.94;
+    transition: opacity 0.5s cubic-bezier(0.34,1.2,0.64,1), scale 0.5s cubic-bezier(0.34,1.2,0.64,1);
+    animation: none;
+  }
+  .directive-card.visible {
+    opacity: 1;
+    scale: 1;
+    animation: directive-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes directive-pulse {
+    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(255,107,91,0.3), 0 0 24px rgba(255,107,91,0.08); border-color: rgba(255,107,91,0.35); }
+    50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(255,107,91,0.7), 0 0 40px rgba(255,107,91,0.2); border-color: rgba(255,107,91,0.7); }
+  }
+
+  .directive-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    color: #FF6B5B;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .directive-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #F5F5F7;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .directive-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #FF6B5B 0%, #B14CFF 100%);
+    border: none;
+    color: #F5F5F7;
+    font-family: 'Bebas Neue', display;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .directive-btn:hover { opacity: 0.85; }
+
+  /* Outside controls */
+  .outside-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .outside-controls.visible { opacity: 1; }
+
+  .ctrl-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+    color: #A7ADBA;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ctrl-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: #F5F5F7;
+  }
+  .ctrl-btn.toggle-high { border-color: rgba(69,183,232,0.3); }
+  .ctrl-btn.toggle-low { border-color: rgba(244,162,97,0.3); }
+  .ctrl-btn.replay { border-color: rgba(177,76,255,0.3); }
+  .ctrl-btn.next { border-color: rgba(52,211,153,0.3); color: #34D399; }
+
+  /* Particle animation keyframes injected dynamically */
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const ORACLE = {
+  high: "Your body is a weapon. Today you forge it.",
+  low: "Rest is the work. Move gently. The streak holds."
+};
+
+const PHASES = ['void', 'gathering', 'resolving', 'oracle', 'directive', 'settled'];
+const PHASE_TIMES = { void: 0, gathering: 300, resolving: 1100, oracle: 1900, directive: 3600, settled: 4800 };
+
+function generateParticles(mode) {
+  return Array.from({ length: 24 }, (_, i) => {
+    const angle = (i / 24) * Math.PI * 2;
+    const radius = 140 + Math.random() * 60;
+    const startX = 201 + Math.cos(angle) * radius;
+    const startY = 437 + Math.sin(angle) * radius;
+    const endX = 201 + Math.cos(angle) * (18 + Math.random() * 20);
+    const endY = 437 + Math.sin(angle) * (18 + Math.random() * 20);
+    const size = 1.5 + Math.random() * 2.5;
+    const delay = Math.random() * 400;
+    const color = mode === 'high'
+      ? (Math.random() > 0.5 ? '#45B7E8' : '#2DD4BF')
+      : (Math.random() > 0.5 ? '#F4A261' : '#E9C46A');
+    return { id: i, startX, startY, endX, endY, size, delay, color };
+  });
+}
+
+function Particle({ p, active }) {
+  const style = {
+    left: p.startX,
+    top: p.startY,
+    width: p.size,
+    height: p.size,
+    background: p.color,
+    boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
+    opacity: 0,
+    transform: 'translate(-50%, -50%)',
+    transition: active
+      ? `left 1.8s cubic-bezier(0.25,1,0.5,1) ${p.delay}ms, top 1.8s cubic-bezier(0.25,1,0.5,1) ${p.delay}ms, opacity 0.4s ease ${p.delay}ms`
+      : 'none',
+    ...(active ? {
+      left: p.endX,
+      top: p.endY,
+      opacity: 0.7
+    } : {})
+  };
+  return <div className="particle" style={style} />;
+}
+
+function TypewriterText({ text, active, charDelay = 36, onDone }) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (!active) { setDisplayed(''); setDone(false); return; }
+    let idx = 0;
+    setDisplayed('');
+    setDone(false);
+    function tick() {
+      idx++;
+      setDisplayed(text.slice(0, idx));
+      if (idx < text.length) {
+        timerRef.current = setTimeout(tick, charDelay);
+      } else {
+        setDone(true);
+        if (onDone) onDone();
+      }
+    }
+    timerRef.current = setTimeout(tick, charDelay);
+    return () => clearTimeout(timerRef.current);
+  }, [active, text]);
+
+  return (
+    <span>
+      {displayed}
+      {!done && active && <span className="oracle-cursor" />}
+    </span>
+  );
+}
+
+function App() {
+  const [mode, setMode] = useState('high'); // 'high' | 'low'
+  const [phase, setPhase] = useState('void');
+  const [key, setKey] = useState(0);
+  const timersRef = useRef([]);
+
+  const isHigh = mode === 'high';
+  const readiness = isHigh ? 87 : 42;
+  const particles = React.useMemo(() => generateParticles(mode), [mode, key]);
+
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  }, []);
+
+  const runSequence = useCallback(() => {
+    clearTimers();
+    setPhase('void');
+    const entries = Object.entries(PHASE_TIMES);
+    entries.forEach(([p, t]) => {
+      const id = setTimeout(() => setPhase(p), t);
+      timersRef.current.push(id);
+    });
+  }, [mode, clearTimers]);
+
+  useEffect(() => {
+    runSequence();
+    return clearTimers;
+  }, [key, mode]);
+
+  const replay = useCallback(() => {
+    setKey(k => k + 1);
+  }, []);
+
+  const toggleMode = useCallback(() => {
+    setMode(m => m === 'high' ? 'low' : 'high');
+    setKey(k => k + 1);
+  }, []);
+
+  const phaseIdx = PHASES.indexOf(phase);
+
+  const envVisible = phaseIdx >= 1;
+  const particlesActive = phaseIdx >= 1;
+  const orbVisible = phaseIdx >= 2;
+  const readinessVisible = phaseIdx >= 3;
+  const oracleVisible = phaseIdx >= 3;
+  const directiveVisible = phaseIdx >= 4;
+  const controlsVisible = phaseIdx >= 5;
+
+  const envClass = isHigh ? 'cyan-dawn' : 'quiet-ember';
+  const accentClass = isHigh ? 'cyan' : 'ember';
+
+  return (
+    <div className="scene-wrapper">
+      {/* Phone */}
+      <div className="phone">
+        {/* Dynamic Island */}
+        <div className="dynamic-island" />
+
+        {/* Status bar */}
+        <div className="status-bar">
+          <span className="status-time">9:41</span>
+          <span className="status-app">JAM HQ</span>
+        </div>
+
+        {/* Screen */}
+        <div className="phone-screen">
+          {/* Environment gradient */}
+          <div className={`env-gradient ${envClass} ${envVisible ? 'visible' : ''}`} />
+
+          {/* Particles */}
+          <div className="particles-layer">
+            {particles.map(p => (
+              <Particle key={`${key}-${p.id}`} p={p} active={particlesActive} />
+            ))}
+          </div>
+
+          {/* The Self Orb */}
+          <div className={`orb-container ${orbVisible ? 'visible' : ''}`}>
+            <div className={`orb-outer ${isHigh ? '' : 'ember'}`} />
+            <div className={`orb-mid ${isHigh ? '' : 'ember'}`} />
+            <div className={`orb-core ${isHigh ? 'cyan-core' : 'ember-core'}`}>
+              <span className="orb-label">JM</span>
+            </div>
+          </div>
+
+          {/* Readiness block */}
+          <div
+            className={`readiness-block ${readinessVisible ? 'visible' : ''}`}
+            style={{ top: '50%' }}
+          >
+            <div className={`readiness-label ${accentClass}`}>
+              {isHigh ? '◆ CYAN DAWN · PEAK STATE' : '◆ QUIET EMBER · RESTORE'}
+            </div>
+            <div className={`readiness-score ${accentClass}`}>{readiness}</div>
+            <div className="readiness-mode">READINESS</div>
+          </div>
+
+          {/* Oracle text */}
+          <div className={`oracle-block ${oracleVisible ? 'visible' : ''}`}>
+            <div className="oracle-text">
+              <TypewriterText
+                key={`${key}-oracle`}
+                text={isHigh ? ORACLE.high : ORACLE.low}
+                active={oracleVisible}
+                charDelay={36}
+              />
+            </div>
+          </div>
+
+          {/* Directive card */}
+          <div className={`directive-card ${directiveVisible ? 'visible' : ''}`}>
+            <div className="directive-label">◉ TODAY'S DIRECTIVE · P0</div>
+            <div className="directive-text">
+              Film the B-twist tutorial — full breakdown for JayMuvs
+            </div>
+            <button className="directive-btn">MOVE →</button>
+          </div>
+        </div>
+
+        {/* Home indicator */}
+        <div className="home-indicator" />
+      </div>
+
+      {/* Outside controls */}
+      <div className={`outside-controls ${controlsVisible ? 'visible' : ''}`}>
+        <button
+          className={`ctrl-btn ${isHigh ? 'toggle-low' : 'toggle-high'}`}
+          onClick={toggleMode}
+        >
+          {isHigh ? '⬇ LOW · QUIET EMBER' : '⬆ HIGH · CYAN DAWN'}
+        </button>
+        <button className="ctrl-btn replay" onClick={replay}>
+          ↺ REPLAY
+        </button>
+        <a className="ctrl-btn next" href="c3-future-self.html">
+          C3 FUTURE SELF →
+        </a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>

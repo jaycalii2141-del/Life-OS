@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JAM HQ · Concept Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0B0D;
+    --text: #F5F5F7;
+    --muted: #A7ADBA;
+    --dim: #6B7280;
+    --cyan: #45B7E8;
+    --teal: #2DD4BF;
+    --lime: #34D399;
+    --gold: #E9C46A;
+    --orange: #F4A261;
+    --red: #FF6B5B;
+    --violet: #B14CFF;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* background mesh */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(69,183,232,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 75%, rgba(177,76,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(233,196,106,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+  }
+
+  /* header */
+  .header {
+    margin-bottom: 56px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 8vw, 72px);
+    letter-spacing: 0.04em;
+    line-height: 0.9;
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 60%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-meta {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 280px;
+    text-align: right;
+  }
+
+  /* divider */
+  .divider {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin-bottom: 48px;
+  }
+
+  /* section label */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 20px;
+  }
+
+  /* concept cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 56px;
+  }
+
+  .card {
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 300ms, background 300ms, box-shadow 300ms, transform 180ms;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent);
+    border-radius: 20px 20px 0 0;
+    opacity: 0.9;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--card-accent);
+    opacity: 0.04;
+    transition: opacity 300ms, transform 300ms;
+  }
+
+  .card:hover {
+    border-color: rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.05);
+    transform: translateY(-2px);
+  }
+
+  .card:hover::after {
+    opacity: 0.09;
+    transform: scale(1.2);
+  }
+
+  .card:hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      0 20px 60px -20px rgba(0,0,0,0.5);
+  }
+
+  .card-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--card-accent);
+    opacity: 0.8;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 2px;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted);
+  }
+
+  .card-cta {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--card-accent);
+    letter-spacing: 0.06em;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .arrow {
+    transition: transform 200ms;
+  }
+  .card:hover .arrow { transform: translateX(4px); }
+
+  /* coming soon card */
+  .card-soon {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .card-soon .card-cta {
+    color: var(--dim);
+  }
+
+  /* status badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+
+  .badge-live {
+    background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.3);
+    color: var(--lime);
+  }
+
+  .badge-soon {
+    background: rgba(107,114,128,0.12);
+    border: 1px solid rgba(107,114,128,0.2);
+    color: var(--dim);
+  }
+
+  .badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .badge-live .badge-dot {
+    animation: blink-dot 1.4s ease-in-out infinite;
+  }
+
+  @keyframes blink-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* sprint section */
+  .sprint-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+
+  .sprint-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sprint-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--dim);
+    min-width: 24px;
+  }
+
+  .sprint-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  /* footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 12px;
+  }
+
+  .footer-link {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-decoration: none;
+    transition: color 200ms;
+  }
+
+  .footer-link:hover { color: var(--muted); }
+
+  .footer-logo {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: 0.1em;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="eyebrow">JAM HQ · CONCEPT LAB</div>
+      <h1>NEXT<br>GEN</h1>
+    </div>
+    <div class="header-meta">
+      10 experiential concepts<br>
+      for the evolved JAM HQ.<br>
+      <span style="color: var(--dim);">Round 1 · Jun 2026</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- PRIORITY CONCEPTS -->
+  <div class="section-label">Priority Concepts · Round 1</div>
+  <div class="cards">
+
+    <!-- C1 -->
+    <a href="c1-arrival.html" class="card" style="--card-accent: var(--cyan);">
+      <span class="badge badge-live"><span class="badge-dot"></span>LIVE</span>
+      <div class="card-num">C1</div>
+      <div class="card-title">THE ARRIVAL</div>
+      <div class="card-sub">Cinematic morning ritual. The app opens like a world waking up around you.</div>
+      <div class="card-tags">
+        <span class="tag">Animation</span>
+        <span class="tag">Morning</span>
+        <span class="tag">Identity</span>
+      </div>
+      <div class="card-cta">
+        Open concept <span class="arrow">→</span>
+      </div>
+    </a>
+
+    <!-- C3 -->
+    <a href="c3-future-self.html" class="card" style="--card-accent: var(--violet);">
+      <span class="badge badge-live"><span class="badge-dot"></span>LIVE</span>
+      <div class="card-num">C3</div>
+      <div class="card-title">FUTURE SELF</div>
+      <div class="card-sub">Have a real conversation with the version of you who already made it.</div>
+      <div class="card-tags">
+        <span class="tag">AI</span>
+        <span class="tag">Dialogue</span>
+        <span class="tag">Identity</span>
+      </div>
+      <div class="card-cta">
+        Open concept <span class="arrow">→</span>
+      </div>
+    </a>
+
+    <!-- C4 -->
+    <a href="c4-seasons.html" class="card" style="--card-accent: var(--gold);">
+      <span class="badge badge-live"><span class="badge-dot"></span>LIVE</span>
+      <div class="card-num">C4</div>
+      <div class="card-title">SEASONS</div>
+      <div class="card-sub">Life in 12-week arcs. Each season has a theme, chapters, and a cinematic finale.</div>
+      <div class="card-tags">
+        <span class="tag">Progress</span>
+        <span class="tag">Narrative</span>
+        <span class="tag">Time</span>
+      </div>
+      <div class="card-cta">
+        Open concept <span class="arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- UPCOMING CONCEPTS -->
+  <div class="section-label" style="margin-top: 8px;">On Deck · Round 2</div>
+  <div class="cards">
+
+    <div class="card card-soon" style="--card-accent: var(--lime);">
+      <span class="badge badge-soon">SOON</span>
+      <div class="card-num">C2</div>
+      <div class="card-title">THE SIGNAL</div>
+      <div class="card-sub">Notifications as intelligence, not interruption.</div>
+      <div class="card-tags"><span class="tag">Notifications</span><span class="tag">Ambient</span></div>
+      <div class="card-cta">Coming next <span class="arrow">→</span></div>
+    </div>
+
+    <div class="card card-soon" style="--card-accent: var(--orange);">
+      <span class="badge badge-soon">SOON</span>
+      <div class="card-num">C5</div>
+      <div class="card-title">THE FORGE</div>
+      <div class="card-sub">Training session that feels like a ritual, not a log.</div>
+      <div class="card-tags"><span class="tag">Training</span><span class="tag">Ritual</span></div>
+      <div class="card-cta">Coming next <span class="arrow">→</span></div>
+    </div>
+
+    <div class="card card-soon" style="--card-accent: var(--red);">
+      <span class="badge badge-soon">SOON</span>
+      <div class="card-num">C6</div>
+      <div class="card-title">ONA PULSE</div>
+      <div class="card-sub">Real-time readiness and recovery dashboard.</div>
+      <div class="card-tags"><span class="tag">Health</span><span class="tag">Real-time</span></div>
+      <div class="card-cta">Coming next <span class="arrow">→</span></div>
+    </div>
+
+    <div class="card card-soon" style="--card-accent: var(--teal);">
+      <span class="badge badge-soon">SOON</span>
+      <div class="card-num">C7</div>
+      <div class="card-title">CONTENT OS</div>
+      <div class="card-sub">Idea to publish in one native flow.</div>
+      <div class="card-tags"><span class="tag">Content</span><span class="tag">Creator</span></div>
+      <div class="card-cta">Coming next <span class="arrow">→</span></div>
+    </div>
+
+    <div class="card card-soon" style="--card-accent: var(--violet);">
+      <span class="badge badge-soon">SOON</span>
+      <div class="card-num">C8</div>
+      <div class="card-title">JAM AI</div>
+      <div class="card-sub">Coach, strategist, editor — one unified voice.</div>
+      <div class="card-tags"><span class="tag">AI</span><span class="tag">Coach</span></div>
+      <div class="card-cta">Coming next <span class="arrow">→</span></div>
+    </div>
+
+    <div class="card card-soon" style="--card-accent: var(--cyan);">
+      <span class="badge badge-soon">SOON</span>
+      <div class="card-num">C9 · C10</div>
+      <div class="card-title">BECOMING<br>INDEX</div>
+      <div class="card-sub">Your identity score + legacy archive.</div>
+      <div class="card-tags"><span class="tag">Identity</span><span class="tag">Legacy</span></div>
+      <div class="card-cta">Coming next <span class="arrow">→</span></div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <a href="../index.html" class="footer-link">← Main App</a>
+    <div class="footer-logo">JAM HQ</div>
+    <span style="font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; color: var(--dim);">CONCEPT LAB · 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
