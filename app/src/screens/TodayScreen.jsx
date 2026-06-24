@@ -17,6 +17,7 @@ import { estimateLabel } from '../lib/mission.js';
 import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
 import { becomingLine } from '../lib/becoming.js';
 import { proactiveInsight } from '../lib/presence.js';
+import { evaluateMilestones } from '../lib/milestones.js';
 import { awardXp } from '../lib/xp.js';
 import { fireCeremony } from '../lib/ceremony.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
@@ -597,11 +598,23 @@ export function TodayScreen({
     try { setWins(recentWins()); } catch { /* first run */ }
   }, [doneIds, quests]);
 
+  // The identity milestone closest to unlocking (permanent once earned) —
+  // feeds the Presence so the day's nudge can name an identity within reach.
+  const [milestoneRecord] = useSyncedState('lifeos:milestones', {});
+  const nearMilestone = useMemo(() => {
+    try {
+      const list = evaluateMilestones({ becoming })
+        .map((m) => ({ ...m, done: m.done || !!milestoneRecord[m.id] }))
+        .filter((m) => !m.done);
+      return list.sort((a, b) => b.progress - a.progress)[0] || null;
+    } catch { return null; }
+  }, [becoming, milestoneRecord]);
+
   // The Presence — one proactive, unasked observation.
   const allDoneToday = missions.length > 0 && missions.every((m) => doneIds.includes(m.id));
   const insight = useMemo(() => {
-    try { return proactiveInsight({ oneThing: state.oneThing, allDone: allDoneToday, becoming, quests }); } catch { return null; }
-  }, [state.oneThing, allDoneToday, becoming, quests]);
+    try { return proactiveInsight({ oneThing: state.oneThing, allDone: allDoneToday, becoming, quests, nearMilestone }); } catch { return null; }
+  }, [state.oneThing, allDoneToday, becoming, quests, nearMilestone]);
 
   // Real calendar events for today (read-only).
   const [calendarEvents, setCalendarEvents] = useState([]);
@@ -652,8 +665,13 @@ export function TodayScreen({
         }}>
           <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--cyan)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--cyan)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mono" style={{ fontSize: 8.5, color: 'var(--cyan)', letterSpacing: '0.14em', marginBottom: 3 }}>PRESENCE</div>
+            <div className="mono" style={{ fontSize: 8.5, color: 'var(--cyan)', letterSpacing: '0.14em', marginBottom: 3 }}>{insight.milestone ? 'PRESENCE · IDENTITY WITHIN REACH' : 'PRESENCE'}</div>
             <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{insight.text}</div>
+            {insight.milestone && (
+              <div style={{ marginTop: 8 }}>
+                <ProgressBar value={insight.milestone.progress} color={insight.milestone.accent || '#45B7E8'} height={3} />
+              </div>
+            )}
           </div>
           <IconChevronRight size={14} color="var(--dim)" style={{ flexShrink: 0, marginTop: 3 }} />
         </div>

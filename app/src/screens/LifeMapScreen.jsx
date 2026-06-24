@@ -22,6 +22,8 @@ import { snapshot } from '../lib/mission.js';
 import { lifeLevel } from '../lib/level.js';
 import { becomingLine } from '../lib/becoming.js';
 import { TheSelf } from '../components/TheSelf.jsx';
+import { BecomingTimeLapse } from '../components/BecomingTimeLapse.jsx';
+import { evaluateMilestones } from '../lib/milestones.js';
 
 function folderForDomain(folders, domain) {
   let f = folders.find((x) => x.domain === domain);
@@ -296,6 +298,9 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const [draft, setDraft] = useState('');
   const [openDomain, setOpenDomain] = useState(null);
   const [menuDomain, setMenuDomain] = useState(null);
+  const [timeLapseOpen, setTimeLapseOpen] = useState(false);
+  const [identityOpen, setIdentityOpen] = useState(false);
+  const [milestones] = useSyncedState('lifeos:milestones', {});
 
   const scores = useMemo(() => { try { return domainScores(); } catch { return {}; } }, [openDomain, learning, adventure]);
   const alignment = useMemo(() => { try { return alignmentScore(scores); } catch { return null; } }, [scores]);
@@ -303,6 +308,23 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const selfFacets = useMemo(() => LIFE_MAP_DOMAINS.map((d) => ({ id: d.id, score: scores[d.id]?.score ?? 0 })), [scores]);
   const [selfHistory] = useSyncedState('lifeos:self-history', {});
   const evolution = useMemo(() => Object.keys(selfHistory).sort().map((k) => selfHistory[k]?.becoming ?? 0).filter((v) => typeof v === 'number'), [selfHistory]);
+
+  // Identity milestones — the catalog with current earned/progress, merged
+  // with the date each was first crossed (from the synced record).
+  const milestoneList = useMemo(() => {
+    try {
+      return evaluateMilestones({ scores, becoming }).map((m) => {
+        // Identity unlocks are permanent: once earned (recorded), they stay
+        // earned even if a live metric later dips below the threshold.
+        const earnedAt = milestones[m.id]?.earnedAt;
+        const done = m.done || !!earnedAt;
+        return { ...m, done, progress: done ? 100 : m.progress, earnedAt };
+      });
+    } catch { return []; }
+  }, [scores, becoming, milestones]);
+  const earnedMilestones = milestoneList.filter((m) => m.done);
+  const latestMilestone = [...earnedMilestones].sort((a, b) => (b.earnedAt || '').localeCompare(a.earnedAt || ''))[0];
+  const nextMilestone = milestoneList.filter((m) => !m.done).sort((a, b) => b.progress - a.progress)[0];
 
   const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
   const triaged = (captures || []).filter((c) => c.status === 'triaged');
@@ -343,9 +365,44 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
         <div style={{ textAlign: 'center', marginTop: -4 }}>
           <div style={{ fontSize: 12.5, color: 'var(--text-2)', padding: '0 16px', textWrap: 'pretty' }}>{becomingLine(becoming)}</div>
           {evolution.length >= 2 && (
-            <div style={{ width: '82%', margin: '12px auto 0' }}>
+            <div className="pressable" onClick={() => { setTimeLapseOpen(true); logEvent('map', 'timelapse'); }}
+              style={{ width: '82%', margin: '12px auto 0', cursor: 'pointer' }}>
               <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.14em', marginBottom: 5 }}>BECOMING · {evolution.length}-DAY EVOLUTION</div>
               <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
+              <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 6 }}>▶ tap to replay the time-lapse</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Identity — the milestones you've crossed becoming who you are */}
+      {milestoneList.length > 0 && (
+        <div className="hud glass pressable" onClick={() => { setIdentityOpen(true); logEvent('map', 'identity'); }}
+          style={{ borderRadius: 18, padding: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Identity · who you've become</div>
+            <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{earnedMilestones.length}/{milestoneList.length}</span>
+          </div>
+          {latestMilestone ? (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <IconCheck size={15} color={latestMilestone.accent} stroke={2.6} />
+                <span className="display" style={{ fontSize: 17, color: 'var(--text)' }}>{latestMilestone.name}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 3 }}>{latestMilestone.statement}</div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 8 }}>
+              No identity milestones yet — the evidence is building. Tap to see what you're closest to becoming.
+            </div>
+          )}
+          {nextMilestone && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                <span className="eyebrow" style={{ color: 'var(--dim)' }}>Next · {nextMilestone.name}</span>
+                <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{nextMilestone.progress}%</span>
+              </div>
+              <ProgressBar value={nextMilestone.progress} color={nextMilestone.accent} height={3} />
             </div>
           )}
         </div>
@@ -469,8 +526,78 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
         ctx={{ scores, readiness, trend, history, folders, onGoTab, onOpenReview, onOpenUpgrade, learning, setLearning, adventure, setAdventure }}
       />
 
+      <BecomingTimeLapse
+        open={timeLapseOpen}
+        onClose={() => setTimeLapseOpen(false)}
+        selfHistory={selfHistory}
+        liveFacets={selfFacets}
+        liveBecoming={becoming?.score ?? 0}
+        liveLevel={lvl?.level}
+        liveTrend={becoming?.trend}
+      />
+
+      <IdentitySheet open={identityOpen} onClose={() => setIdentityOpen(false)} list={milestoneList} earnedCount={earnedMilestones.length} />
+
       <div style={{ height: 80 }} />
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Identity sheet — the full milestone catalog: earned (dated) + the
+// ones you're still becoming (with how close you are).
+// ─────────────────────────────────────────────────────────
+function fmtMilestoneDate(key) {
+  if (!key) return '';
+  const [y, m, d] = key.split('-').map(Number);
+  if (!y) return '';
+  return new Date(y, (m || 1) - 1, d || 1).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function IdentitySheet({ open, onClose, list, earnedCount }) {
+  if (!open) return null;
+  const earned = list.filter((m) => m.done);
+  const locked = list.filter((m) => !m.done).sort((a, b) => b.progress - a.progress);
+  return (
+    <Sheet open={open} onClose={onClose} maxHeight="86%">
+      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <div className="eyebrow" style={{ color: 'var(--cyan)' }}>IDENTITY · WHO YOU'VE BECOME</div>
+        <div className="display" style={{ fontSize: 24, marginTop: 3 }}>{earnedCount} OF {list.length} UNLOCKED</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>Earned from real evidence — never self-reported.</div>
+      </div>
+
+      {earned.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          {earned.map((m) => (
+            <div key={m.id} className="hud glass" style={{ borderRadius: 14, padding: 13, marginBottom: 9, borderLeft: `2px solid ${m.accent}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <IconCheck size={16} color={m.accent} stroke={2.6} />
+                <span className="display" style={{ fontSize: 17, color: 'var(--text)', flex: 1 }}>{m.name}</span>
+                {m.earnedAt && <span className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em' }}>{fmtMilestoneDate(m.earnedAt)}</span>}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 4 }}>{m.statement}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {locked.length > 0 && (
+        <div>
+          <div className="eyebrow" style={{ color: 'var(--dim)', marginBottom: 8 }}>Still becoming</div>
+          {locked.map((m) => (
+            <div key={m.id} className="hud glass-canvas" style={{ borderRadius: 14, padding: 13, marginBottom: 9, opacity: 0.92 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-2)' }}>{m.name}</span>
+                <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{m.progress}%</span>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--dim)', lineHeight: 1.4, margin: '4px 0 9px' }}>{m.hint}</div>
+              <ProgressBar value={m.progress} color={m.accent} height={3} />
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ height: 80 }} />
+    </Sheet>
   );
 }
 

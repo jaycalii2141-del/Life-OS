@@ -33,6 +33,7 @@ import { earnedFreezes, healFreezes, freezeState } from './lib/streak.js';
 import { becomingIndex } from './lib/becoming.js';
 import { lifeLevel } from './lib/level.js';
 import { fireCeremony } from './lib/ceremony.js';
+import { qualifyingMilestoneIds, MILESTONE_BY_ID } from './lib/milestones.js';
 import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
@@ -169,6 +170,10 @@ function MainApp() {
   // Level-up ceremony — fire when the Life Level crosses a new threshold.
   const [lastLevel, setLastLevel] = useSyncedState('lifeos:last-level', null);
 
+  // Identity milestones — the "who you've become" unlocks (see lib/milestones.js).
+  // Earned ids are remembered with the date crossed; a new one fires a ceremony.
+  const [milestones, setMilestones] = useSyncedState('lifeos:milestones', {});
+
   // App settings (e.g. connected Google Calendar iCal link).
   const [settings, setSettings] = useSyncedState('lifeos:settings', {});
 
@@ -205,15 +210,24 @@ function MainApp() {
   let becoming = null;
   try { becoming = becomingIndex(); } catch { /* first run */ }
 
-  // Record today's Self snapshot (becoming + level) for the time-lapse.
+  // Record today's Self snapshot for the time-lapse. We store the eight
+  // facet scores + trend (not just the number) so the Self's SHAPE — not
+  // only its glow — can be replayed across time.
   useEffect(() => {
     try {
       const b = becomingIndex();
       const lvl = lifeLevel();
       setSelfHistory((h) => {
         const cur = h[today];
-        const next = { becoming: b.score, level: lvl.level };
-        if (cur && cur.becoming === next.becoming && cur.level === next.level) return h;
+        const next = {
+          becoming: b.score,
+          level: lvl.level,
+          trend: b.trend,
+          facets: (b.facets || []).map((f) => ({ id: f.id, score: f.score })),
+        };
+        // Re-write if the day is new, the numbers moved, or this is an
+        // older facet-less snapshot being upgraded in place.
+        if (cur && cur.becoming === next.becoming && cur.level === next.level && cur.facets) return h;
         return { ...h, [today]: next };
       });
     } catch { /* first run */ }
@@ -230,6 +244,28 @@ function MainApp() {
     } catch { /* */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayScore, doneCount, sessions]);
+
+  // Identity milestones — detect newly-earned thresholds. On the very first
+  // run we backfill what already qualifies SILENTLY (no ceremony storm from
+  // existing data); after that, crossing one fires a single ceremony.
+  useEffect(() => {
+    let qualifying;
+    try { qualifying = qualifyingMilestoneIds({ becoming }); } catch { return; }
+    const seeded = !!milestones._seeded;
+    const newlyEarned = qualifying.filter((id) => !milestones[id]);
+    if (seeded && !newlyEarned.length) return;
+    setMilestones((prev) => {
+      const next = { ...prev };
+      qualifying.forEach((id) => { if (!next[id]) next[id] = { earnedAt: today }; });
+      if (!prev._seeded) next._seeded = today;
+      return next;
+    });
+    if (seeded && newlyEarned.length) {
+      const m = MILESTONE_BY_ID[newlyEarned[0]];
+      if (m) fireCeremony({ kicker: 'IDENTITY UNLOCKED', title: m.name, subtitle: m.statement });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayScore, doneCount, sessions, becoming?.score]);
 
   // Untriaged captures → a gentle badge on the Life tab.
   const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
