@@ -24,6 +24,7 @@ import { becomingLine } from '../lib/becoming.js';
 import { TheSelf } from '../components/TheSelf.jsx';
 import { BecomingTimeLapse } from '../components/BecomingTimeLapse.jsx';
 import { evaluateMilestones } from '../lib/milestones.js';
+import { crossDomainInsight } from '../lib/crossDomain.js';
 
 function folderForDomain(folders, domain) {
   let f = folders.find((x) => x.domain === domain);
@@ -326,6 +327,9 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const latestMilestone = [...earnedMilestones].sort((a, b) => (b.earnedAt || '').localeCompare(a.earnedAt || ''))[0];
   const nextMilestone = milestoneList.filter((m) => !m.done).sort((a, b) => b.progress - a.progress)[0];
 
+  // Cross-domain pattern — one strategic observation across domains over time.
+  const crossInsight = useMemo(() => { try { return crossDomainInsight(selfHistory); } catch { return null; } }, [selfHistory]);
+
   const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
   const triaged = (captures || []).filter((c) => c.status === 'triaged');
 
@@ -423,6 +427,23 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
           />
         );
       })()}
+
+      {/* Cross-domain pattern — the Presence connects domains over time.
+          Tap to step into the domain it's pointing at. */}
+      {crossInsight && (
+        <div className="pressable" onClick={() => { setOpenDomain(crossInsight.domainId); logEvent('map', 'pattern', crossInsight.kind); }}
+          style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 14,
+            background: 'rgba(45,212,191,0.05)', border: '1px solid rgba(45,212,191,0.22)',
+          }}>
+          <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--violet)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--violet)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="mono" style={{ fontSize: 8.5, color: 'var(--violet)', letterSpacing: '0.14em', marginBottom: 3 }}>PRESENCE · PATTERN</div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{crossInsight.text}</div>
+          </div>
+          <IconArrowRight size={14} color="var(--dim)" style={{ flexShrink: 0, marginTop: 3 }} />
+        </div>
+      )}
 
       {/* Balance — the same eight domains read as a single shape. A
           lopsided web shows instantly where life is out of balance. */}
