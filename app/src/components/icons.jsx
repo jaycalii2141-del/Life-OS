@@ -60,7 +60,7 @@ const IconPulse = (p) => <Ico {...p}><path d="M3 12h4l2-6 4 14 2.5-8H21" /></Ico
 const DOMAIN_ICON = {
   athlete: IconBolt, business: IconTrendUp, relationships: IconHeart, health: IconPulse,
   creativity: IconPlay, learning: IconBook, adventure: IconGlobe, growth: IconCompass,
-  ona: IconNinja, podium: IconTrendUp, social: IconPlay, self: IconCompass, movement: IconBolt,
+  ona: IconNinja, podium: IconTrendUp, social: IconPlay, self: IconCompass, movement: IconBolt, wife: IconHeart,
 };
 const KIND_ICON = { focus: IconTarget, train: IconBolt, build: IconTrendUp, ritual: IconCompass };
 function domainIcon(id) { return DOMAIN_ICON[id] || IconCircle; }

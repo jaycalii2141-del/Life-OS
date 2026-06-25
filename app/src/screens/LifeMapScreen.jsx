@@ -516,7 +516,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
                 const dd = LIFE_DOMAINS.find((x) => x.id === c.domain);
                 return (
                   <div key={c.id} className="card card-quiet" style={{ padding: '9px 13px', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 13 }}>{dd?.emoji || '•'}</span>
+                    {(() => { const I = domainIcon(c.domain); return <I size={14} stroke={1.8} color={dd?.color || 'var(--dim)'} style={{ flexShrink: 0 }} />; })()}
                     <div style={{ flex: 1, fontSize: 13, color: 'var(--muted)' }}>{c.text}</div>
                     <span className="mono" style={{ fontSize: 9, color: dd?.color || 'var(--dim)' }}>{dd?.name || c.domain}</span>
                   </div>
@@ -636,9 +636,10 @@ function RouteRow({ c, onRoute, onArchive }) {
           const suggested = d.id === c.tag;
           return (
             <div key={d.id} className="pressable" onClick={() => onRoute(d.id)} style={{
-              padding: '7px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+              padding: '7px 11px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+              display: 'inline-flex', alignItems: 'center', gap: 5,
               background: `${d.color}${suggested ? '2e' : '1a'}`, border: `1px solid ${d.color}${suggested ? 'cc' : '66'}`, color: d.color,
-            }}>{suggested ? '★ ' : ''}{d.emoji} {d.name}</div>
+            }}>{suggested ? '★' : ''}{(() => { const I = domainIcon(d.id); return <I size={13} stroke={1.9} />; })()} {d.name}</div>
           );
         })}
         <div className="pressable" onClick={() => setRouting(false)} style={{ padding: '7px 10px', borderRadius: 999, color: 'var(--muted)', border: '1px solid var(--line)', fontSize: 11 }}>cancel</div>
