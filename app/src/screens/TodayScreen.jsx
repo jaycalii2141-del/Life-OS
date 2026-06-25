@@ -75,38 +75,37 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
   };
 
   return (
-    <div className="hud glass-strong mesh-readiness" style={{ padding: '18px 16px 16px', borderRadius: 22, position: 'relative', overflow: 'visible' }}>
+    <div className="hud glass-strong mesh-readiness" style={{ padding: '24px 18px 18px', borderRadius: 'var(--r-xl)', position: 'relative', overflow: 'visible' }}>
       <ConfettiBurst trigger={party} />
 
-      {/* header — greeting + the cockpit's one number (Becoming) + who you're becoming */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <span className="eyebrow">{realDateLabel()}</span>
-          <div style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em', marginTop: 3 }}>{greetingLabel()}</div>
-          {becoming && (
-            <div style={{ fontSize: 11.5, color: 'var(--text-2)', marginTop: 4, lineHeight: 1.3, textWrap: 'pretty' }}>{becomingLine(becoming)}</div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 8, flexWrap: 'wrap' }}>
-            {readiness != null && (
-              <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>READY {readiness}</span>
-            )}
-            {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconFlame size={11} color="var(--gold)" /> {streak} DAY</span>}
-            {becoming && becoming.delta !== 0 && (
-              <span className="mono" style={{ fontSize: 10, letterSpacing: '0.08em', color: becoming.trend === 'rising' ? 'var(--lime)' : becoming.trend === 'dipping' ? 'var(--ona-red)' : 'var(--muted)' }}>
-                {becoming.delta > 0 ? '▲+' : '▼'}{Math.abs(becoming.delta)} · 7D
-              </span>
-            )}
-          </div>
-        </div>
+      {/* Ritual header — you arrive to The Self: large, centered, breathing.
+          One column with generous rhythm; the day's emotional centerpiece,
+          not a metric tucked in a corner. (Bridge reframe; damn-moment #1.) */}
+      <div className="center" style={{ paddingTop: 'var(--space-1)' }}>
+        <span className="eyebrow">{realDateLabel()}</span>
         {becoming && (
-          <div style={{ flexShrink: 0 }}>
-            {/* The Self — the signature artifact, here at the heart of the Bridge.
-                Its shape is your identity, its glow your Becoming; the day
-                closing brightens it. Same living object as the Life Map. */}
-            <TheSelf facets={becoming.facets} becoming={becoming.score} level={level} trend={becoming.trend} size={88} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-3)' }}>
+            <TheSelf facets={becoming.facets} becoming={becoming.score} level={level} trend={becoming.trend} size={136} />
           </div>
         )}
+        <div style={{ fontSize: 'var(--text-xl)', fontWeight: 650, letterSpacing: '-0.01em', marginTop: 'var(--space-3)' }}>{greetingLabel()}</div>
+        {becoming && (
+          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginTop: 'var(--space-1)', lineHeight: 1.35, textWrap: 'pretty', maxWidth: 280, marginInline: 'auto' }}>{becomingLine(becoming)}</div>
+        )}
+        <div className="row" style={{ justifyContent: 'center', gap: 'var(--space-3)', marginTop: 'var(--space-3)', flexWrap: 'wrap' }}>
+          {readiness != null && (
+            <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>READY {readiness}</span>
+          )}
+          {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconFlame size={11} color="var(--gold)" /> {streak} DAY</span>}
+          {becoming && becoming.delta !== 0 && (
+            <span className="mono" style={{ fontSize: 10, letterSpacing: '0.08em', color: becoming.trend === 'rising' ? 'var(--lime)' : becoming.trend === 'dipping' ? 'var(--ona-red)' : 'var(--muted)' }}>
+              {becoming.delta > 0 ? '▲+' : '▼'}{Math.abs(becoming.delta)} · 7D
+            </span>
+          )}
+        </div>
       </div>
+
+      <hr className="hr" style={{ margin: 'var(--space-5) 0 0' }} />
 
       {/* progress line */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, marginBottom: 6 }}>
@@ -649,7 +648,7 @@ export function TodayScreen({
   };
 
   return (
-    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
       <MissionCard
         missions={missions}
         doneIds={doneIds}
