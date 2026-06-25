@@ -38,6 +38,7 @@ import { useAuth } from './auth/AuthProvider.jsx';
 import LoginScreen from './auth/LoginScreen.jsx';
 import { SyncBadge } from './SyncBadge.jsx';
 import { Onboarding } from './Onboarding.jsx';
+import { SetupFlow } from './SetupFlow.jsx';
 import { BootSplash } from './BootSplash.jsx';
 import { Companion, CompanionLauncher } from './Companion.jsx';
 
@@ -89,6 +90,7 @@ function MainApp() {
   const [tab, setTab] = useState('today');
   const [capture, setCapture] = useState({ open: false, voice: false });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -377,6 +379,7 @@ function MainApp() {
               onSetIcal={(url) => setSettings((s) => ({ ...s, icalUrl: url }))}
               vibe={vibe}
               onSetVibe={setVibe}
+              onOpenSetup={() => { setSettingsOpen(false); setSetupOpen(true); }}
             />
           )}
           {calendarOpen && (
@@ -391,6 +394,7 @@ function MainApp() {
         </Suspense>
 
         {!onboarded && <Onboarding onDone={() => setOnboarded(true)} />}
+        <SetupFlow open={setupOpen} onClose={() => setSetupOpen(false)} />
         {booting && <BootSplash onDone={() => setBooting(false)} />}
       </div>
     </IOSDevice>

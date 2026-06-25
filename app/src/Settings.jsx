@@ -1,6 +1,6 @@
 // Settings sheet — account, data export, and app info.
 import { useState } from 'react';
-import { IconClose, IconDownload, IconCheck } from './components/icons.jsx';
+import { IconClose, IconDownload, IconCheck, IconSliders } from './components/icons.jsx';
 import { useAuth } from './auth/AuthProvider.jsx';
 import { Sheet } from './components/Sheet.jsx';
 import { nudgesEnabled, enableNudges, disableNudges, confirmNudge, notificationsSupported } from './lib/nudges.js';
@@ -30,7 +30,7 @@ const rowStyle = {
   background: 'rgba(255,255,255,0.04)', border: '1px solid var(--line)',
 };
 
-export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onSetVibe }) {
+export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onSetVibe, onOpenSetup }) {
   const { configured, session, signOut } = useAuth();
   const [exported, setExported] = useState(false);
   const [cal, setCal] = useState(icalUrl || '');
@@ -161,23 +161,19 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
 
         {/* Make it yours — real data calibration */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>Make it yours</div>
-        <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 9, marginBottom: 18 }}>
+        <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 11, marginBottom: 18 }}>
           <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
-            Your <span style={{ color: 'var(--text)' }}>Becoming</span> score and the AI are only as true as your data. Replace the starter numbers with your real life:
+            Your <span style={{ color: 'var(--text)' }}>Becoming</span> score and the AI are only as true as your data. Run setup to replace the starter numbers with your real ONA, Podium, and content.
           </div>
-          {[
-            ['ONA & business numbers', 'Build → ONA · tap any metric to edit'],
-            ['Your real goals', 'Command → New Goal · or tap a campaign'],
-            ['Skill levels', 'Move → tap a skill to set its %'],
-          ].map(([t, where]) => (
-            <div key={t} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ color: 'var(--cyan)', fontWeight: 800, fontSize: 12, flexShrink: 0 }}>▸</span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: 'var(--text)' }}>{t}</div>
-                <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.06em', marginTop: 1 }}>{where.toUpperCase()}</div>
-              </div>
-            </div>
-          ))}
+          <div className="pressable" onClick={() => { onClose?.(); onOpenSetup?.(); }} style={{
+            height: 46, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', color: '#0A0B0D', fontWeight: 800, fontSize: 13, letterSpacing: '0.04em',
+          }}>
+            <IconSliders size={16} /> Set up my data
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--dim)', lineHeight: 1.5 }}>
+            Skills (Move), goals (Command), and life domains (Map) are fine-tuned where you live in them.
+          </div>
         </div>
 
         {/* Data */}
