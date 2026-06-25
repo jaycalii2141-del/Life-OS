@@ -1,15 +1,16 @@
 // ─────────────────────────────────────────────────────────
 // The Self — the living identity artifact at the heart of JAM HQ.
 //
-// Its SHAPE is your eight-domain balance (each facet pushes the aura out),
-// its GLOW is your Becoming, its EDGE COLOR is your trajectory, and it
-// breathes. The emotional centerpiece of the Becoming Engine — the thing
-// that visually represents who you're becoming.
+// Its SHAPE is your eight-domain balance, its GLOW is your Becoming, its
+// EDGE is your trajectory — and it's genuinely alive: the aura morphs on a
+// spring as your facets shift, breathes with an organic idle, and resolves
+// with a soft spring when it arrives. Physics by Framer Motion.
 // ─────────────────────────────────────────────────────────
 import { useCountUp } from './atoms.jsx';
+import { motion, useReducedMotion } from 'framer-motion';
 
 // A smooth, closed Catmull-Rom curve through the points — an organic aura
-// instead of a faceted polygon.
+// instead of a faceted polygon. Stable command structure so it can morph.
 function smoothClosed(p) {
   const n = p.length;
   if (n < 3) return '';
@@ -40,13 +41,22 @@ export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', si
   // Mood light — refined aqua / neutral / ember (not a stoplight). The Self
   // emits it and the canvas borrows the same hue, so it reads as the source.
   const moodColor = trend === 'rising' ? '#57C9D2' : trend === 'dipping' ? '#E0A968' : '#5BB6DE';
-  const trendColor = moodColor;
-  // Glow intensity scales with Becoming — the brighter you are, the brighter the Self.
   const glow = `drop-shadow(0 0 ${10 + (becoming || 0) / 5}px ${moodColor}80)`;
+  const reduce = useReducedMotion();
 
   return (
-    <div style={{ position: 'relative', width: size, height: size }}>
-      <svg className="self-breathe" width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block', overflow: 'visible', filter: glow }}>
+    <motion.div
+      initial={{ scale: 0.92, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 150, damping: 17 }}
+      style={{ position: 'relative', width: size, height: size }}
+    >
+      <motion.svg
+        width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+        style={{ display: 'block', overflow: 'visible', filter: glow, transformOrigin: 'center' }}
+        animate={reduce ? undefined : { scale: [1, 1.03, 1], y: [0, -size * 0.008, 0] }}
+        transition={reduce ? undefined : { duration: 6.5, repeat: Infinity, ease: 'easeInOut' }}
+      >
         <defs>
           <radialGradient id="selfFill" cx="50%" cy="45%" r="60%">
             <stop offset="0%" stopColor="rgba(69,183,232,0.45)" />
@@ -56,16 +66,21 @@ export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', si
         </defs>
         {/* faint outer boundary — the space you could fill */}
         <circle cx={cx} cy={cy} r={maxR} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-        {/* the Self — your shape */}
-        <path d={blob} fill="url(#selfFill)" stroke={trendColor} strokeWidth="1.6" strokeLinejoin="round" opacity="0.95" />
+        {/* the Self — your shape, morphing on a spring as facets change */}
+        <motion.path
+          d={blob}
+          animate={{ d: blob }}
+          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+          fill="url(#selfFill)" stroke={moodColor} strokeWidth="1.6" strokeLinejoin="round" opacity="0.95"
+        />
         {/* core */}
         <circle cx={cx} cy={cy} r={baseR * 0.92} fill="rgba(10,11,13,0.55)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-      </svg>
+      </motion.svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
         <div className="display" style={{ fontSize: size * 0.2, lineHeight: 1, color: 'var(--text)' }}>{shown}</div>
         <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 2 }}>BECOMING</div>
         {level != null && <div className="mono" style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.12em', marginTop: 3 }}>LV {level}</div>}
       </div>
-    </div>
+    </motion.div>
   );
 }

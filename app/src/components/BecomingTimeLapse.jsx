@@ -114,8 +114,8 @@ export function BecomingTimeLapse({ open, onClose, selfHistory = {}, liveFacets 
 
         {/* The Self for this day */}
         <div style={{ margin: '18px auto 6px', width: 200, height: 200 }}>
-          {/* key forces a fresh count-up/morph as the frame changes */}
-          <TheSelf key={cur.key} facets={facets} becoming={cur.becoming} level={cur.level} trend={trend} size={200} />
+          {/* no key — The Self now morphs smoothly between frames on its spring */}
+          <TheSelf facets={facets} becoming={cur.becoming} level={cur.level} trend={trend} size={200} />
         </div>
 
         {/* Scrubber */}
