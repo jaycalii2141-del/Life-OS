@@ -9,7 +9,7 @@
 // what to do next, what can wait, and how the campaign is going.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect, useMemo } from 'react';
-import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, Sparkline } from '../components/atoms.jsx';
+import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate, dayComplete } from '../lib/haptics.js';
@@ -20,6 +20,7 @@ import { lifeLevel } from '../lib/level.js';
 import { proactiveInsight } from '../lib/presence.js';
 import { evaluateMilestones } from '../lib/milestones.js';
 import { TheSelf } from '../components/TheSelf.jsx';
+import { EmptyState } from '../components/ui.jsx';
 import { awardXp } from '../lib/xp.js';
 import { fireCeremony } from '../lib/ceremony.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
@@ -313,28 +314,43 @@ function CampaignCard({ q, open, onToggleOpen, onToggleMilestone, onLongPress, m
 function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
   const [openId, setOpenId] = useState(null);
   const [menuQuest, setMenuQuest] = useState(null);
+  const [showAll, setShowAll] = useState(false);
   const active = quests.filter((q) => questProgress(q) < 100);
+  // Show a calm few by default; the rest are one tap away (density cut).
+  const shown = showAll ? active : active.slice(0, 3);
   const openRoadmap = (id) => setOpenId((cur) => (cur === id ? cur : id));
 
   return (
-    <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+    <div className="card">
+      <div className="row-between" style={{ marginBottom: 'var(--space-3)' }}>
         <span className="eyebrow" style={{ color: 'var(--gold)' }}>Missions</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="row">
           <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{active.length} CAMPAIGNS</span>
-          <div className="pressable" onClick={onNewGoal} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 999, background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)', color: 'var(--cyan)', fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
+          <div className="pressable" onClick={onNewGoal} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 'var(--r-pill)', background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)', color: 'var(--cyan)', fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
             <IconSparkles size={11} /> NEW GOAL
           </div>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {active.map((q) => (
-          <CampaignCard key={q.id} q={q} open={openId === q.id} menuOpen={menuQuest?.id === q.id}
-            onToggleOpen={(id) => setOpenId(openId === id ? null : id)}
-            onToggleMilestone={onToggleMilestone}
-            onLongPress={setMenuQuest} />
-        ))}
-      </div>
+      {active.length === 0 ? (
+        <EmptyState title="No campaigns yet">Name a goal worth months of your life — the Self grows each time you close one of its milestones.</EmptyState>
+      ) : (
+        <>
+          <div className="stack-2">
+            {shown.map((q) => (
+              <CampaignCard key={q.id} q={q} open={openId === q.id} menuOpen={menuQuest?.id === q.id}
+                onToggleOpen={(id) => setOpenId(openId === id ? null : id)}
+                onToggleMilestone={onToggleMilestone}
+                onLongPress={setMenuQuest} />
+            ))}
+          </div>
+          {active.length > 3 && (
+            <div className="pressable center" onClick={() => setShowAll((s) => !s)}
+              style={{ marginTop: 'var(--space-3)', fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.1em', fontWeight: 700, color: 'var(--cyan)' }}>
+              {showAll ? 'SHOW LESS' : `SHOW ALL ${active.length}`}
+            </div>
+          )}
+        </>
+      )}
 
       <ObjectMenu
         open={!!menuQuest}
@@ -354,7 +370,7 @@ function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
 function WinsStrip({ wins }) {
   if (!wins.length) return null;
   return (
-    <div className="hud glass" style={{ padding: '12px 14px', borderRadius: 16, border: '1px solid rgba(52,211,153,0.2)' }}>
+    <div className="card" style={{ borderColor: 'rgba(52,211,153,0.2)' }}>
       <span className="eyebrow" style={{ color: 'var(--lime)' }}>Recent wins</span>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
         {wins.map((w, i) => (
@@ -373,9 +389,9 @@ function WinsStrip({ wins }) {
 // ─────────────────────────────────────────────────────────
 function AskBar({ onOpen }) {
   return (
-    <div className="pressable hud glass" onClick={() => onOpen(false)} style={{
-      padding: '13px 14px', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 10,
-      border: '1px solid rgba(45,212,191,0.3)',
+    <div className="pressable card" onClick={() => onOpen(false)} style={{
+      display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
+      borderColor: 'rgba(45,212,191,0.3)',
     }}>
       <div style={{ width: 28, height: 28, borderRadius: 9, background: 'linear-gradient(135deg, #2DD4BF, #45B7E8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D', flexShrink: 0 }}>
         <IconSparkles size={15} />
@@ -397,7 +413,7 @@ function AskBar({ onOpen }) {
 function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
   const [open, setOpen] = useState(!state.checkedIn);
   return (
-    <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
+    <div className="card">
       <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span className="eyebrow">Check-in</span>
@@ -434,7 +450,7 @@ function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
 function MomentumStrip({ momentum = [], streak = 0, freezes }) {
   const avail = freezes?.available ?? 0;
   return (
-    <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
+    <div className="card">
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
           <span className="eyebrow">Momentum</span>
@@ -450,11 +466,6 @@ function MomentumStrip({ momentum = [], streak = 0, freezes }) {
           <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14D</span>
         </div>
       </div>
-      {momentum.length > 1 && (
-        <div style={{ marginBottom: 9, opacity: 0.9 }}>
-          <Sparkline data={momentum} width={304} height={28} color="#E9C46A" />
-        </div>
-      )}
       <div style={{ display: 'flex', gap: 4 }}>
         {momentum.map((v, i) => {
           const isToday = i === momentum.length - 1;
