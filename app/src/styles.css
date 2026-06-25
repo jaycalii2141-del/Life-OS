@@ -761,6 +761,15 @@ html[data-vibe="calm"] svg polygon { filter: none !important; }
 /* a touch more breathing room between cards */
 html[data-vibe="calm"] .screen-content { padding: 0 18px; }
 
+/* De-chrome (calm) — strip the sci-fi/gaming tells so the only living thing
+   is The Self. No film grain; the aurora becomes a faint, static wash. */
+html[data-vibe="calm"] .screen-host::after { display: none; }
+html[data-vibe="calm"] .screen-host::before {
+  animation: none;
+  opacity: 0.4;
+  filter: blur(40px);
+}
+
 /* ─────────────────────────────────────────────────────────
    DESIGN SYSTEM v2 — scales + reusable primitives
    Additive: existing classes are untouched. New code migrates onto
