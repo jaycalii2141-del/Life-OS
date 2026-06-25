@@ -4,14 +4,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-0: #0A0B0D;
-  --bg-1: #101214;
-  --bg-2: #16191C;
-  --text: #F5F5F7;
-  --text-2: #A7ADBA;
-  --text-3: #6B7280;
-  --muted: #9AA0AC;
-  --dim: #6B7280;
+  /* Warm-neutral foundation — the cold blue-black/blue-greys read clinical;
+     neutralizing the cast is the single biggest "calm + premium" color lever. */
+  --bg-0: #0C0C0D;
+  --bg-1: #151416;
+  --bg-2: #1C1B1E;
+  --text: #F3F2F1;
+  --text-2: #A4A3A6;
+  --text-3: #6A6A6E;
+  --muted: #9A9A9F;
+  --dim: #67676B;
   --line: rgba(255, 255, 255, 0.06);
   --line-strong: rgba(255, 255, 255, 0.11);
   --glass: rgba(255, 255, 255, 0.035);
@@ -717,9 +719,9 @@ html[data-vibe="calm"] {
   --line: rgba(255, 255, 255, 0.07);
   --line-strong: rgba(255, 255, 255, 0.13);
   --glass: rgba(255, 255, 255, 0.03);
-  /* slightly warmer secondary text — readable for hours */
-  --muted: #98989F;
-  --dim: #64646E;
+  /* warm-neutral secondary text — readable for hours, no blue cast */
+  --muted: #97979C;
+  --dim: #636367;
 }
 
 /* kill the spectacle: glows, text-shadows, scanline grid, corner ticks */
