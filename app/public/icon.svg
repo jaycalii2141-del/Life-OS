@@ -1,29 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="42%" r="65%">
-      <stop offset="0%" stop-color="#13131F"/>
-      <stop offset="100%" stop-color="#0A0B0D"/>
+    <!-- warm-neutral dark, lit gently from above -->
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#1A191E"/>
+      <stop offset="62%" stop-color="#121115"/>
+      <stop offset="100%" stop-color="#0C0C0D"/>
     </radialGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#45B7E8" stop-opacity="0.42"/>
-      <stop offset="60%" stop-color="#45B7E8" stop-opacity="0.10"/>
+    <!-- the aura body — top-lit, cyan into teal -->
+    <radialGradient id="aura" cx="50%" cy="40%" r="62%">
+      <stop offset="0%" stop-color="#8FE0EE"/>
+      <stop offset="42%" stop-color="#57C9D2"/>
+      <stop offset="78%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#1E9FB8"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="44%" r="50%">
+      <stop offset="0%" stop-color="#5BC8D6" stop-opacity="0.55"/>
+      <stop offset="55%" stop-color="#45B7E8" stop-opacity="0.16"/>
       <stop offset="100%" stop-color="#45B7E8" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#45B7E8"/>
-      <stop offset="100%" stop-color="#2DD4BF"/>
-    </linearGradient>
-    <radialGradient id="dot" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#9CF0FF"/>
-      <stop offset="55%" stop-color="#45B7E8"/>
-      <stop offset="100%" stop-color="#00A6CC"/>
+    <radialGradient id="core" cx="50%" cy="42%" r="60%">
+      <stop offset="0%" stop-color="#101015"/>
+      <stop offset="100%" stop-color="#0A0A0C"/>
     </radialGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="34"/>
+    </filter>
+    <!-- the signature organic aura silhouette -->
+    <path id="self" d="M512 178
+      C 666 184 792 268 818 408
+      C 844 548 794 694 676 770
+      C 560 844 402 838 298 750
+      C 196 664 162 510 214 376
+      C 266 244 366 172 512 178 Z"/>
   </defs>
 
   <rect width="1024" height="1024" fill="url(#bg)"/>
-  <circle cx="512" cy="512" r="360" fill="url(#glow)"/>
-  <circle cx="512" cy="512" r="300" fill="none" stroke="url(#ring)" stroke-width="58" stroke-linecap="round"/>
-  <circle cx="512" cy="512" r="196" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="10"/>
-  <circle cx="512" cy="512" r="120" fill="url(#glow)"/>
-  <circle cx="512" cy="512" r="66" fill="url(#dot)"/>
+
+  <!-- soft emitted light -->
+  <circle cx="512" cy="470" r="380" fill="url(#glow)"/>
+  <use href="#self" fill="#57C9D2" opacity="0.5" filter="url(#soft)"/>
+
+  <!-- the Self -->
+  <use href="#self" fill="url(#aura)" opacity="0.96"/>
+  <use href="#self" fill="none" stroke="#9FEAF2" stroke-width="6" stroke-opacity="0.85"/>
+
+  <!-- the quiet core (a void the aura surrounds), with a top-lit edge -->
+  <ellipse cx="512" cy="498" rx="158" ry="150" fill="url(#core)"/>
+  <ellipse cx="512" cy="498" rx="158" ry="150" fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="3"/>
+  <path d="M392 432 C 452 392 572 392 632 432" fill="none" stroke="#CFF6FB" stroke-opacity="0.35" stroke-width="5" stroke-linecap="round"/>
 </svg>
