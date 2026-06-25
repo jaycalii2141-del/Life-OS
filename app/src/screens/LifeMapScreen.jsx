@@ -25,6 +25,7 @@ import { TheSelf } from '../components/TheSelf.jsx';
 import { BecomingTimeLapse } from '../components/BecomingTimeLapse.jsx';
 import { evaluateMilestones } from '../lib/milestones.js';
 import { crossDomainInsight } from '../lib/crossDomain.js';
+import { EmptyState } from '../components/ui.jsx';
 
 function folderForDomain(folders, domain) {
   let f = folders.find((x) => x.domain === domain);
@@ -98,9 +99,10 @@ function LifeMapViz({ scores, facets, becoming, level, trend, onPick, onLongPick
             <circle cx={n.x} cy={n.y} r={26} fill="rgba(16,18,20,0.85)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
             <circle cx={n.x} cy={n.y} r={29} fill="none" stroke={n.color} strokeWidth="2" strokeLinecap="round"
               style={ringFor(n.score, 29)} transform={`rotate(-90 ${n.x} ${n.y})`} />
-            <text x={n.x} y={n.y + 1} textAnchor="middle" style={{ font: '14px sans-serif' }}>{n.icon}</text>
-            <text x={n.x} y={n.y + 15} textAnchor="middle" fill={n.color} style={{ font: '700 8px JetBrains Mono, monospace' }}>{n.score}</text>
-            <text x={n.x} y={n.y + 42} textAnchor="middle" fill="#9AA0AC" style={{ font: '600 9.5px JetBrains Mono, monospace', letterSpacing: '0.1em' }}>{n.name.toUpperCase()}</text>
+            {/* icon centered; the ring already encodes the score, so no
+                competing number — legible at a glance, calmer. */}
+            <text x={n.x} y={n.y + 5} textAnchor="middle" style={{ font: '15px sans-serif' }}>{n.icon}</text>
+            <text x={n.x} y={n.y + 42} textAnchor="middle" fill="#6B7280" style={{ font: '600 9px JetBrains Mono, monospace', letterSpacing: '0.12em' }}>{n.name.toUpperCase()}</text>
           </g>
         ))}
       </svg>
@@ -357,7 +359,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   };
 
   return (
-    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
       <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
 
       {/* The Self at the heart, domains orbiting it — one unified hero */}
@@ -381,9 +383,8 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
 
       {/* Identity — the milestones you've crossed becoming who you are */}
       {milestoneList.length > 0 && (
-        <div className="hud glass pressable" onClick={() => { setIdentityOpen(true); logEvent('map', 'identity'); }}
-          style={{ borderRadius: 18, padding: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="card pressable" onClick={() => { setIdentityOpen(true); logEvent('map', 'identity'); }}>
+          <div className="row-between">
             <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Identity · who you've become</div>
             <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{earnedMilestones.length}/{milestoneList.length}</span>
           </div>
@@ -431,10 +432,10 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
       {/* Cross-domain pattern — the Presence connects domains over time.
           Tap to step into the domain it's pointing at. */}
       {crossInsight && (
-        <div className="pressable" onClick={() => { setOpenDomain(crossInsight.domainId); logEvent('map', 'pattern', crossInsight.kind); }}
+        <div className="pressable card" onClick={() => { setOpenDomain(crossInsight.domainId); logEvent('map', 'pattern', crossInsight.kind); }}
           style={{
-            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 14,
-            background: 'rgba(45,212,191,0.05)', border: '1px solid rgba(45,212,191,0.22)',
+            display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)',
+            background: 'rgba(45,212,191,0.05)', borderColor: 'rgba(45,212,191,0.22)',
           }}>
           <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--violet)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--violet)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -447,10 +448,10 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
 
       {/* Balance — the same eight domains read as a single shape. A
           lopsided web shows instantly where life is out of balance. */}
-      <div className="hud glass" style={{ borderRadius: 18, padding: '14px 10px 6px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 4 }}>
+      <div className="card" style={{ padding: 'var(--space-5) var(--space-2) var(--space-2)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 'var(--space-2)' }}>
           <div className="eyebrow" style={{ color: 'var(--cyan)' }}>The shape of your life</div>
-          <div className="section-title" style={{ fontSize: 18, marginTop: 1 }}>BALANCE</div>
+          <div className="section-title" style={{ fontSize: 'var(--text-lg)', marginTop: 1 }}>BALANCE</div>
         </div>
         <RadarChart
           axes={LIFE_MAP_DOMAINS.map((d) => ({ label: ({ relationships: 'BONDS', creativity: 'CREATE', adventure: 'EXPLORE', business: 'BIZ' }[d.id] || d.name.slice(0, 6).toUpperCase()), value: scores[d.id]?.score ?? 0 }))}
@@ -480,9 +481,10 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
       {view === 'inbox' && (
         <div>
           {inbox.length === 0 ? (
-            <div className="hud glass" style={{ padding: '24px 18px', borderRadius: 16, textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: 'var(--lime)' }}><IconCheck size={26} stroke={2.2} /></div>
-              <div className="display" style={{ fontSize: 17, color: 'var(--lime)' }}>INBOX ZERO</div>
+            <div className="card center">
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-2)', color: 'var(--lime)' }}><IconCheck size={26} stroke={2.2} /></div>
+              <div className="display" style={{ fontSize: 'var(--text-lg)', color: 'var(--lime)' }}>INBOX ZERO</div>
+              <div className="empty-body">Every thought is routed. Capture freely — the + button is always one tap away.</div>
             </div>
           ) : (
             <>
@@ -490,7 +492,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
               {inbox.map((c) => {
                 const tagColor = c.color || TAG_COLORS[c.tag] || '#45B7E8';
                 return (
-                  <div key={c.id} className="hud glass" style={{ padding: 14, borderRadius: 16, marginBottom: 10 }}>
+                  <div key={c.id} className="card" style={{ marginBottom: 'var(--space-3)' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                       <span style={{ width: 8, height: 8, borderRadius: 999, background: tagColor, marginTop: 6 }} />
                       <div style={{ flex: 1 }}>
@@ -511,7 +513,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
               {triaged.slice(0, 6).map((c) => {
                 const dd = LIFE_DOMAINS.find((x) => x.id === c.domain);
                 return (
-                  <div key={c.id} className="hud glass" style={{ padding: '9px 13px', borderRadius: 12, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div key={c.id} className="card card-quiet" style={{ padding: '9px 13px', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 13 }}>{dd?.emoji || '•'}</span>
                     <div style={{ flex: 1, fontSize: 13, color: 'var(--muted)' }}>{c.text}</div>
                     <span className="mono" style={{ fontSize: 9, color: dd?.color || 'var(--dim)' }}>{dd?.name || c.domain}</span>
@@ -531,9 +533,9 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
             <div className="pressable" onClick={addJournal} style={{ width: 48, borderRadius: 12, background: 'linear-gradient(135deg, #45B7E8, #2DD4BF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconPlus size={20} stroke={2.4} /></div>
           </div>
           {journal.length === 0 ? (
-            <div className="eyebrow" style={{ textAlign: 'center', opacity: 0.7, padding: '16px 0' }}>nothing yet — write your first line above</div>
+            <EmptyState title="Nothing yet">Write your first line above — reflection compounds into who you become.</EmptyState>
           ) : journal.slice(0, 30).map((e) => (
-            <div key={e.id} className="hud glass" style={{ padding: 13, borderRadius: 14, marginBottom: 9 }}>
+            <div key={e.id} className="card" style={{ marginBottom: 'var(--space-2)' }}>
               <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.5 }}>{e.text}</div>
               <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em', marginTop: 5 }}>{fmtDay(e.ts)}</div>
             </div>
