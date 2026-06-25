@@ -46,7 +46,7 @@ function PodiumStat({ label, value, prefix, color, onChange }) {
           </span>
         </div>
       )}
-      <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.1em' }}>TAP TO EDIT</div>
+      <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', marginTop: 3, letterSpacing: '0.1em', opacity: 0.7 }}>tap to edit</div>
     </div>
   );
 }
@@ -61,7 +61,7 @@ function PodiumHub() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div className="hud glass-strong mesh-content" style={{ padding: 18, borderRadius: 20 }}>
+      <div className="hud glass-strong mesh-content" style={{ padding: 'var(--space-5)', borderRadius: 'var(--r-xl)' }}>
         <HUDTicks />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <div>
@@ -79,7 +79,7 @@ function PodiumHub() {
         </div>
       </div>
 
-      <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <div className="card">
         <div className="eyebrow" style={{ marginBottom: 10 }}>Projects · from the Podium folder</div>
         {projects.length ? projects.map((p) => {
           const steps = p.steps || [];
@@ -102,7 +102,7 @@ function PodiumHub() {
       </div>
 
       {notes.length > 0 && (
-        <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+        <div className="card">
           <div className="eyebrow" style={{ marginBottom: 8 }}>Latest notes</div>
           {notes.map((n) => (
             <div key={n.id} style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.45, padding: '6px 0', borderTop: '1px solid var(--line)' }}>{n.title}</div>
@@ -119,7 +119,7 @@ function ActionCenter({ onAddMission, missionIds }) {
 
   if (!recs.length) {
     return (
-      <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+      <div className="card">
         <span className="eyebrow" style={{ color: 'var(--lime)' }}>Action center</span>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, lineHeight: 1.5 }}>
           Nothing urgent. Pipelines are clean and brands are on pace — bank momentum while you're ahead.
@@ -129,8 +129,8 @@ function ActionCenter({ onAddMission, missionIds }) {
   }
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(233,196,106,0.25)' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+    <div className="card" style={{ borderColor: 'rgba(233,196,106,0.3)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
         <span className="eyebrow" style={{ color: 'var(--gold)' }}>Action center</span>
         <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>METRICS → MOVES</span>
       </div>
@@ -237,7 +237,7 @@ function Workbench() {
   all.sort((a, b) => a.due.rank - b.due.rank || b.pct - a.pct);
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(255,138,76,0.22)' }}>
+    <div className="card" style={{ borderColor: 'rgba(255,138,76,0.22)' }}>
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
         <span className="eyebrow" style={{ color: 'var(--orange)' }}>What's on your plate</span>
@@ -275,7 +275,7 @@ export function BuildScreen({ onAddMission, missionIds = [] }) {
   const [seg, setSeg] = useState('ona');
 
   return (
-    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
       <SectionHead eyebrow="Business · content · operations" title="BUILD" trailing={
         <div style={{ display: 'flex', gap: 6 }}>
           {SEGMENTS.map((x) => {

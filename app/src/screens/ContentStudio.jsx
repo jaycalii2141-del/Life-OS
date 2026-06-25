@@ -145,7 +145,7 @@ function Step({ children, onClick }) {
 function PipelineStrip({ items = [] }) {
   const countFor = (stageId) => items.filter((it) => it.stage === stageId).length;
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -265,7 +265,7 @@ function ContentPipeline({ items, brands, onAdd, onUpdate, onDelete }) {
   const sorted = [...items].sort((a, b) => order.indexOf(a.stage) - order.indexOf(b.stage) || b.id - a.id);
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -337,7 +337,7 @@ function HookBank({ hooks, onAdd, onUpdate, onDelete }) {
   };
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -438,7 +438,7 @@ function PostingCalendar({ calendar = {}, onCycle }) {
   const total = days.reduce((s, day) => s + (calendar[day.key] || 0), 0);
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -620,7 +620,7 @@ function Projects({ projects, brands, onAdd, onUpdate, onDelete }) {
   const submit = () => { if (!title.trim()) return; onAdd({ id: Date.now(), title: title.trim(), brandId: brands[0]?.id, steps: [] }); setTitle(''); setAdding(false); };
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -865,7 +865,7 @@ function ContentStudio({ embedded = false }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div className="hud glass-strong mesh-content" style={{ padding: 16, borderRadius: 20 }}>
+      <div className="hud glass-strong mesh-content" style={{ padding: 'var(--space-5)', borderRadius: 'var(--r-xl)' }}>
         <HUDTicks />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>

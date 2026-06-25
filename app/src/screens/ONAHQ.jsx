@@ -196,7 +196,7 @@ function SalesPipeline({ stages, onUpdate, people, onPeopleChange }) {
   };
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -353,7 +353,7 @@ function CoachRoster({ coaches, onAdd, onUpdate, onDelete }) {
   });
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -447,7 +447,7 @@ function InitiativeList({ items, onAdd, onUpdate, onDelete }) {
   };
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16 }}>
+    <div className="card">
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
@@ -507,7 +507,7 @@ function LiveOnaCard({ live }) {
   if (!present.length) return null;
   const fmt = (v, f) => `${f.prefix || ''}${typeof v === 'number' ? v.toLocaleString() : v}`;
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(52,211,153,0.25)', position: 'relative' }}>
+    <div className="card" style={{ borderColor: 'rgba(52,211,153,0.25)' }}>
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -558,7 +558,7 @@ function ONAHQ({ embedded = false }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div className="hud glass-strong mesh-ona" style={{ padding: 18, borderRadius: 20 }}>
+      <div className="hud glass-strong mesh-ona" style={{ padding: 'var(--space-5)', borderRadius: 'var(--r-xl)' }}>
         <HUDTicks />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
