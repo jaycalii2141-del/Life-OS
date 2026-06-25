@@ -95,7 +95,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         )}
         <div className="row" style={{ justifyContent: 'center', gap: 'var(--space-3)', marginTop: 'var(--space-3)', flexWrap: 'wrap' }}>
           {readiness != null && (
-            <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.1em' }}>READY {readiness}</span>
+            <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.02em' }}>Ready {readiness}</span>
           )}
           {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconFlame size={11} color="var(--gold)" /> {streak} DAY</span>}
           {becoming && becoming.delta !== 0 && (
@@ -113,7 +113,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="eyebrow" style={{ color: 'var(--cyan)' }}>Today's mission</span>
           {adaptedFlash && (
-            <span className="mono" style={{ fontSize: 9.5, color: 'var(--gold)', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: 999, background: 'rgba(233,196,106,0.14)', border: '1px solid rgba(233,196,106,0.4)', animation: 'screenFade 300ms ease' }}>RE-PLANNED FOR READINESS</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 10, color: 'var(--gold)', letterSpacing: '0.01em', padding: '2px 8px', borderRadius: 999, background: 'rgba(233,196,106,0.14)', border: '1px solid rgba(233,196,106,0.4)', animation: 'screenFade 300ms ease' }}>Re-planned for readiness</span>
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -167,10 +167,10 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
           </div>
         ) : (
           <div className="pressable" onClick={() => setEditingFocus(true)} style={{
-            marginTop: 12, padding: '10px 12px', borderRadius: 12, textAlign: 'center',
+            marginTop: 12, padding: '11px 12px', borderRadius: 12, textAlign: 'center',
             border: '1px dashed rgba(255,107,91,0.45)', color: 'var(--ona-red)',
-            fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', fontWeight: 700,
-          }}>+ SET YOUR ONE THING</div>
+            fontFamily: 'var(--font-body)', fontSize: 13, letterSpacing: '0.01em', fontWeight: 600,
+          }}>Set your one thing</div>
         )
       )}
 
@@ -230,8 +230,8 @@ function MissionRow({ m, isDone, isNext, menuOpen, onToggle, onGo, onLongPress }
             <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.4, marginTop: 3 }}>{m.why}</div>
           )}
           {isNext && (
-            <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.16em', marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
-              NEXT UP · ~{m.est}M <IconChevronRight size={11} />
+            <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.04em', marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+              Next up · ~{m.est}m <IconChevronRight size={11} />
             </div>
           )}
         </div>
@@ -268,7 +268,7 @@ function CampaignCard({ q, open, onToggleOpen, onToggleMilestone, onLongPress, m
             <div style={{ fontSize: 13.5, fontWeight: 650, color: 'var(--text)', lineHeight: 1.25, textWrap: 'pretty' }}>{q.title}</div>
             {!open && next && (
               <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.06em', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                ▸ {next.text.toUpperCase()}
+                ▸ {next.text}
               </div>
             )}
           </div>
@@ -325,9 +325,9 @@ function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
       <div className="row-between" style={{ marginBottom: 'var(--space-3)' }}>
         <span className="eyebrow" style={{ color: 'var(--gold)' }}>Missions</span>
         <div className="row">
-          <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{active.length} CAMPAIGNS</span>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{active.length} campaigns</span>
           <div className="pressable" onClick={onNewGoal} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 9px', borderRadius: 'var(--r-pill)', background: 'rgba(69,183,232,0.12)', border: '1px solid rgba(69,183,232,0.4)', color: 'var(--cyan)', fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: '0.06em' }}>
-            <IconSparkles size={11} /> NEW GOAL
+            <IconSparkles size={11} /> New goal
           </div>
         </div>
       </div>
@@ -345,8 +345,8 @@ function MissionsCard({ quests, onToggleMilestone, onNewGoal }) {
           </div>
           {active.length > 3 && (
             <div className="pressable center" onClick={() => setShowAll((s) => !s)}
-              style={{ marginTop: 'var(--space-3)', fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.1em', fontWeight: 700, color: 'var(--cyan)' }}>
-              {showAll ? 'SHOW LESS' : `SHOW ALL ${active.length}`}
+              style={{ marginTop: 'var(--space-3)', fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.01em', fontWeight: 600, color: 'var(--cyan)' }}>
+              {showAll ? 'Show less' : `Show all ${active.length}`}
             </div>
           )}
         </>
@@ -419,7 +419,7 @@ function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
           <span className="eyebrow">Check-in</span>
           <span className="display" style={{ fontSize: 20, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness}</span>
           <span className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em' }}>
-            {trend == null ? 'BASELINE' : `${trend >= 0 ? '▲+' : '▼'}${trend} VS 7D`}
+            {trend == null ? 'Baseline' : `${trend >= 0 ? '▲+' : '▼'}${trend} vs 7d`}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -455,7 +455,7 @@ function MomentumStrip({ momentum = [], streak = 0, freezes }) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
           <span className="eyebrow">Momentum</span>
           <span className="display" style={{ fontSize: 20, color: 'var(--gold)' }}>{streak}</span>
-          <span className="mono" style={{ fontSize: 9, color: 'var(--muted)' }}>DAY STREAK</span>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--muted)' }}>Day streak</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {avail > 0 && (
@@ -684,7 +684,7 @@ export function TodayScreen({
         }}>
           <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--cyan)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--cyan)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mono" style={{ fontSize: 8.5, color: 'var(--cyan)', letterSpacing: '0.14em', marginBottom: 3 }}>{insight.milestone ? 'PRESENCE · IDENTITY WITHIN REACH' : 'PRESENCE'}</div>
+            <div className="eyebrow" style={{ fontSize: 9, color: 'var(--cyan)', marginBottom: 3 }}>{insight.milestone ? 'Presence · identity within reach' : 'Presence'}</div>
             <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{insight.text}</div>
             {insight.milestone && (
               <div style={{ marginTop: 8 }}>
