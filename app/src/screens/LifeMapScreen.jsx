@@ -9,7 +9,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { SectionHead, ProgressBar, RadarChart, Sparkline, useCountUp } from '../components/atoms.jsx';
 import { Sheet } from '../components/Sheet.jsx';
-import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight, IconTarget, IconWarn, IconActivity } from '../components/icons.jsx';
+import { IconInbox, IconBook, IconCompass, IconArchive, IconTrash, IconCheck, IconPlus, IconChevronRight, IconSparkles, IconCalendar, IconArrowRight, IconTarget, IconWarn, IconActivity, domainIcon } from '../components/icons.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { askCompanion } from '../lib/aiActions.js';
 import { LIFE_DOMAINS, SEED_FOLDERS, DOMAIN_ALIASES, DISCIPLINES } from '../data.js';
@@ -99,9 +99,11 @@ function LifeMapViz({ scores, facets, becoming, level, trend, onPick, onLongPick
             <circle cx={n.x} cy={n.y} r={26} fill="rgba(16,18,20,0.85)" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
             <circle cx={n.x} cy={n.y} r={29} fill="none" stroke={n.color} strokeWidth="2" strokeLinecap="round"
               style={ringFor(n.score, 29)} transform={`rotate(-90 ${n.x} ${n.y})`} />
-            {/* icon centered; the ring already encodes the score, so no
-                competing number — legible at a glance, calmer. */}
-            <text x={n.x} y={n.y + 5} textAnchor="middle" style={{ font: '15px sans-serif' }}>{n.icon}</text>
+            {/* crafted line icon (not emoji); the ring encodes the score, so
+                no competing number — legible at a glance, calmer. */}
+            <foreignObject x={n.x - 12} y={n.y - 12} width="24" height="24" style={{ overflow: 'visible' }}>
+              {(() => { const I = domainIcon(n.id); return <div style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', color: n.color }}><I size={18} stroke={1.7} /></div>; })()}
+            </foreignObject>
             <text x={n.x} y={n.y + 42} textAnchor="middle" fill="#6B7280" style={{ font: '600 9px JetBrains Mono, monospace', letterSpacing: '0.12em' }}>{n.name.toUpperCase()}</text>
           </g>
         ))}
@@ -276,7 +278,7 @@ function DomainSheet({ domainId, onClose, ctx }) {
   return (
     <Sheet open={!!domainId} onClose={onClose} maxHeight="82%">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <span style={{ fontSize: 24 }}>{meta.icon}</span>
+        {(() => { const I = domainIcon(meta.id); return <I size={24} stroke={1.8} color={meta.color} />; })()}
         <div style={{ flex: 1 }}>
           <div className="eyebrow" style={{ color: meta.color }}>{d.signal}</div>
           <div className="display" style={{ fontSize: 24, marginTop: 1 }}>{meta.name}</div>
