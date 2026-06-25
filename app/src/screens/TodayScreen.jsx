@@ -9,15 +9,17 @@
 // what to do next, what can wait, and how the campaign is going.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect, useMemo } from 'react';
-import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, RadialGauge, Sparkline } from '../components/atoms.jsx';
+import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill, Sparkline } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate, dayComplete } from '../lib/haptics.js';
 import { estimateLabel } from '../lib/mission.js';
 import { SEED_QUESTS, questProgress, nextMilestone, recentWins, LIFE_MAP_DOMAINS } from '../lib/quests.js';
 import { becomingLine } from '../lib/becoming.js';
+import { lifeLevel } from '../lib/level.js';
 import { proactiveInsight } from '../lib/presence.js';
 import { evaluateMilestones } from '../lib/milestones.js';
+import { TheSelf } from '../components/TheSelf.jsx';
 import { awardXp } from '../lib/xp.js';
 import { fireCeremony } from '../lib/ceremony.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
@@ -41,7 +43,7 @@ const KIND_COLORS = { focus: '#FF6B5B', train: '#34D399', build: '#E9C46A', ritu
 // ─────────────────────────────────────────────────────────
 // L1 — Today's Mission
 // ─────────────────────────────────────────────────────────
-function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, becoming, adaptedAt }) {
+function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, becoming, level, adaptedAt }) {
   const [party, setParty] = useState(0);
   const [editingFocus, setEditingFocus] = useState(false);
   const [draft, setDraft] = useState('');
@@ -98,7 +100,10 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         </div>
         {becoming && (
           <div style={{ flexShrink: 0 }}>
-            <RadialGauge value={becoming.score} size={80} stroke={7} color="#45B7E8" label="BECOMING" />
+            {/* The Self — the signature artifact, here at the heart of the Bridge.
+                Its shape is your identity, its glow your Becoming; the day
+                closing brightens it. Same living object as the Life Map. */}
+            <TheSelf facets={becoming.facets} becoming={becoming.score} level={level} trend={becoming.trend} size={88} />
           </div>
         )}
       </div>
@@ -610,6 +615,9 @@ export function TodayScreen({
     } catch { return null; }
   }, [becoming, milestoneRecord]);
 
+  // Life Level for The Self on the Bridge (same number shown on the Map).
+  const lvl = useMemo(() => { try { return lifeLevel(); } catch { return null; } }, [doneIds, missions]);
+
   // The Presence — one proactive, unasked observation.
   const allDoneToday = missions.length > 0 && missions.every((m) => doneIds.includes(m.id));
   const insight = useMemo(() => {
@@ -653,6 +661,7 @@ export function TodayScreen({
         oneThing={state.oneThing}
         onSetOneThing={(txt) => setState((s) => ({ ...s, oneThing: txt }))}
         becoming={becoming}
+        level={lvl?.level}
         adaptedAt={adaptedAt}
       />
 
