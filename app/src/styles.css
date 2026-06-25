@@ -386,14 +386,16 @@ html, body {
    Press states
    ───────────────────────────────────────────────────────── */
 .pressable {
-  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
-              box-shadow 180ms cubic-bezier(0.2, 0.7, 0.2, 1),
-              border-color 180ms;
+  /* Tactile spring: a subtle overshoot on release makes every tap feel
+     physical, never mushy. One motion identity across the whole app. */
+  transition: transform 260ms var(--ease-spring),
+              box-shadow var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
-.pressable:active { transform: scale(0.97); }
+.pressable:active { transform: scale(0.965); transition-duration: 90ms; }
 
 /* ─────────────────────────────────────────────────────────
    Interaction motion — calm at rest, alive on touch.
@@ -693,7 +695,7 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-.pressable:active { transform: scale(0.96); }
+/* (press scale + spring defined once above) */
 
 /* Smooth, native-feeling type rendering */
 html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
