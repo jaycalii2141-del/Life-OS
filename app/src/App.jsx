@@ -46,10 +46,27 @@ import { Companion, CompanionLauncher } from './Companion.jsx';
 // Auth gate — decides login vs app. When Supabase isn't
 // configured, the app runs as-is on localStorage (no login).
 // ─────────────────────────────────────────────────────────
+// Demo mode — lets the real UI be browsed without an account (e.g. to share
+// or audit). Triggered by ?demo=1 (persisted so it survives SPA reloads;
+// ?demo=0 exits). Runs un-authed = LOCAL-ONLY: nothing syncs to Supabase, so
+// it never touches real signed-in data — each visitor gets their own seed sandbox.
+function demoMode() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    if (p.has('demo')) {
+      const on = p.get('demo') !== '0' && p.get('demo') !== 'false';
+      if (on) localStorage.setItem('lifeos:demo', '1'); else localStorage.removeItem('lifeos:demo');
+      return on;
+    }
+    return localStorage.getItem('lifeos:demo') === '1';
+  } catch { return false; }
+}
+
 export default function App() {
   const { configured, loading, session } = useAuth();
+  const demo = demoMode();
 
-  if (configured && loading) {
+  if (configured && !demo && loading) {
     return (
       <IOSDevice dark width={402} height={874}>
         <div style={{
@@ -78,7 +95,7 @@ export default function App() {
     );
   }
 
-  if (configured && !session) return <LoginScreen />;
+  if (configured && !demo && !session) return <LoginScreen />;
 
   return <MainApp />;
 }
