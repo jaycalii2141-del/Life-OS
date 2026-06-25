@@ -276,7 +276,7 @@ export function BuildScreen({ onAddMission, missionIds = [] }) {
 
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      <SectionHead eyebrow="Business · content · operations" title="BUILD" trailing={
+      <SectionHead eyebrow="Business · content · operations" title="Build" trailing={
         <div style={{ display: 'flex', gap: 6 }}>
           {SEGMENTS.map((x) => {
             const on = seg === x.id;

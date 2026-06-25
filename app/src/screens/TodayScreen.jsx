@@ -89,7 +89,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
             <TheSelf facets={becoming.facets} becoming={becoming.score} level={level} trend={becoming.trend} size={136} />
           </div>
         )}
-        <div style={{ fontSize: 'var(--text-xl)', fontWeight: 650, letterSpacing: '-0.01em', marginTop: 'var(--space-3)' }}>{greetingLabel()}</div>
+        <div className="serif" style={{ fontSize: 'var(--text-2xl)', marginTop: 'var(--space-3)', lineHeight: 1.1 }}>{greetingLabel()}</div>
         {becoming && (
           <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-2)', marginTop: 'var(--space-1)', lineHeight: 1.35, textWrap: 'pretty', maxWidth: 280, marginInline: 'auto' }}>{becomingLine(becoming)}</div>
         )}

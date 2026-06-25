@@ -253,7 +253,7 @@ function ProgressionHero({ skills, readiness, onCoach }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
         <div style={{ minWidth: 0 }}>
           <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Movement identity</div>
-          <div className="display" style={{ fontSize: 'var(--text-3xl)', marginTop: 2, lineHeight: 0.98, letterSpacing: '0.01em' }}>HYBRID ATHLETE</div>
+          <div className="serif" style={{ fontSize: 'var(--text-3xl)', marginTop: 4, lineHeight: 1.0 }}>Hybrid athlete</div>
           <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 'var(--space-2)' }}>
             LEVEL {mastered} · {overall}% TOWARD WORLD-CLASS
           </div>
@@ -1069,7 +1069,7 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
 
         {/* skill trees — the flagship. One discipline in focus at a time. */}
         <div>
-          <SectionHead eyebrow={`${DISCIPLINES.length} disciplines · ${DISCIPLINES.reduce((n, d) => n + (skills[d.id]?.length || 0), 0)} skills`} title="SKILL TREES" />
+          <SectionHead eyebrow={`${DISCIPLINES.length} disciplines · ${DISCIPLINES.reduce((n, d) => n + (skills[d.id]?.length || 0), 0)} skills`} title="Skill trees" />
           <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 10, WebkitOverflowScrolling: 'touch' }}>
             {DISCIPLINES.map((d) => {
               const on = disc === d.id;

@@ -360,7 +360,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
 
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-      <SectionHead eyebrow="A living map of who you're becoming" title="LIFE MAP" />
+      <SectionHead eyebrow="A living map of who you're becoming" title="Life map" />
 
       {/* The Self at the heart, domains orbiting it — one unified hero */}
       <LifeMapViz scores={scores} facets={selfFacets} becoming={becoming?.score ?? 0} level={lvl?.level} trend={becoming?.trend}

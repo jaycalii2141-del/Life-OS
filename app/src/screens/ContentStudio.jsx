@@ -870,7 +870,7 @@ function ContentStudio({ embedded = false }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div className="eyebrow">Studio</div>
-            <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>CREATE · BUILD · TRACK</div>
+            <div className="serif" style={{ fontSize: 'var(--text-2xl)', marginTop: 2, lineHeight: 1.05 }}>Create · build · track</div>
             <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
               {folders.length} FOLDERS · {totalProjects} PROJECTS
             </div>

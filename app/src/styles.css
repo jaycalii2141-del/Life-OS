@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────────────────
    LIFE OS — Design Tokens
    ───────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   --bg-0: #0A0B0D;
@@ -26,7 +26,9 @@
   --gold: #E9C46A;
   --orange: #F4A261;
 
-  --font-display: 'Bebas Neue', 'Helvetica Neue', sans-serif;
+  /* Display + body share Inter (calm, functional). Soul lives in the serif. */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
 }
@@ -189,8 +191,14 @@ html, body {
 /* ─────────────────────────────────────────────────────────
    Typography
    ───────────────────────────────────────────────────────── */
-.display { font-family: var(--font-display); letter-spacing: 0.02em; }
+/* .display — structural headings + numerals, now clean Inter (was condensed
+   caps). Tabular lining figures keep big numbers calm and aligned. */
+.display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: lining-nums tabular-nums; }
 .mono { font-family: var(--font-mono); }
+
+/* .serif — the soul voice (Fraunces). Reserved for emotional/human lines:
+   the greeting, "who you're becoming", ceremony titles. Used sparingly. */
+.serif { font-family: var(--font-serif); font-optical-sizing: auto; font-weight: 450; letter-spacing: -0.005em; }
 
 .section-label {
   font-family: var(--font-mono);
@@ -203,9 +211,11 @@ html, body {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: 26px;
-  letter-spacing: 0.01em;
-  line-height: 1;
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-transform: none;
   color: var(--text);
 }
 
