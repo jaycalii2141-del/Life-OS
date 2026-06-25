@@ -31,9 +31,9 @@ export function CeremonyLayer() {
       <div style={{ position: 'relative', textAlign: 'center', padding: '0 30px' }}>
         <div className="ceremony-bloom" style={{ width: 260, height: 260, margin: '-130px 0 0 -130px' }} />
         <div className="ceremony-text" style={{ position: 'relative' }}>
-          <div className="mono" style={{ fontSize: 10, color: 'var(--lime)', letterSpacing: '0.26em', marginBottom: 12 }}>{cer.kicker || 'MILESTONE'}</div>
-          <div className="display" style={{ fontSize: 32, color: 'var(--text)', lineHeight: 1.1, textWrap: 'pretty' }}>{cer.title}</div>
-          {cer.subtitle && <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 12, lineHeight: 1.4 }}>{cer.subtitle}</div>}
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 10, color: 'var(--lime)', letterSpacing: '0.14em', marginBottom: 14 }}>{cer.kicker || 'MILESTONE'}</div>
+          <div className="serif" style={{ fontSize: 34, color: 'var(--text)', lineHeight: 1.08, textWrap: 'pretty' }}>{cer.title}</div>
+          {cer.subtitle && <div style={{ fontSize: 13.5, color: 'var(--text-2)', marginTop: 12, lineHeight: 1.5 }}>{cer.subtitle}</div>}
           <div className="eyebrow" style={{ color: 'var(--dim)', marginTop: 18 }}>tap to continue</div>
         </div>
       </div>

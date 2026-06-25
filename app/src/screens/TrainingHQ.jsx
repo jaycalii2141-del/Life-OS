@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill, ConfettiBurst } from '../components/atoms.jsx';
+import { HUDTicks, TickCounter, ProgressBar, SectionHead, Pill } from '../components/atoms.jsx';
 import { celebrate } from '../lib/haptics.js';
 import { IconCheck, IconLock, IconChevronDown, IconCamera, IconActivity, IconCalendar, IconBolt, IconSparkles, IconWarn, IconTarget, IconCompass } from '../components/icons.jsx';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
@@ -483,7 +483,6 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
         transition: 'border-color 200ms',
       }}
     >
-      <ConfettiBurst trigger={party} />
       {/* compact row — tap to expand, long-press for AI actions */}
       <div
         className="pressable"

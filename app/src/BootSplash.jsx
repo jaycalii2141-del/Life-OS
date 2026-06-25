@@ -15,12 +15,10 @@ export function BootSplash({ onDone }) {
     <div className={`boot${leaving ? ' boot-leaving' : ''}`}>
       <div className="boot-orb">
         <div className="boot-orb-glow" />
-        <div className="boot-orb-ring orb-spin" />
-        <div className="boot-orb-ring2 orb-spin-fast" />
         <div className="boot-orb-core" />
       </div>
       <div className="boot-word">JAM HQ</div>
-      <div className="boot-tag">Mission control for an extraordinary life</div>
+      <div className="boot-tag">A quiet home for who you're becoming</div>
     </div>
   );
 }

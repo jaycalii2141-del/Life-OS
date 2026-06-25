@@ -9,7 +9,7 @@
 // what to do next, what can wait, and how the campaign is going.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect, useMemo } from 'react';
-import { ProgressBar, StateMeter, ConfettiBurst, TimelineEvent, Pill } from '../components/atoms.jsx';
+import { ProgressBar, StateMeter, TimelineEvent, Pill } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
 import { celebrate, dayComplete } from '../lib/haptics.js';
@@ -77,7 +77,6 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
 
   return (
     <div className="hud glass-strong mesh-readiness" style={{ padding: '24px 18px 18px', borderRadius: 'var(--r-xl)', position: 'relative', overflow: 'visible' }}>
-      <ConfettiBurst trigger={party} />
 
       {/* Ritual header — you arrive to The Self: large, centered, breathing.
           One column with generous rhythm; the day's emotional centerpiece,
