@@ -248,19 +248,19 @@ function ProgressionHero({ skills, readiness, onCoach }) {
   const [showIdentity, setShowIdentity] = useState(false);
 
   return (
-    <div className="hud glass-strong mesh-train" style={{ padding: 16, borderRadius: 20 }}>
+    <div className="hud glass-strong mesh-train" style={{ padding: 'var(--space-5)', borderRadius: 'var(--r-xl)' }}>
       <HUDTicks />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
+        <div style={{ minWidth: 0 }}>
           <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Movement identity</div>
-          <div className="display" style={{ fontSize: 26, marginTop: 2, lineHeight: 1.05 }}>HYBRID ATHLETE</div>
-          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 5 }}>
+          <div className="display" style={{ fontSize: 'var(--text-3xl)', marginTop: 2, lineHeight: 0.98, letterSpacing: '0.01em' }}>HYBRID ATHLETE</div>
+          <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 'var(--space-2)' }}>
             LEVEL {mastered} · {overall}% TOWARD WORLD-CLASS
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div className="eyebrow">Readiness</div>
-          <div className="display" style={{ fontSize: 26, color: readiness >= 75 ? 'var(--lime)' : readiness >= 55 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness ?? '—'}</div>
+          <div className="display" style={{ fontSize: 'var(--text-2xl)', color: readiness >= 75 ? 'var(--lime)' : readiness >= 55 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness ?? '—'}</div>
         </div>
       </div>
       <div style={{ marginTop: 12 }}>
@@ -349,7 +349,7 @@ function MovementPyramid({ skills, radar }) {
   const halfW = (y) => baseHalf - (baseHalf - apexHalf) * ((baseY - y) / (baseY - apexY));
 
   return (
-    <div className="hud glass" style={{ padding: '13px 14px', borderRadius: 16 }}>
+    <div className="card">
       <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <span className="eyebrow" style={{ color: 'var(--cyan)' }}>How world-class is built</span>
@@ -657,7 +657,7 @@ function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
   );
 
   return (
-    <div className="hud glass" style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(69,183,232,0.22)' }}>
+    <div className="card" style={{ borderColor: 'rgba(69,183,232,0.22)' }}>
       <HUDTicks />
       <div style={{ marginBottom: total ? 8 : 0 }}>
         <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Your current edges</div>
@@ -1042,7 +1042,7 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
 
   return (
     <>
-      <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
         {/* L1 — the progression engine (flagship) */}
         <ProgressionHero skills={skills} readiness={readiness} onCoach={() => setCoachOpen(true)} />
 
@@ -1106,9 +1106,7 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
         <WorkingOnPanel skills={skills} track={track} onCycleTrack={cycleTrack} />
 
         {/* training phase */}
-        <div className="hud glass" style={{
-          padding: 16, borderRadius: 16,
-        }}>
+        <div className="card">
           <HUDTicks />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1148,7 +1146,7 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
         </div>
 
         {/* Body radar */}
-        <div className="hud glass" style={{ padding: 16, borderRadius: 16 }}>
+        <div className="card">
           <HUDTicks />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
