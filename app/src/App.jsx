@@ -229,6 +229,12 @@ function MainApp() {
   let becoming = null;
   try { becoming = becomingIndex(); } catch { /* first run */ }
 
+  // The Self as light source — the whole canvas's hue follows your trajectory
+  // (rising = aqua, dipping = ember). The environment becomes "you, today".
+  useEffect(() => {
+    document.documentElement.dataset.mood = becoming?.trend || 'steady';
+  }, [becoming?.trend]);
+
   // Record today's Self snapshot for the time-lapse. We store the eight
   // facet scores + trend (not just the number) so the Self's SHAPE — not
   // only its glow — can be replayed across time.

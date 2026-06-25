@@ -762,12 +762,24 @@ html[data-vibe="calm"] svg polygon { filter: none !important; }
 html[data-vibe="calm"] .screen-content { padding: 0 18px; }
 
 /* De-chrome (calm) — strip the sci-fi/gaming tells so the only living thing
-   is The Self. No film grain; the aurora becomes a faint, static wash. */
+   is The Self. No film grain. */
 html[data-vibe="calm"] .screen-host::after { display: none; }
+
+/* The Self as light source — the canvas hue derives from your trajectory.
+   Rising = cool aqua, steady = neutral, dipping = warm ember. The wash
+   gathers near the top-third (where The Self sits) so it reads as emitting. */
+:root { --mood: #5BB6DE; }
+html[data-mood="rising"] { --mood: #57C9D2; }
+html[data-mood="steady"] { --mood: #5BB6DE; }
+html[data-mood="dipping"] { --mood: #E0A968; }
 html[data-vibe="calm"] .screen-host::before {
   animation: none;
-  opacity: 0.4;
-  filter: blur(40px);
+  opacity: 1;
+  filter: blur(26px);
+  background:
+    radial-gradient(ellipse 82% 48% at 50% -8%, color-mix(in srgb, var(--mood) 16%, transparent), transparent 62%),
+    radial-gradient(circle 300px at 50% 34%, color-mix(in srgb, var(--mood) 9%, transparent), transparent 60%);
+  transition: background 1200ms ease;
 }
 
 /* ─────────────────────────────────────────────────────────

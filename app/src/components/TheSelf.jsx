@@ -37,10 +37,12 @@ export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', si
   const blob = smoothClosed(pts);
 
   const shown = useCountUp(Math.round(becoming || 0));
-  const trendColor = trend === 'rising' ? '#34D399' : trend === 'dipping' ? '#FF6B5B' : '#45B7E8';
+  // Mood light — refined aqua / neutral / ember (not a stoplight). The Self
+  // emits it and the canvas borrows the same hue, so it reads as the source.
+  const moodColor = trend === 'rising' ? '#57C9D2' : trend === 'dipping' ? '#E0A968' : '#5BB6DE';
+  const trendColor = moodColor;
   // Glow intensity scales with Becoming — the brighter you are, the brighter the Self.
-  const glowAlpha = 0.25 + (Math.max(0, Math.min(100, becoming || 0)) / 100) * 0.45;
-  const glow = `drop-shadow(0 0 ${8 + (becoming || 0) / 6}px rgba(69,183,232,${glowAlpha.toFixed(2)}))`;
+  const glow = `drop-shadow(0 0 ${10 + (becoming || 0) / 5}px ${moodColor}80)`;
 
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
