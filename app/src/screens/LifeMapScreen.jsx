@@ -186,7 +186,7 @@ function DomainSheet({ domainId, onClose, ctx }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: verdict[2] }}>{verdict[0]}</div>
             <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5, marginTop: 2 }}>{verdict[1]}</div>
-            {trend != null && <div className="mono" style={{ fontSize: 9, color: trend >= 0 ? 'var(--lime)' : 'var(--ona-red)', marginTop: 4 }}>{trend >= 0 ? '▲ +' : '▼ '}{trend} VS 7-DAY AVG</div>}
+            {trend != null && <div className="mono" style={{ fontSize: 9, color: trend >= 0 ? 'var(--lime)' : 'var(--ona-red)', marginTop: 4 }}>{trend >= 0 ? '▲ +' : '▼ '}{trend} vs 7-day avg</div>}
           </div>
         </div>
         <div className="eyebrow" style={{ marginTop: 14, lineHeight: 1.6 }}>Check in daily on Command — energy, focus, body, mood. The mission engine plans around it.</div>
@@ -279,7 +279,7 @@ function DomainSheet({ domainId, onClose, ctx }) {
         <span style={{ fontSize: 24 }}>{meta.icon}</span>
         <div style={{ flex: 1 }}>
           <div className="eyebrow" style={{ color: meta.color }}>{d.signal}</div>
-          <div className="display" style={{ fontSize: 24, marginTop: 1 }}>{meta.name.toUpperCase()}</div>
+          <div className="display" style={{ fontSize: 24, marginTop: 1 }}>{meta.name}</div>
         </div>
         <span className="display" style={{ fontSize: 26, color: meta.color }}>{d.score}</span>
       </div>
@@ -373,7 +373,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
           {evolution.length >= 2 && (
             <div className="pressable" onClick={() => { setTimeLapseOpen(true); logEvent('map', 'timelapse'); }}
               style={{ width: '82%', margin: '12px auto 0', cursor: 'pointer' }}>
-              <div className="mono" style={{ fontSize: 8, color: 'var(--dim)', letterSpacing: '0.14em', marginBottom: 5 }}>BECOMING · {evolution.length}-DAY EVOLUTION</div>
+              <div className="eyebrow" style={{ fontSize: 9, color: 'var(--dim)', marginBottom: 5 }}>Becoming · {evolution.length}-day evolution</div>
               <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
               <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 6 }}>▶ tap to replay the time-lapse</div>
             </div>
@@ -584,8 +584,8 @@ function IdentitySheet({ open, onClose, list, earnedCount }) {
   return (
     <Sheet open={open} onClose={onClose} maxHeight="86%">
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <div className="eyebrow" style={{ color: 'var(--cyan)' }}>IDENTITY · WHO YOU'VE BECOME</div>
-        <div className="display" style={{ fontSize: 24, marginTop: 3 }}>{earnedCount} OF {list.length} UNLOCKED</div>
+        <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Identity · who you've become</div>
+        <div className="display" style={{ fontSize: 24, marginTop: 3 }}>{earnedCount} of {list.length} unlocked</div>
         <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>Earned from real evidence — never self-reported.</div>
       </div>
 

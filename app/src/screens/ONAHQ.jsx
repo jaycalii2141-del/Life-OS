@@ -201,9 +201,9 @@ function SalesPipeline({ stages, onUpdate, people, onPeopleChange }) {
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
           <div className="eyebrow">Sales pipeline · tap a stage for the people</div>
-          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>FUNNEL</div>
+          <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>Funnel</div>
         </div>
-        {totalStale > 0 && <Pill variant="red">⚠ {totalStale} STALE</Pill>}
+        {totalStale > 0 && <Pill variant="red">⚠ {totalStale} stale</Pill>}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -255,7 +255,7 @@ function ProgressionHero({ skills, readiness, onCoach }) {
           <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Movement identity</div>
           <div className="serif" style={{ fontSize: 'var(--text-3xl)', marginTop: 4, lineHeight: 1.0 }}>Hybrid athlete</div>
           <div className="mono" style={{ fontSize: 10, color: 'var(--muted)', marginTop: 'var(--space-2)' }}>
-            LEVEL {mastered} · {overall}% TOWARD WORLD-CLASS
+            Level {mastered} · {overall}% toward world-class
           </div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -269,8 +269,8 @@ function ProgressionHero({ skills, readiness, onCoach }) {
 
       {/* identity meters — distance to each target identity */}
       <div className="pressable" onClick={() => setShowIdentity((x) => !x)} style={{ marginTop: 10 }}>
-        <div className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.14em' }}>
-          {showIdentity ? '▾' : '▸'} WHO I'M BECOMING · {identities.length} IDENTITIES
+        <div className="eyebrow" style={{ fontSize: 10, color: 'var(--dim)' }}>
+          {showIdentity ? '▾' : '▸'} Who I'm becoming · {identities.length} identities
         </div>
         {showIdentity && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 10 }}>
@@ -298,7 +298,7 @@ function ProgressionHero({ skills, readiness, onCoach }) {
               Closest breakthrough: {edge.skill.name} · {edge.skill.pct}%
             </div>
             <div className="mono" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.08em', marginTop: 2 }}>
-              {edge.disc.name.toUpperCase()} · ~{masteryEstimate(edge.skill)} WKS LEFT · TAP FOR A SESSION PLAN
+              {edge.disc.name} · ~{masteryEstimate(edge.skill)} wks left · tap for a session plan
             </div>
           </div>
         </div>
@@ -353,9 +353,9 @@ function MovementPyramid({ skills, radar }) {
       <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <span className="eyebrow" style={{ color: 'var(--cyan)' }}>How world-class is built</span>
-          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1 }}>MOVEMENT PYRAMID</div>
+          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 1 }}>Movement pyramid</div>
         </div>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{open ? 'HIDE BREAKDOWN' : 'TAP A LAYER'}</span>
+        <span className="eyebrow" style={{ fontSize: 9.5, color: 'var(--dim)' }}>{open ? 'Hide breakdown' : 'Tap a layer'}</span>
       </div>
 
       <svg viewBox={`0 0 ${W} 212`} style={{ width: '100%', display: 'block', marginTop: 8 }}>
@@ -661,7 +661,7 @@ function WorkingOnPanel({ skills, track = {}, onCycleTrack }) {
       <HUDTicks />
       <div style={{ marginBottom: total ? 8 : 0 }}>
         <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Your current edges</div>
-        <div className="section-title" style={{ fontSize: 20, marginTop: 2 }}>WORKING ON · {total}</div>
+        <div className="section-title" style={{ fontSize: 20, marginTop: 2 }}>Working on · {total}</div>
       </div>
       {total === 0 ? (
         <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5, marginTop: 8 }}>Mark a skill Active, or tap TRACK → WORKING on any drill or fundamental, and it shows up here as a current edge.</div>
@@ -699,7 +699,7 @@ function SkillTree({ discipline, skills, onUpdate, track = {}, onCycleTrack, rea
     <div className="glass" style={{ borderRadius: 16, padding: '12px 12px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       {limiter && (
         <div className="mono" style={{ fontSize: 9, color: 'var(--gold)', letterSpacing: '0.1em', padding: '2px 2px 0' }}>
-          ⚠ BIGGEST LIMITER: {limiter.name.toUpperCase()} — TRAIN IT IN FUNDAMENTALS ↓
+          ⚠ Biggest limiter: {limiter.name} — train it in fundamentals ↓
         </div>
       )}
       <FundamentalsPanel disciplineId={discipline.id} color={discipline.color} track={track} onCycleTrack={onCycleTrack} />
@@ -1126,7 +1126,7 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
                   <div className="eyebrow">{training.phaseLabel}</div>
                   <div className="display" style={{ fontSize: 30, marginTop: 2, lineHeight: 1 }}>{training.phaseName}</div>
                   <div className="mono" style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
-                    DAY {day}/90 · {sessionCount} SESSIONS LOGGED
+                    Day {day}/90 · {sessionCount} sessions logged
                   </div>
                 </>
               )}
@@ -1150,8 +1150,8 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
           <HUDTicks />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
-              <div className="eyebrow">Body Radar</div>
-              <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>CURRENT vs GOAL</div>
+              <div className="eyebrow">Body radar</div>
+              <div className="section-title" style={{ fontSize: 22, marginTop: 2 }}>Current vs goal</div>
             </div>
             <div style={{ display: 'flex', gap: 10, fontSize: 9, alignItems: 'center' }}>
               <div className="mono" style={{ color: 'var(--cyan)', display: 'flex', alignItems: 'center', gap: 4 }}>

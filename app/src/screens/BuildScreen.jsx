@@ -132,7 +132,7 @@ function ActionCenter({ onAddMission, missionIds }) {
     <div className="card" style={{ borderColor: 'rgba(233,196,106,0.3)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
         <span className="eyebrow" style={{ color: 'var(--gold)' }}>Action center</span>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>METRICS → MOVES</span>
+        <span className="eyebrow" style={{ fontSize: 9.5, color: 'var(--dim)' }}>Metrics → moves</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {recs.map((r) => {
@@ -241,7 +241,7 @@ function Workbench() {
       <HUDTicks />
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
         <span className="eyebrow" style={{ color: 'var(--orange)' }}>What's on your plate</span>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{all.length} ACTIVE PROJECTS</span>
+        <span className="eyebrow" style={{ fontSize: 9.5, color: 'var(--dim)' }}>{all.length} active projects</span>
       </div>
       {all.length === 0 ? (
         <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.5 }}>No active projects. Start one in any folder (Studio) and it shows up here with its next move.</div>
@@ -286,8 +286,8 @@ export function BuildScreen({ onAddMission, missionIds = [] }) {
                 background: on ? `${x.color}1c` : 'rgba(255,255,255,0.04)',
                 border: `1px solid ${on ? x.color : 'var(--line)'}`,
                 color: on ? x.color : 'var(--muted)',
-                fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em',
-              }}>{x.label.toUpperCase()}</div>
+                fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700, letterSpacing: '0.01em',
+              }}>{x.label}</div>
             );
           })}
         </div>
