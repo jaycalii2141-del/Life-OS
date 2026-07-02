@@ -87,7 +87,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         <span className="eyebrow">{realDateLabel()}</span>
         {becoming && (
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-3)' }}>
-            <TheSelf facets={becoming.facets} becoming={becoming.score} level={level} trend={becoming.trend} size={136} />
+            <TheSelf shared facets={becoming.facets} becoming={becoming.score} level={level} trend={becoming.trend} size={136} />
           </div>
         )}
         <div className="serif" style={{ fontSize: 'var(--text-2xl)', marginTop: 'var(--space-3)', lineHeight: 1.1 }}>{greetingLabel()}</div>

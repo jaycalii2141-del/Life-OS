@@ -24,7 +24,11 @@ function smoothClosed(p) {
   return d + ' Z';
 }
 
-export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', size = 196 }) {
+// `shared` opts this instance into the app-wide shared element (layoutId) —
+// The Self physically travels between Command's hero and the Map's center on
+// tab switch. Only ONE shared instance may be mounted at a time (the
+// time-lapse sheet renders a non-shared Self for this reason).
+export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', size = 196, shared = false }) {
   const cx = size / 2, cy = size / 2;
   const n = facets.length || 8;
   const baseR = size * 0.19;
@@ -46,9 +50,10 @@ export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', si
 
   return (
     <motion.div
-      initial={{ scale: 0.92, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 150, damping: 17 }}
+      layoutId={shared ? 'the-self' : undefined}
+      initial={shared ? false : { scale: 0.92, opacity: 0 }}
+      animate={shared ? undefined : { scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 150, damping: 19 }}
       style={{ position: 'relative', width: size, height: size }}
     >
       <motion.svg

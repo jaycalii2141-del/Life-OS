@@ -110,7 +110,7 @@ function LifeMapViz({ scores, facets, becoming, level, trend, onPick, onLongPick
       </svg>
         {/* The Self lives at the heart, with the domains orbiting it */}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-          <TheSelf facets={facets} becoming={becoming} level={level} trend={trend} size={150} />
+          <TheSelf shared facets={facets} becoming={becoming} level={level} trend={trend} size={150} />
         </div>
       </div>
       <div className="eyebrow" style={{ textAlign: 'center', paddingBottom: 8, color: 'var(--dim)' }}>tap a domain to enter it</div>

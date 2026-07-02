@@ -5,6 +5,7 @@
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { MotionConfig } from 'framer-motion';
 import { IOSDevice } from './components/IOSDevice.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { QuickCapture } from './components/QuickCapture.jsx';
@@ -352,6 +353,7 @@ function MainApp() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <IOSDevice dark width={402} height={874}>
       <div className="screen-host" onPointerDown={onHostPointerDown} onPointerMove={onHostPointerMove} onPointerUp={clearCmd} onPointerLeave={clearCmd} onPointerCancel={clearCmd}>
         <SyncBadge />
@@ -421,6 +423,7 @@ function MainApp() {
         {booting && <BootSplash onDone={() => setBooting(false)} />}
       </div>
     </IOSDevice>
+    </MotionConfig>
   );
 }
 
