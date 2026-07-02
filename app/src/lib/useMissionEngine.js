@@ -27,21 +27,30 @@ export function useMissionEngine(today, missionState, setMissionState) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [missionDoc.items]);
 
-  const missions = missionDoc.items || [];
+  // Defensive dedupe by id on read — heals any persisted doc that picked up
+  // a duplicate (the old lockstep guard raced its own updater; docs persist,
+  // so a duplicate written once would otherwise live forever).
+  const missions = (missionDoc.items || []).filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i);
   const doneIds = missionDoc.doneIds || [];
 
-  // Keep the One Thing and the mission list in lockstep.
+  // Keep the One Thing and the mission list in lockstep. All checks live
+  // INSIDE the functional updater so a double-fired effect can't prepend twice.
   useEffect(() => {
-    if (!missionDoc.items) return;
-    const idx = missionDoc.items.findIndex((m) => m.id === 'one-thing');
-    if (missionState.oneThing && idx === -1) {
-      setMissionDoc((d) => ({
-        ...d,
-        items: [{ id: 'one-thing', kind: 'focus', icon: '🎯', title: missionState.oneThing, why: 'Your One Thing — the single win that makes today a success.', est: 90, go: 'today' }, ...d.items].slice(0, 5),
-      }));
-    } else if (missionState.oneThing && idx !== -1 && missionDoc.items[idx].title !== missionState.oneThing) {
-      setMissionDoc((d) => ({ ...d, items: d.items.map((m) => (m.id === 'one-thing' ? { ...m, title: missionState.oneThing } : m)) }));
-    }
+    if (!missionDoc.items || !missionState.oneThing) return;
+    setMissionDoc((d) => {
+      const items = d.items || [];
+      const idx = items.findIndex((m) => m.id === 'one-thing');
+      if (idx === -1) {
+        return {
+          ...d,
+          items: [{ id: 'one-thing', kind: 'focus', icon: '🎯', title: missionState.oneThing, why: 'Your One Thing — the single win that makes today a success.', est: 90, go: 'today' }, ...items].slice(0, 5),
+        };
+      }
+      if (items[idx].title !== missionState.oneThing) {
+        return { ...d, items: items.map((m) => (m.id === 'one-thing' ? { ...m, title: missionState.oneThing } : m)) };
+      }
+      return d;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [missionState.oneThing, missionDoc.items]);
 

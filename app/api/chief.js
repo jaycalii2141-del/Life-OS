@@ -20,7 +20,10 @@ const SYSTEMS = {
     `- Be brief and specific. Short lines, no preamble, no headers like "Morning Brief". Speak directly to Jay.\n\n` +
     `After the brief, on a new line output the exact marker ACTIONS_JSON: followed by a compact JSON array (max 3) of concrete actions Jay could take in one tap. Each item: ` +
     `{"type":"event"|"email"|"note","label":"<short button text>", and for event: "title","time"(HH:MM 24h),"durationMin"; for email: "to"(if known else ""),"subject","body"; for note: "text","domain"(one of ona,podium,movement,social,wife,self)}. ` +
-    `Only propose actions that clearly follow from the data (e.g. block prep time before a coaching session, draft a follow-up). If none are warranted, output ACTIONS_JSON: []`,
+    `Only propose actions that clearly follow from the data (e.g. block prep time before a coaching session, draft a follow-up). If none are warranted, output ACTIONS_JSON: []\n\n` +
+    `Finally, on its own line, output the exact marker WHISPER: followed by ONE short proactive line (max 140 chars) for the ambient Presence card — ` +
+    `the single most important unasked observation from the data (a pattern, an identity milestone within reach, a neglected domain, a risk to the streak). ` +
+    `Personal, specific, calm — never generic, never a command. No quotes.`,
   review:
     `You are Jay Martinez's Chief of Staff doing his weekly review. Jay co-owns Obstacle Ninja Academy and Podium Creations, ` +
     `trains as an elite movement athlete, and protects time with his wife Chelsea. He wants honest reflection, not cheerleading.\n\n` +
@@ -57,7 +60,14 @@ export default async function handler(req, res) {
     });
     if (!r.ok) { const detail = await r.text(); res.status(502).json({ error: 'Upstream error', detail: detail.slice(0, 300) }); return; }
     const data = await r.json();
-    const raw = (data.content || []).map((b) => b.text || '').join('').trim();
+    let raw = (data.content || []).map((b) => b.text || '').join('').trim();
+    // Peel the optional WHISPER line (the ambient Presence beat) off the end.
+    let whisper = '';
+    const wi = raw.lastIndexOf('WHISPER:');
+    if (wi !== -1) {
+      whisper = raw.slice(wi + 'WHISPER:'.length).trim().split('\n')[0].trim().slice(0, 180);
+      raw = raw.slice(0, wi).trim();
+    }
     // Split the brief prose from the optional ACTIONS_JSON marker.
     let text = raw, actions = [];
     const mi = raw.indexOf('ACTIONS_JSON:');
@@ -65,7 +75,7 @@ export default async function handler(req, res) {
       text = raw.slice(0, mi).trim();
       try { const parsed = JSON.parse(raw.slice(mi + 'ACTIONS_JSON:'.length).trim()); if (Array.isArray(parsed)) actions = parsed.slice(0, 3); } catch { /* ignore */ }
     }
-    res.status(200).json({ text, actions });
+    res.status(200).json({ text, actions, whisper });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

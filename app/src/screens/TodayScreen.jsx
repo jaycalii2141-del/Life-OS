@@ -44,7 +44,7 @@ const KIND_COLORS = { focus: '#FF6B5B', train: '#34D399', build: '#E9C46A', ritu
 // ─────────────────────────────────────────────────────────
 // L1 — Today's Mission
 // ─────────────────────────────────────────────────────────
-function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, becoming, level, adaptedAt }) {
+function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, streak, onGo, oneThing, onSetOneThing, becoming, level, adaptedAt, starterData, onCalibrate }) {
   const [party, setParty] = useState(0);
   const [editingFocus, setEditingFocus] = useState(false);
   const [draft, setDraft] = useState('');
@@ -103,6 +103,18 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
             </span>
           )}
         </div>
+        {/* Honesty: until real numbers are in, say so — an instrument that
+            admits it's uncalibrated earns trust. Tap → Settings → setup. */}
+        {starterData && (
+          <div className="pressable" onClick={onCalibrate} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 'var(--space-3)',
+            padding: '4px 10px', borderRadius: 'var(--r-pill)',
+            background: 'rgba(233,196,106,0.09)', border: '1px dashed rgba(233,196,106,0.4)',
+            fontFamily: 'var(--font-body)', fontSize: 10.5, fontWeight: 600, color: 'var(--gold)',
+          }}>
+            Starter data — tap to make it yours
+          </div>
+        )}
       </div>
 
       <hr className="hr" style={{ margin: 'var(--space-5) 0 0' }} />
@@ -627,11 +639,24 @@ export function TodayScreen({
   // Life Level for The Self on the Bridge (same number shown on the Map).
   const lvl = useMemo(() => { try { return lifeLevel(); } catch { return null; } }, [doneIds, missions]);
 
+  // Data provenance — until the setup flow has run, the numbers are seed.
+  const [setupDone] = useSyncedState('lifeos:setup-complete', null);
+
   // The Presence — one proactive, unasked observation.
   const allDoneToday = missions.length > 0 && missions.every((m) => doneIds.includes(m.id));
   const insight = useMemo(() => {
     try { return proactiveInsight({ oneThing: state.oneThing, allDone: allDoneToday, becoming, quests, nearMilestone }); } catch { return null; }
   }, [state.oneThing, allDoneToday, becoming, quests, nearMilestone]);
+
+  // The Oracle's whisper — the day's model-authored Presence line, broadcast
+  // by ChiefBrief (one AI call/day powers both). Heuristics remain the
+  // instant/offline fallback.
+  const [oracleWhisper, setOracleWhisper] = useState('');
+  useEffect(() => {
+    const on = (e) => { if (e.detail?.whisper) setOracleWhisper(e.detail.whisper); };
+    window.addEventListener('jamhq:oracle', on);
+    return () => window.removeEventListener('jamhq:oracle', on);
+  }, []);
 
   // Real calendar events for today (read-only).
   const [calendarEvents, setCalendarEvents] = useState([]);
@@ -672,6 +697,8 @@ export function TodayScreen({
         becoming={becoming}
         level={lvl?.level}
         adaptedAt={adaptedAt}
+        starterData={!setupDone}
+        onCalibrate={onOpenSettings}
       />
 
       <AskBar onOpen={onOpenCompanion} />
@@ -683,9 +710,9 @@ export function TodayScreen({
         }}>
           <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--cyan)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--cyan)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="eyebrow" style={{ fontSize: 9, color: 'var(--cyan)', marginBottom: 3 }}>{insight.milestone ? 'Presence · identity within reach' : 'Presence'}</div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{insight.text}</div>
-            {insight.milestone && (
+            <div className="eyebrow" style={{ fontSize: 9, color: 'var(--cyan)', marginBottom: 3 }}>{!oracleWhisper && insight.milestone ? 'Presence · identity within reach' : 'Presence'}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{oracleWhisper || insight.text}</div>
+            {!oracleWhisper && insight.milestone && (
               <div style={{ marginTop: 8 }}>
                 <ProgressBar value={insight.milestone.progress} color={insight.milestone.accent || '#45B7E8'} height={3} />
               </div>
@@ -709,6 +736,8 @@ export function TodayScreen({
         readiness={readiness}
         oneThing={state.oneThing}
         calendarEvents={calendarEvents}
+        streak={streak}
+        nearMilestone={nearMilestone}
         onAddEvent={addEvent}
         onGoMind={() => onGoTab?.('life')}
         defaultOpen={true}

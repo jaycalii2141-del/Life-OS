@@ -10,6 +10,7 @@ import { IconCompass, IconSparkles, IconChevronDown, IconCalendar, IconSend, Ico
 import { todayKey } from './usePersistentState.js';
 import { googleCalendarUrl, mailtoUrl, openExternal } from './lib/actions.js';
 import { aiFetch } from './lib/api.js';
+import { identityDigest } from './lib/identity.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -19,7 +20,7 @@ function inboxCount() {
   return readJSON('lifeos:captures', []).filter((c) => (c.status || 'inbox') === 'inbox').length;
 }
 
-function buildContext({ readiness, oneThing, calendarEvents }) {
+function buildContext({ readiness, oneThing, calendarEvents, streak, nearMilestone }) {
   const inbox = inboxCount();
   const sessions = readJSON('lifeos:sessions', []).slice(0, 3);
   const focus = readJSON('lifeos:weeklyfocus', {}).text;
@@ -28,8 +29,13 @@ function buildContext({ readiness, oneThing, calendarEvents }) {
   lines.push(`Calendar today: ${calendarEvents?.length ? calendarEvents.map((e) => `${e.time} ${e.label}`).join('; ') : 'nothing scheduled'}.`);
   lines.push(`Capture inbox: ${inbox} thought${inbox === 1 ? '' : 's'} waiting to triage.`);
   lines.push(`Today's one thing: ${oneThing ? oneThing : 'not set yet'}.`);
+  if (streak > 0) lines.push(`Current streak: ${streak} day${streak === 1 ? '' : 's'}.`);
+  if (nearMilestone) lines.push(`Identity milestone within reach: "${nearMilestone.name}" at ${nearMilestone.progress}% — ${nearMilestone.hint}`);
   if (focus) lines.push(`This week's focus: ${focus}.`);
   if (sessions.length) lines.push(`Recent training: ${sessions.map((s) => `${s.disciplineName || s.discipline} ${s.duration}min`).join(', ')}.`);
+  // The identity model — Becoming, trend, level, domain picture.
+  const digest = identityDigest();
+  if (digest) lines.push('', digest);
   return lines.join('\n');
 }
 
@@ -57,7 +63,14 @@ function buildLocal({ readiness, oneThing, calendarEvents }) {
   return out.join('\n');
 }
 
-export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, onGoMind, defaultOpen = true }) {
+// Broadcast the day's AI whisper so the Presence card (TodayScreen) can use
+// it — the one model call a day powers both the brief and the ambient line.
+function announceWhisper(whisper) {
+  if (!whisper) return;
+  try { window.dispatchEvent(new CustomEvent('jamhq:oracle', { detail: { whisper } })); } catch { /* */ }
+}
+
+export function ChiefBrief({ readiness, oneThing, calendarEvents, streak, nearMilestone, onAddEvent, onGoMind, defaultOpen = true }) {
   const day = todayKey();
   const cacheKey = `lifeos:brief:${day}`;
   const [brief, setBrief] = useState('');
@@ -72,11 +85,15 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
   const generate = async (force) => {
     if (!force) {
       const cached = readJSON(cacheKey, null);
-      if (cached && cached.text) { setBrief(cached.text); setUsedAI(!!cached.ai); setActions(cached.actions || []); return; }
+      if (cached && cached.text) {
+        setBrief(cached.text); setUsedAI(!!cached.ai); setActions(cached.actions || []);
+        announceWhisper(cached.whisper);
+        return;
+      }
     }
     setLoading(true);
-    const context = buildContext({ readiness, oneThing, calendarEvents });
-    let text = '', ai = false, acts = [];
+    const context = buildContext({ readiness, oneThing, calendarEvents, streak, nearMilestone });
+    let text = '', ai = false, acts = [], whisper = '';
     try {
       const r = await aiFetch('/api/chief', { mode: 'brief', context });
       if (!r.ok) throw new Error('no ai');
@@ -84,12 +101,14 @@ export function ChiefBrief({ readiness, oneThing, calendarEvents, onAddEvent, on
       text = (data.text || '').trim();
       if (!text) throw new Error('empty');
       acts = Array.isArray(data.actions) ? data.actions : [];
+      whisper = typeof data.whisper === 'string' ? data.whisper.trim() : '';
       ai = true;
     } catch {
-      text = buildLocal({ readiness, oneThing, calendarEvents }); ai = false; acts = [];
+      text = buildLocal({ readiness, oneThing, calendarEvents }); ai = false; acts = []; whisper = '';
     }
     setBrief(text); setUsedAI(ai); setActions(acts); setLoading(false);
-    try { localStorage.setItem(cacheKey, JSON.stringify({ text, ai, actions: acts, ts: Date.now() })); } catch { /* */ }
+    announceWhisper(whisper);
+    try { localStorage.setItem(cacheKey, JSON.stringify({ text, ai, actions: acts, whisper, ts: Date.now() })); } catch { /* */ }
   };
 
   // Run an AI-proposed action (event prefills Google Calendar + app timeline; email prefills mail).
