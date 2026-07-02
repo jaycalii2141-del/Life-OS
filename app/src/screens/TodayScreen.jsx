@@ -21,6 +21,7 @@ import { proactiveInsight } from '../lib/presence.js';
 import { evaluateMilestones } from '../lib/milestones.js';
 import { TheSelf } from '../components/TheSelf.jsx';
 import { EmptyState } from '../components/ui.jsx';
+import { CloseDay } from '../components/CloseDay.jsx';
 import { awardXp } from '../lib/xp.js';
 import { fireCeremony } from '../lib/ceremony.js';
 import { GoalDecomposer } from '../GoalDecomposer.jsx';
@@ -721,6 +722,15 @@ export function TodayScreen({
           <IconChevronRight size={14} color="var(--dim)" style={{ flexShrink: 0, marginTop: 3 }} />
         </div>
       )}
+
+      <CloseDay
+        state={state}
+        setState={setState}
+        doneCount={missions.filter((m) => doneIds.includes(m.id)).length}
+        totalCount={missions.length}
+        becoming={becoming}
+        streak={streak}
+      />
 
       <MissionsCard quests={quests} onToggleMilestone={toggleMilestone} onNewGoal={() => setGoalOpen(true)} />
 
