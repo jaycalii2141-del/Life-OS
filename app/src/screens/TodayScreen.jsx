@@ -330,14 +330,17 @@ function CampaignCard({ q, open, onToggleOpen, onToggleMilestone, onLongPress, m
               }
             }}
               style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 0', marginTop: -6, marginBottom: -6 }}>
-              <div style={{
-                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                border: `1.5px solid ${m.done ? 'var(--lime)' : 'var(--line-strong)'}`,
-                background: m.done ? 'var(--lime)' : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <motion.div
+                animate={m.done ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                transition={{ duration: 0.35, ease: [0.34, 1.4, 0.64, 1] }}
+                style={{
+                  width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                  border: `1.5px solid ${m.done ? 'var(--lime)' : 'var(--line-strong)'}`,
+                  background: m.done ? 'var(--lime)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
                 {m.done && <IconCheck size={11} color="#0A0B0D" stroke={3} />}
-              </div>
+              </motion.div>
               <span style={{ fontSize: 12.5, color: m.done ? 'var(--dim)' : 'var(--text)', textDecoration: m.done ? 'line-through' : 'none', lineHeight: 1.3 }}>{m.text}</span>
             </div>
           ))}

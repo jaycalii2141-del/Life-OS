@@ -305,6 +305,7 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   const [menuDomain, setMenuDomain] = useState(null);
   const [timeLapseOpen, setTimeLapseOpen] = useState(false);
   const [identityOpen, setIdentityOpen] = useState(false);
+  const [balanceOpen, setBalanceOpen] = useState(false);
   const [milestones] = useSyncedState('lifeos:milestones', {});
 
   const scores = useMemo(() => { try { return domainScores(); } catch { return {}; } }, [openDomain, learning, adventure]);
@@ -372,45 +373,71 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
       {becoming && (
         <div style={{ textAlign: 'center', marginTop: -4 }}>
           <div style={{ fontSize: 12.5, color: 'var(--text-2)', padding: '0 16px', textWrap: 'pretty' }}>{becomingLine(becoming)}</div>
-          {evolution.length >= 2 && (
-            <div className="pressable" onClick={() => { setTimeLapseOpen(true); logEvent('map', 'timelapse'); }}
-              style={{ width: '82%', margin: '12px auto 0', cursor: 'pointer' }}>
-              <div className="eyebrow" style={{ fontSize: 9, color: 'var(--dim)', marginBottom: 5 }}>Becoming · {evolution.length}-day evolution</div>
-              <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
-              <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 6 }}>▶ tap to replay the time-lapse</div>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Identity — the milestones you've crossed becoming who you are */}
-      {milestoneList.length > 0 && (
-        <div className="card pressable" onClick={() => { setIdentityOpen(true); logEvent('map', 'identity'); }}>
-          <div className="row-between">
-            <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Identity · who you've become</div>
-            <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{earnedMilestones.length}/{milestoneList.length}</span>
-          </div>
-          {latestMilestone ? (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <IconCheck size={15} color={latestMilestone.accent} stroke={2.6} />
-                <span className="display" style={{ fontSize: 17, color: 'var(--text)' }}>{latestMilestone.name}</span>
+      {/* The story so far — identity, pattern, evolution: one intelligence
+          region instead of three stacked cards. */}
+      {(milestoneList.length > 0 || crossInsight || evolution.length >= 2) && (
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          {/* Identity row */}
+          {milestoneList.length > 0 && (
+            <div className="pressable" onClick={() => { setIdentityOpen(true); logEvent('map', 'identity'); }} style={{ padding: 'var(--space-4)' }}>
+              <div className="row-between">
+                <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Identity · who you've become</div>
+                <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>{earnedMilestones.length}/{milestoneList.length}</span>
               </div>
-              <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 3 }}>{latestMilestone.statement}</div>
-            </div>
-          ) : (
-            <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 8 }}>
-              No identity milestones yet — the evidence is building. Tap to see what you're closest to becoming.
+              {latestMilestone ? (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <IconCheck size={15} color={latestMilestone.accent} stroke={2.6} />
+                    <span className="display" style={{ fontSize: 17, color: 'var(--text)' }}>{latestMilestone.name}</span>
+                  </div>
+                  <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 3 }}>{latestMilestone.statement}</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 8 }}>
+                  No identity milestones yet — the evidence is building. Tap to see what you're closest to becoming.
+                </div>
+              )}
+              {nextMilestone && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span className="eyebrow" style={{ color: 'var(--dim)' }}>Next · {nextMilestone.name}</span>
+                    <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{nextMilestone.progress}%</span>
+                  </div>
+                  <ProgressBar value={nextMilestone.progress} color={nextMilestone.accent} height={3} />
+                </div>
+              )}
             </div>
           )}
-          {nextMilestone && (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                <span className="eyebrow" style={{ color: 'var(--dim)' }}>Next · {nextMilestone.name}</span>
-                <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>{nextMilestone.progress}%</span>
+
+          {/* Pattern row — the Presence connects domains over time */}
+          {crossInsight && (
+            <>
+              <hr className="hr" />
+              <div className="pressable" onClick={() => { setOpenDomain(crossInsight.domainId); logEvent('map', 'pattern', crossInsight.kind); }}
+                style={{ padding: 'var(--space-4)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+                <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--violet)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--violet)' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="eyebrow" style={{ fontSize: 9, color: 'var(--violet)', marginBottom: 3 }}>Presence · pattern</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{crossInsight.text}</div>
+                </div>
+                <IconArrowRight size={14} color="var(--dim)" style={{ flexShrink: 0, marginTop: 3 }} />
               </div>
-              <ProgressBar value={nextMilestone.progress} color={nextMilestone.accent} height={3} />
-            </div>
+            </>
+          )}
+
+          {/* Evolution row — scrub through who you've been becoming */}
+          {evolution.length >= 2 && (
+            <>
+              <hr className="hr" />
+              <div className="pressable center" onClick={() => { setTimeLapseOpen(true); logEvent('map', 'timelapse'); }} style={{ padding: 'var(--space-4)' }}>
+                <div className="eyebrow" style={{ fontSize: 9, color: 'var(--dim)', marginBottom: 5 }}>Becoming · {evolution.length}-day evolution</div>
+                <Sparkline data={evolution} width={240} height={26} color="#45B7E8" />
+                <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 6 }}>▶ tap to replay the time-lapse</div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -431,36 +458,26 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
         );
       })()}
 
-      {/* Cross-domain pattern — the Presence connects domains over time.
-          Tap to step into the domain it's pointing at. */}
-      {crossInsight && (
-        <div className="pressable card" onClick={() => { setOpenDomain(crossInsight.domainId); logEvent('map', 'pattern', crossInsight.kind); }}
-          style={{
-            display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)',
-            background: 'rgba(45,212,191,0.05)', borderColor: 'rgba(45,212,191,0.22)',
-          }}>
-          <span className="blink" style={{ width: 7, height: 7, borderRadius: 999, background: 'var(--violet)', marginTop: 5, flexShrink: 0, boxShadow: '0 0 8px var(--violet)' }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mono" style={{ fontSize: 8.5, color: 'var(--violet)', letterSpacing: '0.14em', marginBottom: 3 }}>PRESENCE · PATTERN</div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.42, textWrap: 'pretty' }}>{crossInsight.text}</div>
+      {/* Balance — the eight domains as one shape. Collapsed by default:
+          the constellation above already carries the at-a-glance read. */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="pressable row-between" onClick={() => setBalanceOpen((o) => !o)} style={{ padding: '13px 16px' }}>
+          <div>
+            <div className="eyebrow" style={{ color: 'var(--cyan)' }}>The shape of your life</div>
+            <div className="section-title" style={{ fontSize: 'var(--text-md)', marginTop: 1 }}>Balance</div>
           </div>
-          <IconArrowRight size={14} color="var(--dim)" style={{ flexShrink: 0, marginTop: 3 }} />
+          <IconChevronRight size={15} color="var(--dim)" style={{ transform: balanceOpen ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }} />
         </div>
-      )}
-
-      {/* Balance — the same eight domains read as a single shape. A
-          lopsided web shows instantly where life is out of balance. */}
-      <div className="card" style={{ padding: 'var(--space-5) var(--space-2) var(--space-2)' }}>
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-2)' }}>
-          <div className="eyebrow" style={{ color: 'var(--cyan)' }}>The shape of your life</div>
-          <div className="section-title" style={{ fontSize: 'var(--text-lg)', marginTop: 1 }}>BALANCE</div>
-        </div>
-        <RadarChart
-          axes={LIFE_MAP_DOMAINS.map((d) => ({ label: ({ relationships: 'BONDS', creativity: 'CREATE', adventure: 'EXPLORE', business: 'BIZ' }[d.id] || d.name.slice(0, 6).toUpperCase()), value: scores[d.id]?.score ?? 0 }))}
-          size={240}
-          color="#45B7E8"
-        />
-        <div className="eyebrow" style={{ textAlign: 'center', color: 'var(--dim)', marginTop: 2 }}>each point = that domain's live score · aim for a full, even web</div>
+        {balanceOpen && (
+          <div className="unfold" style={{ padding: '0 var(--space-2) var(--space-2)' }}>
+            <RadarChart
+              axes={LIFE_MAP_DOMAINS.map((d) => ({ label: ({ relationships: 'BONDS', creativity: 'CREATE', adventure: 'EXPLORE', business: 'BIZ' }[d.id] || d.name.slice(0, 6).toUpperCase()), value: scores[d.id]?.score ?? 0 }))}
+              size={240}
+              color="#45B7E8"
+            />
+            <div className="eyebrow" style={{ textAlign: 'center', color: 'var(--dim)', marginTop: 2 }}>each point = that domain's live score · aim for a full, even web</div>
+          </div>
+        )}
       </div>
 
       {/* View toggle — the daily mind tools */}
