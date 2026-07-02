@@ -9,6 +9,7 @@
 // what to do next, what can wait, and how the campaign is going.
 // ─────────────────────────────────────────────────────────
 import { useState, useEffect, useMemo } from 'react';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { ProgressBar, StateMeter, TimelineEvent, Pill } from '../components/atoms.jsx';
 import { IconCheck, IconSparkles, IconChevronDown, IconChevronRight, IconCalendar, IconClose, IconPlus, IconSliders, IconMic, IconFlame, IconTarget, IconWarn, IconActivity, IconCompass, IconArrowRight, IconTrendUp, kindIcon, domainIcon } from '../components/icons.jsx';
 import { ChiefBrief } from '../ChiefBrief.jsx';
@@ -152,7 +153,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
           <div style={{ position: 'relative', textAlign: 'center', padding: '16px 0 6px', overflow: 'visible' }}>
             <div className="ceremony-bloom" />
             <div className="ceremony-text" style={{ position: 'relative' }}>
-              <div className="display" style={{ fontSize: 26, color: 'var(--lime)', letterSpacing: '0.01em' }}>DAY CLOSED</div>
+              <div className="serif" style={{ fontSize: 26, color: 'var(--lime)' }}>Day closed</div>
               {becoming && (
                 <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 6, lineHeight: 1.35, textWrap: 'pretty' }}>
                   You showed up — {becomingLine(becoming).toLowerCase()}{becoming.delta > 0 ? ` · ▲+${becoming.delta}` : ''}
@@ -212,24 +213,51 @@ function missionActions(m, onSetOneThing, close) {
 function MissionRow({ m, isDone, isNext, menuOpen, onToggle, onGo, onLongPress }) {
   const c = KIND_COLORS[m.kind] || 'var(--cyan)';
   const lp = useLongPress(onLongPress, onGo);
+  // Swipe-to-complete: the row travels on a horizontal drag; a green
+  // affordance surfaces behind it, and releasing past the threshold toggles.
+  // The checkbox remains — the gesture is an accelerant, not the only path.
+  const x = useMotionValue(0);
+  const affordance = useTransform(x, [12, 88], [0, 1]);
+
   return (
-    <div className={menuOpen ? 'obj-pulse' : ''} style={{
-      padding: '10px 12px', borderRadius: 14,
-      background: isNext ? 'rgba(69,183,232,0.07)' : 'rgba(255,255,255,0.03)',
-      border: `1px solid ${menuOpen ? 'rgba(69,183,232,0.55)' : isNext ? 'rgba(69,183,232,0.45)' : 'var(--line)'}`,
-      opacity: isDone ? 0.5 : 1, transition: 'all 200ms',
-    }}>
+    <div style={{ position: 'relative' }}>
+      {/* revealed behind the traveling row */}
+      <motion.div style={{
+        opacity: affordance, position: 'absolute', inset: 0, borderRadius: 14,
+        background: 'rgba(52,211,153,0.10)', border: '1px solid rgba(52,211,153,0.35)',
+        display: 'flex', alignItems: 'center', paddingLeft: 18, color: 'var(--lime)',
+      }}>
+        <IconCheck size={18} stroke={2.6} />
+      </motion.div>
+
+      <motion.div
+        className={menuOpen ? 'obj-pulse' : ''}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={{ left: 0, right: 0.5 }}
+        dragTransition={{ bounceStiffness: 420, bounceDamping: 26 }}
+        onDragEnd={(_, info) => { if (info.offset.x > 88) onToggle(); }}
+        animate={{ opacity: isDone ? 0.55 : 1 }}
+        style={{
+          x, touchAction: 'pan-y', position: 'relative',
+          padding: '10px 12px', borderRadius: 14,
+          background: isNext ? 'rgba(69,183,232,0.07)' : 'rgba(19,19,22,0.92)',
+          border: `1px solid ${menuOpen ? 'rgba(69,183,232,0.55)' : isNext ? 'rgba(69,183,232,0.45)' : 'var(--line)'}`,
+        }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
         {/* 44px hit area; the visual box stays 24px. */}
         <div className="pressable" onClick={onToggle} style={{ flexShrink: 0, margin: '-9px -10px -10px -10px', padding: 10, display: 'flex', alignItems: 'flex-start' }}>
-          <div style={{
-            width: 24, height: 24, borderRadius: 8,
-            border: `1.5px solid ${isDone ? 'var(--lime)' : c}`,
-            background: isDone ? 'var(--lime)' : 'transparent',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <motion.div
+            animate={isDone ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+            transition={{ duration: 0.35, ease: [0.34, 1.4, 0.64, 1] }}
+            style={{
+              width: 24, height: 24, borderRadius: 8,
+              border: `1.5px solid ${isDone ? 'var(--lime)' : c}`,
+              background: isDone ? 'var(--lime)' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
             {isDone && <IconCheck size={14} color="#0A0B0D" stroke={3} />}
-          </div>
+          </motion.div>
         </div>
         <div {...lp} style={{ flex: 1, minWidth: 0, touchAction: 'pan-y' }} className="pressable">
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -248,6 +276,7 @@ function MissionRow({ m, isDone, isNext, menuOpen, onToggle, onGo, onLongPress }
           )}
         </div>
       </div>
+      </motion.div>
     </div>
   );
 }
@@ -422,13 +451,14 @@ function AskBar({ onOpen }) {
 // ─────────────────────────────────────────────────────────
 // L2 — Check-in (sets readiness, which re-plans the mission)
 // ─────────────────────────────────────────────────────────
-function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
+function StateCard({ state, onMeter, readiness, trend, onOpenSettings, momentum = [], streak = 0, freezes }) {
   const [open, setOpen] = useState(!state.checkedIn);
+  const avail = freezes?.available ?? 0;
   return (
     <div className="card">
       <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span className="eyebrow">Check-in</span>
+          <span className="eyebrow">State</span>
           <span className="display" style={{ fontSize: 20, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness}</span>
           <span className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em' }}>
             {trend == null ? 'Baseline' : `${trend >= 0 ? '▲+' : '▼'}${trend} vs 7d`}
@@ -452,44 +482,27 @@ function CheckInCard({ state, onMeter, readiness, trend, onOpenSettings }) {
           <StateMeter label="Mood" value={state.mood} color="#45B7E8" onChange={(v) => onMeter('mood', v)} />
         </div>
       )}
-    </div>
-  );
-}
 
-// ─────────────────────────────────────────────────────────
-// L2 — Momentum (14-day heatmap + streak)
-// ─────────────────────────────────────────────────────────
-function MomentumStrip({ momentum = [], streak = 0, freezes }) {
-  const avail = freezes?.available ?? 0;
-  return (
-    <div className="card">
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 9 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-          <span className="eyebrow">Momentum</span>
-          <span className="display" style={{ fontSize: 20, color: 'var(--gold)' }}>{streak}</span>
-          <span className="mono" style={{ fontSize: 9, color: 'var(--muted)' }}>Day streak</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {avail > 0 && (
-            <span className="mono" title="Streak freezes — each heals one missed day" style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              <span style={{ fontSize: 10, lineHeight: 1 }}>❄</span>{avail}
-            </span>
-          )}
-          <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14D</span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 4 }}>
+      {/* momentum lives with state — one calm region, not two cards */}
+      <div style={{ display: 'flex', gap: 4, marginTop: 14 }}>
         {momentum.map((v, i) => {
           const isToday = i === momentum.length - 1;
           const color = v === 0 ? '#5A5A66' : v === 1 ? '#1E6F9F' : v === 2 ? '#45B7E8' : v === 3 ? '#E9C46A' : '#34D399';
           return (
             <div key={i} style={{
-              flex: 1, height: 24, borderRadius: 5, background: color,
+              flex: 1, height: 20, borderRadius: 5, background: color,
               opacity: v === 0 ? 0.12 : 0.3 + (v / 4) * 0.7,
               border: isToday ? '1.5px solid rgba(255,255,255,0.8)' : 'none',
             }} />
           );
         })}
+      </div>
+      <div className="row-between" style={{ marginTop: 8 }}>
+        <span className="mono" style={{ fontSize: 9.5, color: streak > 0 ? 'var(--gold)' : 'var(--dim)' }}>
+          {streak > 0 ? `${streak}-day streak` : 'no streak yet'}
+          {avail > 0 && <span style={{ color: 'var(--cyan)' }}> · ❄{avail}</span>}
+        </span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--dim)' }}>14d</span>
       </div>
     </div>
   );
@@ -736,9 +749,8 @@ export function TodayScreen({
 
       <GoalDecomposer open={goalOpen} onClose={() => setGoalOpen(false)} onAddQuest={addQuest} />
 
-      <CheckInCard state={state} onMeter={setMeter} readiness={readiness} trend={trend} onOpenSettings={onOpenSettings} />
-
-      <MomentumStrip momentum={momentum} streak={streak} freezes={freezes} />
+      <StateCard state={state} onMeter={setMeter} readiness={readiness} trend={trend} onOpenSettings={onOpenSettings}
+        momentum={momentum} streak={streak} freezes={freezes} />
 
       <WinsStrip wins={wins} />
 

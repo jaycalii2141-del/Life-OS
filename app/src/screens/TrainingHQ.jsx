@@ -1045,23 +1045,18 @@ function TrainingHQ({ sessions: sessionsProp, onLogSession, readiness }) {
         {/* L1 — the progression engine (flagship) */}
         <ProgressionHero skills={skills} readiness={readiness} onCoach={() => setCoachOpen(true)} />
 
-        {/* one clean action row — coach a session, log one, plan the week */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {[
-            { label: 'Coach', Icon: IconActivity, onClick: () => setCoachOpen(true), grad: 'linear-gradient(135deg, #45B7E8, #34D399)' },
-            { label: 'Log', Icon: IconCheck, onClick: () => setLogOpen(true), grad: 'linear-gradient(135deg, #34D399, #E9C46A)' },
-            { label: 'Week', Icon: IconCalendar, onClick: () => setWeekOpen(true), grad: 'linear-gradient(135deg, #2DD4BF, #45B7E8)' },
-          ].map((b) => (
-            <div key={b.label} className="pressable" onClick={b.onClick} style={{
-              flex: 1, height: 48, borderRadius: 14,
-              background: b.grad,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              color: '#0A0B0D', fontWeight: 800, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}>
-              <b.Icon size={16} stroke={2.4} />
-              {b.label}
-            </div>
-          ))}
+        {/* one clean action row — one primary verb (coach a session), two quiet
+            companions. A single accent, no shouting. */}
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <button className="btn btn-primary" style={{ flex: 1.2, height: 48 }} onClick={() => setCoachOpen(true)}>
+            <IconActivity size={16} stroke={2.2} /> Coach
+          </button>
+          <button className="btn btn-ghost" style={{ flex: 1, height: 48 }} onClick={() => setLogOpen(true)}>
+            <IconCheck size={16} stroke={2} /> Log
+          </button>
+          <button className="btn btn-ghost" style={{ flex: 1, height: 48 }} onClick={() => setWeekOpen(true)}>
+            <IconCalendar size={16} stroke={2} /> Week
+          </button>
         </div>
 
         <MovementPyramid skills={skills} radar={radar} />
