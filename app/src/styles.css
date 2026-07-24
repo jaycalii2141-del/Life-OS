@@ -269,6 +269,569 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
+.screen-scroll--immersive {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* ─────────────────────────────────────────────────────────
+   LIVING INTERFACE
+   A scene, not a dashboard. One current moment, an embodied Self,
+   and life realms that behave like places instead of folders.
+   ───────────────────────────────────────────────────────── */
+.living-now,
+.worlds-screen {
+  position: relative;
+  min-height: 874px;
+  overflow: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse 82% 52% at 3% -4%, rgba(23, 170, 222, 0.28), transparent 64%),
+    radial-gradient(ellipse 76% 60% at 101% 43%, rgba(94, 52, 190, 0.22), transparent 66%),
+    radial-gradient(ellipse 90% 42% at 48% 106%, rgba(207, 66, 42, 0.20), transparent 65%),
+    #050609;
+  isolation: isolate;
+}
+
+.living-now {
+  padding: calc(env(safe-area-inset-top, 0px) + 48px) 22px 116px;
+}
+
+.living-now__aura {
+  position: absolute;
+  z-index: -1;
+  border-radius: 44% 56% 61% 39% / 58% 42% 58% 42%;
+  filter: blur(58px);
+  opacity: 0.24;
+  pointer-events: none;
+  animation: livingCurrent 16s ease-in-out infinite alternate;
+}
+
+.living-now__aura--cyan {
+  width: 280px;
+  height: 320px;
+  left: -170px;
+  top: -60px;
+  background: #2DC8F2;
+}
+
+.living-now__aura--violet {
+  width: 290px;
+  height: 390px;
+  right: -190px;
+  top: 170px;
+  background: #6D4BFF;
+  animation-delay: -7s;
+}
+
+.living-now__aura--ember {
+  width: 350px;
+  height: 260px;
+  left: 20px;
+  bottom: -150px;
+  background: #FF6249;
+  opacity: 0.17;
+  animation-delay: -11s;
+}
+
+@keyframes livingCurrent {
+  to {
+    transform: translate3d(24px, 20px, 0) rotate(12deg) scale(1.12);
+    border-radius: 62% 38% 42% 58% / 40% 62% 38% 60%;
+  }
+}
+
+.living-presence {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 30px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(226, 235, 244, 0.7);
+}
+
+.living-presence button {
+  appearance: none;
+  border: 0;
+  padding: 7px;
+  color: #69E5FF;
+  background: transparent;
+  font: inherit;
+  letter-spacing: 0.05em;
+}
+
+.living-narrative {
+  position: relative;
+  z-index: 2;
+  margin-top: 8px;
+}
+
+.living-kicker {
+  font-family: var(--font-body);
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #56DFC4;
+}
+
+.living-narrative h1,
+.worlds-header h1 {
+  margin: 10px 0 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.living-narrative h1 {
+  font-size: clamp(36px, 9.8vw, 42px);
+  line-height: 1.02;
+}
+
+.self-stage {
+  position: relative;
+  z-index: 1;
+  height: 284px;
+  margin-top: 6px;
+}
+
+.self-stage::before {
+  content: '';
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  left: 50%;
+  top: 10px;
+  translate: -50% 0;
+  border: 1px solid rgba(134, 229, 255, 0.08);
+  border-radius: 51% 49% 54% 46% / 48% 54% 46% 52%;
+  animation: selfOrbit 24s linear infinite;
+}
+
+@keyframes selfOrbit { to { rotate: 360deg; } }
+
+.self-stage__core {
+  appearance: none;
+  position: absolute;
+  width: 238px;
+  height: 238px;
+  left: 50%;
+  top: 10px;
+  translate: -50% 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.self-stage__core::after {
+  content: '';
+  position: absolute;
+  inset: 17%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(34, 213, 235, 0.22), transparent 70%);
+  filter: blur(18px);
+}
+
+.realm-orbit {
+  --realm-color: var(--cyan);
+  appearance: none;
+  position: absolute;
+  z-index: 3;
+  min-height: 31px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--realm-color) 52%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--realm-color);
+  background: color-mix(in srgb, var(--realm-color) 11%, rgba(5,6,9,0.7));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.realm-orbit.is-current {
+  box-shadow: 0 0 28px -12px var(--realm-color);
+  background: color-mix(in srgb, var(--realm-color) 18%, rgba(5,6,9,0.72));
+}
+
+.realm-orbit--move { left: 2px; top: 76px; }
+.realm-orbit--build { right: -1px; top: 116px; }
+.realm-orbit--belong { left: 50%; bottom: 2px; translate: -50% 0; }
+
+.next-moment {
+  position: relative;
+  z-index: 2;
+  padding-top: 14px;
+  border-top: 1px solid rgba(214, 231, 247, 0.16);
+}
+
+.next-moment__meta {
+  font-family: var(--font-body);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #56DFC4;
+}
+
+.next-moment h2 {
+  max-width: 342px;
+  margin: 8px 0 13px;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.08;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.living-primary {
+  --realm-color: #4CE1C7;
+  appearance: none;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #061013;
+  background: linear-gradient(100deg, #4CE1C7, #53A7FF 62%, color-mix(in srgb, var(--realm-color) 72%, #A15BFF));
+  box-shadow: 0 18px 42px -24px color-mix(in srgb, var(--realm-color) 80%, transparent);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 750;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.living-primary:active { transform: scale(0.985); }
+
+/* Current tuning and the flow experience emerge from the scene as worlds,
+   not generic modal cards. */
+.living-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 140;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(2, 3, 6, 0.54);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.living-sheet {
+  width: 100%;
+  padding: 12px 22px calc(env(safe-area-inset-bottom, 0px) + 26px);
+  border-radius: 34px 34px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  color: var(--text);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(57, 207, 237, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(24, 26, 34, 0.98), rgba(7, 8, 12, 0.99));
+}
+
+.living-sheet__handle {
+  width: 42px;
+  height: 4px;
+  margin: 0 auto 24px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.2);
+}
+
+.living-sheet h2,
+.moment-mode h2 {
+  margin: 9px 0 0;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  line-height: 1.06;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.living-sheet > p,
+.moment-mode > p {
+  margin: 9px 0 20px;
+  color: rgba(225,228,236,0.62);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.current-meters {
+  display: grid;
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.current-meter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: rgba(240,242,246,0.8);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.current-meter strong {
+  color: #6EE6D0;
+  font-variant-numeric: tabular-nums;
+}
+
+.current-meter input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: #55DEC9;
+}
+
+.moment-mode {
+  --realm-color: var(--cyan);
+  position: absolute;
+  inset: 0;
+  z-index: 150;
+  padding: calc(env(safe-area-inset-top, 0px) + 68px) 24px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: var(--text);
+  background:
+    radial-gradient(circle 280px at 50% 30%, color-mix(in srgb, var(--realm-color) 30%, transparent), transparent 74%),
+    linear-gradient(180deg, #0D1017, #030405);
+}
+
+.moment-mode__current {
+  width: 250px;
+  height: 250px;
+  margin-top: 30px;
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--realm-color) 38%, transparent);
+  border-radius: 46% 54% 61% 39% / 56% 42% 58% 44%;
+  opacity: 0.42;
+  animation: momentCurrent 10s ease-in-out infinite alternate;
+}
+
+@keyframes momentCurrent {
+  to { transform: rotate(26deg) scale(1.1); border-radius: 61% 39% 45% 55% / 39% 61% 42% 58%; }
+}
+
+.moment-close {
+  appearance: none;
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 20px);
+  right: 20px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  background: rgba(255,255,255,0.055);
+}
+
+.moment-mode .living-kicker { margin-top: 120px; color: var(--realm-color); }
+.moment-mode__time {
+  margin-top: 16px;
+  font-family: var(--font-serif);
+  font-size: 70px;
+  line-height: 1;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+.moment-mode h2 { margin-top: 68px; max-width: 330px; }
+.moment-mode > p { max-width: 300px; }
+.moment-mode .living-primary { margin-top: auto; }
+
+.moment-finish {
+  appearance: none;
+  margin-top: 14px;
+  border: 0;
+  color: rgba(239,241,245,0.5);
+  background: transparent;
+  font: 600 11px var(--font-body);
+}
+
+/* Worlds are full-height places with editorial scale, not a grid of cards. */
+.worlds-screen {
+  min-height: 100%;
+  padding: calc(env(safe-area-inset-top, 0px) + 58px) 0 124px;
+  overflow: visible;
+}
+
+.worlds-header {
+  padding: 0 22px 30px;
+}
+
+.worlds-header h1 {
+  font-size: 46px;
+  line-height: 0.98;
+}
+
+.worlds-header > p {
+  max-width: 330px;
+  margin: 14px 0 0;
+  color: rgba(227,231,238,0.58);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.world-river {
+  display: grid;
+  gap: 2px;
+}
+
+.world-panel {
+  --world-color: var(--cyan);
+  appearance: none;
+  position: relative;
+  min-height: 220px;
+  padding: 25px 24px 23px;
+  border: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: space-between;
+  gap: 14px;
+  color: var(--text);
+  text-align: left;
+  background:
+    radial-gradient(circle 220px at 92% 18%, color-mix(in srgb, var(--world-color) 26%, transparent), transparent 70%),
+    linear-gradient(145deg, color-mix(in srgb, var(--world-color) 8%, #0A0B0E), #090A0D 68%);
+  border-top: 1px solid color-mix(in srgb, var(--world-color) 22%, rgba(255,255,255,0.05));
+}
+
+.world-panel::before {
+  content: '';
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  right: -130px;
+  top: -110px;
+  border: 1px solid color-mix(in srgb, var(--world-color) 30%, transparent);
+  border-radius: 42% 58% 64% 36% / 58% 38% 62% 42%;
+  rotate: -18deg;
+}
+
+.world-panel__number {
+  font: 700 9px var(--font-body);
+  letter-spacing: 0.12em;
+  color: var(--world-color);
+}
+
+.world-panel > svg { color: var(--world-color); }
+.world-panel > div { grid-column: 1 / -1; }
+
+.world-panel__subtitle {
+  color: var(--world-color);
+  font: 700 9px var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.world-panel h2 {
+  margin: 5px 0 0;
+  font: 400 38px/1 var(--font-serif);
+  letter-spacing: -0.035em;
+}
+
+.world-panel p {
+  max-width: 310px;
+  margin: 8px 0 0;
+  color: rgba(229,232,238,0.6);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.world-panel__enter {
+  position: absolute;
+  right: 22px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--world-color);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* The Lens replaces a conventional tab bar and floating action cluster. */
+.lens-nav {
+  position: absolute;
+  z-index: 60;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  translate: -50% 0;
+  width: 274px;
+  height: 57px;
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 999px;
+  display: flex;
+  align-items: stretch;
+  background: rgba(12, 13, 19, 0.78);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.34);
+}
+
+.lens-nav__item {
+  appearance: none;
+  position: relative;
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: rgba(214,220,232,0.48);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lens-nav__item > svg,
+.lens-nav__item > span:not(.lens-nav__current) { position: relative; z-index: 1; }
+.lens-nav__item.is-active { color: #9DEBFA; }
+
+.lens-nav__current {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(116, 225, 255, 0.18);
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(85, 203, 234, 0.22), rgba(97, 109, 255, 0.09));
+}
+
+html[data-vibe='calm'] .living-now__aura { animation-duration: 32s; }
+html[data-vibe='calm'] .self-stage::before { animation-duration: 48s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .living-now__aura,
+  .self-stage::before,
+  .moment-mode__current { animation: none !important; }
+}
+
 .screen-content {
   padding: 0 16px;
   /* Spatial "arrive" — the screen settles into place (a camera move),

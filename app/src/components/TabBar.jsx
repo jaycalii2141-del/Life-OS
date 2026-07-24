@@ -1,173 +1,67 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { IconTarget, IconBolt, IconTrendUp, IconBrain, IconPlus } from './icons.jsx';
-import { HUDTicks } from './atoms.jsx';
-
-// ─────────────────────────────────────────────────────────
-// TabBar V2 — four surfaces + floating capture button.
-// Today (the mission) · Life · Perform · Build. The Intelligence
-// is everywhere via the orb, so it doesn't need a tab.
-// ─────────────────────────────────────────────────────────
+import { IconBrain, IconMic, IconTarget } from './icons.jsx';
 
 const TABS = [
-  { id: 'today',   label: 'Command', Icon: IconTarget,  color: '#45B7E8' },
-  { id: 'life',    label: 'Map',     Icon: IconBrain,   color: '#E9C46A' },
-  { id: 'perform', label: 'Move',    Icon: IconBolt,    color: '#34D399' },
-  { id: 'build',   label: 'Build',   Icon: IconTrendUp, color: '#FF6B5B' },
+  { id: 'today', label: 'Now', Icon: IconTarget },
+  { id: 'life', label: 'Worlds', Icon: IconBrain },
+  { id: 'ask', label: 'Ask', Icon: IconMic },
 ];
 
-function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
-  const longPressTimer = useRef(null);
+function TabBar({ active, onChange, onAsk, onCapture, onCaptureVoice }) {
+  const timer = useRef(null);
   const longPressed = useRef(false);
+  const worldsActive = active !== 'today';
 
-  const fabDown = () => {
+  const startAsk = () => {
     longPressed.current = false;
-    longPressTimer.current = setTimeout(() => {
+    timer.current = window.setTimeout(() => {
       longPressed.current = true;
-      onFabLong?.();
-    }, 450);
+      onCaptureVoice?.();
+    }, 500);
   };
-  const fabUp = () => {
-    clearTimeout(longPressTimer.current);
-    if (!longPressed.current) onFab?.();
+
+  const finishAsk = () => {
+    window.clearTimeout(timer.current);
+    if (!longPressed.current) onAsk?.();
   };
-  const fabCancel = () => clearTimeout(longPressTimer.current);
 
   return (
-    <div className="liquid-tab-dock" style={{
-      position: 'absolute',
-      bottom: 0, left: 0, right: 0,
-      height: 96,
-      zIndex: 40,
-      pointerEvents: 'none',
-    }}>
-      {/* gradient veil so content fades into the bar */}
-      <div className="liquid-tab-bar" style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(180deg, transparent 0%, rgba(6,6,10,0.7) 38%, #0A0B0D 70%)',
-        pointerEvents: 'none',
-      }} />
+    <nav className="lens-nav" aria-label="Primary navigation">
+      {TABS.map((tab) => {
+        const selected = tab.id === 'today'
+          ? active === 'today'
+          : tab.id === 'life'
+            ? worldsActive
+            : false;
+        const ask = tab.id === 'ask';
 
-      {/* bar */}
-      <div style={{
-        position: 'absolute',
-        left: 12, right: 12, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-        height: 60,
-        background: 'rgba(11, 11, 18, 0.78)',
-        backdropFilter: 'blur(28px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 'var(--r-xl)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 4px',
-        pointerEvents: 'auto',
-        boxShadow: '0 18px 50px rgba(0,0,0,0.55)',
-      }}>
-        <HUDTicks />
-        {TABS.map((t) => {
-          const isActive = active === t.id;
-          return (
-            <motion.button
-              key={t.id}
-              className="pressable"
-              onClick={() => onChange(t.id)}
-              whileTap={{ scale: 0.94 }}
-              aria-label={t.label}
-              aria-current={isActive ? 'page' : undefined}
-              style={{
-                flex: 1,
-                height: 52,
-                appearance: 'none',
-                border: 0,
-                background: 'transparent',
-                padding: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 3,
-                position: 'relative',
-                color: isActive ? t.color : 'var(--muted)',
-                transition: 'color 220ms',
-              }}
-            >
-              {isActive && (
-                <motion.span
-                  className="liquid-tab-active"
-                  layoutId="tab-active-surface"
-                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                  style={{
-                  position: 'absolute',
-                  inset: 3,
-                  borderRadius: 15,
-                  background: `linear-gradient(180deg, ${t.color}18, ${t.color}08)`,
-                  border: `1px solid ${t.color}28`,
-                  boxShadow: `inset 0 1px rgba(255,255,255,0.05), 0 8px 18px -16px ${t.color}`,
-                }} />
-              )}
-              {badges[t.id] > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: 4, right: '50%', marginRight: -18,
-                  minWidth: 15, height: 15, padding: '0 4px',
-                  borderRadius: 999,
-                  background: t.color,
-                  color: '#0A0B0D',
-                  fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 800,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: `0 0 8px ${t.color}`,
-                  border: '1.5px solid #101214',
-                }}>{badges[t.id] > 9 ? '9+' : badges[t.id]}</span>
-              )}
+        return (
+          <motion.button
+            key={tab.id}
+            className={`lens-nav__item${selected ? ' is-active' : ''}`}
+            onClick={ask ? undefined : () => onChange(tab.id)}
+            onPointerDown={ask ? startAsk : undefined}
+            onPointerUp={ask ? finishAsk : undefined}
+            onPointerCancel={ask ? () => window.clearTimeout(timer.current) : undefined}
+            onContextMenu={ask ? (event) => { event.preventDefault(); onCapture?.(); } : undefined}
+            whileTap={{ scale: 0.94 }}
+            aria-current={selected ? 'page' : undefined}
+            aria-label={ask ? 'Ask JAM intelligence. Hold for voice capture.' : tab.label}
+          >
+            {selected && (
               <motion.span
-                animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.06 : 1 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                style={{ display: 'grid', placeItems: 'center', position: 'relative' }}
-              >
-                <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
-              </motion.span>
-              <span style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: 10.5,
-                letterSpacing: '0.01em',
-                fontWeight: isActive ? 700 : 500,
-                position: 'relative',
-              }}>{t.label}</span>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* FAB */}
-      <motion.button
-        className="pressable fab-glow liquid-fab"
-        onMouseDown={fabDown}
-        onMouseUp={fabUp}
-        onMouseLeave={fabCancel}
-        onTouchStart={fabDown}
-        onTouchEnd={fabUp}
-        whileTap={{ scale: 0.91, rotate: -4 }}
-        aria-label="Quick capture"
-        style={{
-          appearance: 'none',
-          position: 'absolute',
-          right: 18, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
-          width: 54, height: 54,
-          borderRadius: 'var(--r-lg)',
-          background: 'linear-gradient(135deg, #45B7E8 0%, #2DD4BF 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#0A0B0D',
-          pointerEvents: 'auto',
-          border: '1px solid rgba(255,255,255,0.2)',
-        }}
-      >
-        <IconPlus size={26} stroke={2.4} color="#0A0B0D" />
-      </motion.button>
-    </div>
+                className="lens-nav__current"
+                layoutId="living-lens"
+                transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              />
+            )}
+            <tab.Icon size={15} />
+            <span>{tab.label}</span>
+          </motion.button>
+        );
+      })}
+    </nav>
   );
 }
 

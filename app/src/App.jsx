@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────
 // LIFE OS V2 — App shell
-// Four surfaces (Today · Life · Perform · Build) + one Intelligence.
+// Living interface: Now · Worlds · Intelligence.
 // The Mission Engine lives here so every screen can feed it.
 // Auth gate → iPhone bezel, tab state, FAB → Quick Capture.
 // ─────────────────────────────────────────────────────────
@@ -14,7 +14,8 @@ import { XpLayer } from './components/XpLayer.jsx';
 import { CeremonyLayer } from './components/CeremonyLayer.jsx';
 import { CommandSpotlight } from './components/CommandSpotlight.jsx';
 // Today is the default tab → load it eagerly for an instant first paint.
-import { TodayScreen } from './screens/TodayScreen.jsx';
+import { LivingNow } from './screens/LivingNow.jsx';
+import { WorldsScreen } from './screens/WorldsScreen.jsx';
 import { LiquidAtmosphere } from './components/LiquidAtmosphere.jsx';
 // Everything else is split into its own chunk, loaded on demand.
 const PerformScreen = lazy(() => import('./screens/TrainingHQ.jsx').then((m) => ({ default: m.PerformScreen })));
@@ -31,7 +32,7 @@ import { todayKey } from './usePersistentState.js';
 import { useSyncedState } from './useSyncedState.js';
 import { useMissionEngine } from './lib/useMissionEngine.js';
 import { maybeMorningNudge } from './lib/nudges.js';
-import { earnedFreezes, healFreezes, freezeState } from './lib/streak.js';
+import { earnedFreezes, healFreezes } from './lib/streak.js';
 import { becomingIndex } from './lib/becoming.js';
 import { lifeLevel } from './lib/level.js';
 import { fireCeremony } from './lib/ceremony.js';
@@ -42,7 +43,7 @@ import { SyncBadge } from './SyncBadge.jsx';
 import { Onboarding } from './Onboarding.jsx';
 import { SetupFlow } from './SetupFlow.jsx';
 import { BootSplash } from './BootSplash.jsx';
-import { Companion, CompanionLauncher } from './Companion.jsx';
+import { Companion } from './Companion.jsx';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -142,7 +143,7 @@ function MainApp() {
   // ── The Mission Engine ── (see lib/useMissionEngine.js)
   // Generates the day's missions, keeps the One Thing in lockstep, and
   // adaptively re-ranks training to readiness. Build can push moves in.
-  const { missions, doneIds, adaptedAt, toggleMission, regenerateMissions, addMission } =
+  const { missions, doneIds, toggleMission, addMission } =
     useMissionEngine(today, missionState, setMissionState);
 
   // Morning nudge on open (once/day) — the "welcome back, here's your focus" moment.
@@ -221,10 +222,7 @@ function MainApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [history, todayScore]);
 
-  const momentum = buildMomentum(history, today, todayScore);
-  const streak = computeStreak(history, today, todayScore, freezes.used || {});
   const trend = readinessTrend(history, today, todayReadiness);
-  const freezeInfo = freezeState(history, freezes.used || {});
 
   // The Becoming Index — computed ONCE here and passed to every screen, so the
   // number is identical everywhere ("one true number"). Recomputes as state syncs.
@@ -294,9 +292,6 @@ function MainApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayScore, doneCount, sessions, becoming?.score]);
 
-  // Untriaged captures → a gentle badge on the Life tab.
-  const inboxCount = captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
-
   // Re-key the screen container on tab change so screenIn animation fires
   const screenKey = tab;
 
@@ -320,6 +315,9 @@ function MainApp() {
   let screen;
   switch (tab) {
     case 'life':
+      screen = <WorldsScreen onGoTab={changeTab} />;
+      break;
+    case 'map':
       screen = <LifeMapScreen captures={captures} setCaptures={setCaptures} readiness={todayReadiness} trend={trend} history={history} becoming={becoming} onOpenReview={() => setReviewOpen(true)} onOpenUpgrade={() => setUpgradeOpen(true)} onGoTab={changeTab} />;
       break;
     case 'perform':
@@ -331,23 +329,13 @@ function MainApp() {
     case 'today':
     default:
       screen = (
-        <TodayScreen
+        <LivingNow
           state={missionState}
           setState={setMissionState}
           missions={missions}
           doneIds={doneIds}
-          adaptedAt={adaptedAt}
           onToggleMission={toggleMission}
-          onRegenerate={regenerateMissions}
-          momentum={momentum}
-          streak={streak}
-          freezes={freezeInfo}
           becoming={becoming}
-          trend={trend}
-          icalUrl={settings.icalUrl}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onOpenCalendar={() => setCalendarOpen(true)}
-          onOpenCompanion={openCompanion}
           onGoTab={changeTab}
         />
       );
@@ -370,7 +358,7 @@ function MainApp() {
           onReview={() => setReviewOpen(true)}
           onGoTab={changeTab}
         />
-        <div className="screen-scroll" key={screenKey}>
+        <div className={`screen-scroll${tab === 'today' || tab === 'life' ? ' screen-scroll--immersive' : ''}`} key={screenKey}>
           <ErrorBoundary resetKey={screenKey}>
             <Suspense fallback={<ScreenLoading />}>
               {screen}
@@ -381,9 +369,9 @@ function MainApp() {
         <TabBar
           active={tab}
           onChange={changeTab}
-          badges={{ life: inboxCount }}
-          onFab={() => setCapture({ open: true, voice: false })}
-          onFabLong={() => setCapture({ open: true, voice: true })}
+          onAsk={() => openCompanion(false)}
+          onCapture={() => setCapture({ open: true, voice: false })}
+          onCaptureVoice={() => setCapture({ open: true, voice: true })}
         />
 
         <QuickCapture
@@ -393,7 +381,6 @@ function MainApp() {
           onClose={() => setCapture({ open: false, voice: false })}
         />
 
-        <CompanionLauncher onOpen={() => openCompanion(false)} onOpenVoice={() => openCompanion(true)} />
         <Companion open={companionOpen} startVoice={companionVoice} onClose={() => { setCompanionOpen(false); setCompanionVoice(false); }} onAction={runAction} />
 
         {/* Modals mount only when opened, so their code loads on first use. */}

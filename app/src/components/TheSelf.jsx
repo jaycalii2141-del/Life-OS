@@ -28,7 +28,7 @@ function smoothClosed(p) {
 // The Self physically travels between Command's hero and the Map's center on
 // tab switch. Only ONE shared instance may be mounted at a time (the
 // time-lapse sheet renders a non-shared Self for this reason).
-export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', size = 196, shared = false }) {
+export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', size = 196, shared = false, label = 'BECOMING' }) {
   const cx = size / 2, cy = size / 2;
   const n = facets.length || 8;
   const baseR = size * 0.19;
@@ -83,7 +83,7 @@ export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', si
       </motion.svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
         <div className="display" style={{ fontSize: size * 0.2, lineHeight: 1, color: 'var(--text)' }}>{shown}</div>
-        <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 2 }}>BECOMING</div>
+        <div className="eyebrow" style={{ color: 'var(--cyan)', marginTop: 2 }}>{label}</div>
         {level != null && <div className="mono" style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.12em', marginTop: 3 }}>LV {level}</div>}
       </div>
     </motion.div>
