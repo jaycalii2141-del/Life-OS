@@ -31,6 +31,7 @@ import { useLongPress } from '../lib/useLongPress.js';
 import { askCompanion, decomposeText } from '../lib/aiActions.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { TIMELINE } from '../data.js';
+import { FlowDeck } from '../components/FlowDeck.jsx';
 
 function realDateLabel() {
   const d = new Date();
@@ -719,6 +720,13 @@ export function TodayScreen({
       />
 
       <AskBar onOpen={onOpenCompanion} />
+
+      <FlowDeck
+        missions={missions}
+        doneIds={doneIds}
+        readiness={readiness}
+        onToggleMission={onToggleMission}
+      />
 
       {insight && (
         <div className="pressable" onClick={onOpenCompanion} style={{

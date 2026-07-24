@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { motion } from 'framer-motion';
 import { IconTarget, IconBolt, IconTrendUp, IconBrain, IconPlus } from './icons.jsx';
 import { HUDTicks } from './atoms.jsx';
 
@@ -68,13 +69,20 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
         {TABS.map((t) => {
           const isActive = active === t.id;
           return (
-            <div
+            <motion.button
               key={t.id}
               className="pressable"
               onClick={() => onChange(t.id)}
+              whileTap={{ scale: 0.94 }}
+              aria-label={t.label}
+              aria-current={isActive ? 'page' : undefined}
               style={{
                 flex: 1,
                 height: 52,
+                appearance: 'none',
+                border: 0,
+                background: 'transparent',
+                padding: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -86,13 +94,16 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
               }}
             >
               {isActive && (
-                <span style={{
+                <motion.span
+                  layoutId="tab-active-surface"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  style={{
                   position: 'absolute',
-                  top: 6,
-                  width: 22, height: 2,
-                  borderRadius: 999,
-                  background: t.color,
-                  boxShadow: `0 0 8px ${t.color}`,
+                  inset: 3,
+                  borderRadius: 15,
+                  background: `linear-gradient(180deg, ${t.color}18, ${t.color}08)`,
+                  border: `1px solid ${t.color}28`,
+                  boxShadow: `inset 0 1px rgba(255,255,255,0.05), 0 8px 18px -16px ${t.color}`,
                 }} />
               )}
               {badges[t.id] > 0 && (
@@ -109,27 +120,37 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
                   border: '1.5px solid #101214',
                 }}>{badges[t.id] > 9 ? '9+' : badges[t.id]}</span>
               )}
-              <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
+              <motion.span
+                animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.06 : 1 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                style={{ display: 'grid', placeItems: 'center', position: 'relative' }}
+              >
+                <t.Icon size={20} stroke={isActive ? 1.9 : 1.5} />
+              </motion.span>
               <span style={{
                 fontFamily: 'var(--font-body)',
                 fontSize: 10.5,
                 letterSpacing: '0.01em',
                 fontWeight: isActive ? 700 : 500,
+                position: 'relative',
               }}>{t.label}</span>
-            </div>
+            </motion.button>
           );
         })}
       </div>
 
       {/* FAB */}
-      <div
+      <motion.button
         className="pressable fab-glow"
         onMouseDown={fabDown}
         onMouseUp={fabUp}
         onMouseLeave={fabCancel}
         onTouchStart={fabDown}
         onTouchEnd={fabUp}
+        whileTap={{ scale: 0.91, rotate: -4 }}
+        aria-label="Quick capture"
         style={{
+          appearance: 'none',
           position: 'absolute',
           right: 18, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
           width: 54, height: 54,
@@ -144,7 +165,7 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
         }}
       >
         <IconPlus size={26} stroke={2.4} color="#0A0B0D" />
-      </div>
+      </motion.button>
     </div>
   );
 }
