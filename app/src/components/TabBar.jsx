@@ -34,7 +34,7 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
   const fabCancel = () => clearTimeout(longPressTimer.current);
 
   return (
-    <div style={{
+    <div className="liquid-tab-dock" style={{
       position: 'absolute',
       bottom: 0, left: 0, right: 0,
       height: 96,
@@ -42,7 +42,7 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
       pointerEvents: 'none',
     }}>
       {/* gradient veil so content fades into the bar */}
-      <div style={{
+      <div className="liquid-tab-bar" style={{
         position: 'absolute',
         inset: 0,
         background: 'linear-gradient(180deg, transparent 0%, rgba(6,6,10,0.7) 38%, #0A0B0D 70%)',
@@ -95,6 +95,7 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
             >
               {isActive && (
                 <motion.span
+                  className="liquid-tab-active"
                   layoutId="tab-active-surface"
                   transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   style={{
@@ -141,7 +142,7 @@ function TabBar({ active, onChange, onFab, onFabLong, badges = {} }) {
 
       {/* FAB */}
       <motion.button
-        className="pressable fab-glow"
+        className="pressable fab-glow liquid-fab"
         onMouseDown={fabDown}
         onMouseUp={fabUp}
         onMouseLeave={fabCancel}

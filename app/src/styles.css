@@ -86,6 +86,7 @@ html, body {
   inset: 0;
   background: var(--bg-0);
   overflow: hidden;
+  isolation: isolate;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -127,6 +128,125 @@ html, body {
 }
 /* keep content above the ambience */
 .screen-scroll { z-index: 1; }
+
+/* ─────────────────────────────────────────────────────────
+   Liquid atmosphere
+   A slow, organic field shared by every screen. It moves like
+   refracted light through water rather than a looping tech effect.
+   ───────────────────────────────────────────────────────── */
+.liquid-atmosphere {
+  position: absolute;
+  inset: -12%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.9;
+  contain: strict;
+}
+
+.liquid-orb,
+.liquid-ribbon,
+.liquid-caustics {
+  position: absolute;
+  will-change: transform, border-radius;
+  transform: translate3d(0, 0, 0);
+}
+
+.liquid-orb {
+  filter: blur(34px);
+  mix-blend-mode: screen;
+  opacity: 0.22;
+  animation: liquidMorph 19s ease-in-out infinite alternate,
+    liquidFloat 27s ease-in-out infinite alternate;
+}
+
+.liquid-orb--one {
+  width: 72%;
+  height: 42%;
+  left: -28%;
+  top: 4%;
+  background:
+    radial-gradient(circle at 34% 34%, rgba(112, 222, 255, 0.95), rgba(69, 183, 232, 0.34) 44%, transparent 72%);
+}
+
+.liquid-orb--two {
+  width: 76%;
+  height: 50%;
+  right: -35%;
+  top: 25%;
+  opacity: 0.17;
+  background:
+    radial-gradient(circle at 55% 44%, rgba(67, 233, 204, 0.9), rgba(45, 212, 191, 0.27) 48%, transparent 74%);
+  animation-duration: 23s, 31s;
+  animation-direction: alternate-reverse;
+}
+
+.liquid-orb--three {
+  width: 84%;
+  height: 45%;
+  left: 6%;
+  bottom: -24%;
+  opacity: 0.15;
+  background:
+    radial-gradient(circle at 52% 40%, rgba(255, 161, 121, 0.9), rgba(255, 107, 91, 0.2) 48%, transparent 74%);
+  animation-duration: 26s, 35s;
+}
+
+.liquid-ribbon {
+  width: 130%;
+  height: 24%;
+  left: -15%;
+  border-radius: 48% 52% 58% 42% / 64% 42% 58% 36%;
+  opacity: 0.075;
+  filter: blur(18px);
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(100deg, transparent 5%, rgba(112, 222, 255, 0.7) 28%, rgba(62, 235, 196, 0.62) 52%, rgba(255, 150, 108, 0.45) 72%, transparent 95%);
+  animation: liquidRibbon 24s ease-in-out infinite alternate;
+}
+
+.liquid-ribbon--one { top: 18%; transform: rotate(-14deg); }
+.liquid-ribbon--two {
+  top: 67%;
+  opacity: 0.05;
+  transform: rotate(16deg) scaleX(-1);
+  animation-duration: 31s;
+  animation-direction: alternate-reverse;
+}
+
+.liquid-caustics {
+  inset: 0;
+  opacity: 0.045;
+  mix-blend-mode: soft-light;
+  background:
+    repeating-radial-gradient(ellipse at 20% 20%, transparent 0 18px, rgba(255,255,255,0.22) 21px, transparent 23px 42px);
+  background-size: 210px 150px;
+  mask-image: linear-gradient(to bottom, #000, transparent 88%);
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 88%);
+  animation: liquidCaustics 22s linear infinite;
+}
+
+@keyframes liquidMorph {
+  0% { border-radius: 42% 58% 62% 38% / 48% 40% 60% 52%; }
+  50% { border-radius: 62% 38% 44% 56% / 38% 58% 42% 62%; }
+  100% { border-radius: 48% 52% 36% 64% / 62% 42% 58% 38%; }
+}
+
+@keyframes liquidFloat {
+  0% { transform: translate3d(-2%, -2%, 0) rotate(-5deg) scale(1); }
+  50% { transform: translate3d(9%, 6%, 0) rotate(4deg) scale(1.12); }
+  100% { transform: translate3d(-1%, 14%, 0) rotate(-2deg) scale(1.04); }
+}
+
+@keyframes liquidRibbon {
+  0% { translate: -5% -3%; rotate: -4deg; scale: 1 0.82; border-radius: 46% 54% 64% 36% / 58% 36% 64% 42%; }
+  50% { translate: 2% 10%; rotate: 3deg; scale: 1.06 1.12; border-radius: 61% 39% 42% 58% / 38% 62% 40% 60%; }
+  100% { translate: 7% -4%; rotate: -2deg; scale: 0.98 0.94; border-radius: 40% 60% 56% 44% / 66% 44% 56% 34%; }
+}
+
+@keyframes liquidCaustics {
+  to { background-position: 210px 150px; }
+}
 
 /* Hero mesh cards gently pulse — a slow living shimmer of color */
 @media (prefers-reduced-motion: no-preference) {
@@ -255,6 +375,35 @@ html, body {
   position: relative;
 }
 
+/* Refracted edge light gives every major surface the same soft material.
+   The highlight is static enough for legibility while the world flows below. */
+.card::after,
+.glass::after,
+.glass-strong::after,
+.glass-hero::after,
+.flow-deck::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(118deg, rgba(255,255,255,0.17), transparent 18%, transparent 70%, rgba(69,183,232,0.08)) border-box;
+  mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  opacity: 0.72;
+}
+
+.card > *,
+.glass > *,
+.glass-strong > *,
+.glass-hero > *,
+.flow-deck > * { position: relative; z-index: 1; }
+
 /* ─────────────────────────────────────────────────────────
    Live Mode / Flow Capsule
    A time-aware action layer: the dashboard stops describing life and
@@ -289,6 +438,12 @@ html, body {
   pointer-events: none;
   z-index: -1;
   transition: background 280ms ease;
+  animation: flowHaloMorph 13s ease-in-out infinite alternate;
+}
+
+@keyframes flowHaloMorph {
+  0% { border-radius: 45% 55% 62% 38% / 55% 38% 62% 45%; transform: translate3d(0,0,0) scale(0.94); }
+  100% { border-radius: 63% 37% 43% 57% / 38% 61% 39% 62%; transform: translate3d(-18px,20px,0) scale(1.14); }
 }
 
 .flow-deck__header {
@@ -555,6 +710,12 @@ html, body {
     rgba(255,255,255,0.025);
   border: 1px solid color-mix(in srgb, var(--flow-accent) 22%, var(--line));
   box-shadow: inset 0 1px rgba(255,255,255,0.06);
+  animation: flowCoreBreathe 7s ease-in-out infinite alternate;
+}
+
+@keyframes flowCoreBreathe {
+  0% { border-radius: 48% 52% 56% 44% / 52% 46% 54% 48%; transform: scale(0.985); }
+  100% { border-radius: 56% 44% 48% 52% / 44% 55% 45% 56%; transform: scale(1.015); }
 }
 .flow-orbit__time {
   margin-top: 8px;
@@ -627,6 +788,8 @@ html[data-vibe='calm'] .flow-live-dot { animation: none; opacity: 0.8; }
 
 @media (prefers-reduced-motion: reduce) {
   .flow-live-dot,
+  .flow-deck__halo,
+  .flow-orbit__core,
   .flow-orbit.is-running::before,
   .flow-orbit.is-running::after { animation: none !important; }
 }
@@ -1158,6 +1321,73 @@ html[data-vibe="calm"] .screen-host::before {
     radial-gradient(ellipse 82% 48% at 50% -8%, color-mix(in srgb, var(--mood) 16%, transparent), transparent 62%),
     radial-gradient(circle 300px at 50% 34%, color-mix(in srgb, var(--mood) 9%, transparent), transparent 60%);
   transition: background 1200ms ease;
+}
+
+/* Calm is now a slower current, not a frozen canvas. */
+html[data-vibe="calm"] .liquid-atmosphere { opacity: 0.58; }
+html[data-vibe="calm"] .liquid-orb { opacity: 0.12; animation-duration: 34s, 48s; }
+html[data-vibe="calm"] .liquid-orb--two { opacity: 0.09; animation-duration: 39s, 54s; }
+html[data-vibe="calm"] .liquid-orb--three { opacity: 0.075; animation-duration: 44s, 58s; }
+html[data-vibe="calm"] .liquid-ribbon { opacity: 0.035; animation-duration: 44s; }
+html[data-vibe="calm"] .liquid-caustics { opacity: 0.018; animation-duration: 48s; }
+
+.liquid-tab-bar { overflow: hidden; isolation: isolate; }
+.liquid-tab-bar::before {
+  content: '';
+  position: absolute;
+  width: 56%;
+  height: 120%;
+  left: -30%;
+  top: -65%;
+  border-radius: 44% 56% 62% 38% / 56% 42% 58% 44%;
+  background: linear-gradient(135deg, rgba(69,183,232,0.13), rgba(45,212,191,0.04));
+  filter: blur(18px);
+  animation: dockCurrent 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes dockCurrent {
+  to { transform: translate3d(190%, 30%, 0) rotate(18deg) scale(1.25); }
+}
+
+.liquid-tab-active {
+  overflow: hidden;
+}
+
+.liquid-tab-active::after {
+  content: '';
+  position: absolute;
+  width: 80%;
+  height: 160%;
+  left: -65%;
+  top: -30%;
+  transform: rotate(16deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.11), transparent);
+  animation: activeLiquidSweep 5.5s ease-in-out infinite;
+}
+
+@keyframes activeLiquidSweep {
+  0%, 34% { translate: 0 0; opacity: 0; }
+  48% { opacity: 1; }
+  68%, 100% { translate: 230% 0; opacity: 0; }
+}
+
+.liquid-fab {
+  animation: fabLiquidShape 8s ease-in-out infinite alternate;
+}
+
+@keyframes fabLiquidShape {
+  0% { border-radius: 38% 62% 55% 45% / 48% 42% 58% 52%; }
+  100% { border-radius: 57% 43% 39% 61% / 42% 58% 44% 56%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-orb,
+  .liquid-ribbon,
+  .liquid-caustics,
+  .liquid-tab-bar::before,
+  .liquid-tab-active::after,
+  .liquid-fab { animation: none !important; }
 }
 
 /* ─────────────────────────────────────────────────────────

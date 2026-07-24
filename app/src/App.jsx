@@ -15,6 +15,7 @@ import { CeremonyLayer } from './components/CeremonyLayer.jsx';
 import { CommandSpotlight } from './components/CommandSpotlight.jsx';
 // Today is the default tab → load it eagerly for an instant first paint.
 import { TodayScreen } from './screens/TodayScreen.jsx';
+import { LiquidAtmosphere } from './components/LiquidAtmosphere.jsx';
 // Everything else is split into its own chunk, loaded on demand.
 const PerformScreen = lazy(() => import('./screens/TrainingHQ.jsx').then((m) => ({ default: m.PerformScreen })));
 const BuildScreen = lazy(() => import('./screens/BuildScreen.jsx').then((m) => ({ default: m.BuildScreen })));
@@ -356,6 +357,7 @@ function MainApp() {
     <MotionConfig reducedMotion="user">
     <IOSDevice dark width={402} height={874}>
       <div className="screen-host" onPointerDown={onHostPointerDown} onPointerMove={onHostPointerMove} onPointerUp={clearCmd} onPointerLeave={clearCmd} onPointerCancel={clearCmd}>
+        <LiquidAtmosphere />
         <SyncBadge />
         <XpLayer />
         <CeremonyLayer />
