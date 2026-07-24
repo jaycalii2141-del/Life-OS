@@ -356,6 +356,7 @@ function MainApp() {
           onCapture={() => setCapture({ open: true, voice: false })}
           onCalendar={() => setCalendarOpen(true)}
           onReview={() => setReviewOpen(true)}
+          onSettings={() => setSettingsOpen(true)}
           onGoTab={changeTab}
         />
         <div className={`screen-scroll${tab === 'today' || tab === 'life' ? ' screen-scroll--immersive' : ''}`} key={screenKey}>

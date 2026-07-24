@@ -275,7 +275,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
   useEffect(() => { sendRef.current = send; });
 
   return (
-    <Sheet open={open} onClose={onClose} maxHeight="92%">
+    <Sheet open={open} onClose={onClose} maxHeight="92%" label="JAM Intelligence">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 11, background: `linear-gradient(135deg, ${activeMode.color}, #45B7E8)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A0B0D' }}><IconSparkles size={19} /></div>
@@ -302,7 +302,11 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
       </div>
 
       {/* Hats — one intelligence, different modes */}
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, WebkitOverflowScrolling: 'touch' }}>
+      <div
+        style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, WebkitOverflowScrolling: 'touch' }}
+        aria-label="Intelligence modes"
+        tabIndex={0}
+      >
         {MODES.map((m) => {
           const on = m.id === mode;
           return (
@@ -318,7 +322,12 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
       </div>
 
       {/* Conversation */}
-      <div style={{ minHeight: 220, maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 6 }}>
+      <div
+        style={{ minHeight: 220, maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 6 }}
+        role="log"
+        aria-label="Conversation history"
+        tabIndex={0}
+      >
         {messages.length === 0 && !thinking && (
           <div style={{ padding: '8px 0' }}>
             <div style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>One partner across everything — your day, your training, your businesses. Pick a hat above or just start:</div>

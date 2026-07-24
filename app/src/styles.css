@@ -779,7 +779,7 @@ html, body {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
   translate: -50% 0;
   width: 274px;
-  height: 57px;
+  height: 58px;
   padding: 6px;
   border: 1px solid rgba(255,255,255,0.13);
   border-radius: 999px;

@@ -3,16 +3,16 @@
 // anywhere on the headquarters (the mobile ⌘K). One gesture to talk to the
 // Presence or jump anywhere, from any screen.
 // ─────────────────────────────────────────────────────────
-import { IconSparkles, IconPlus, IconCalendar, IconCompass, IconClose, IconArrowRight, IconHome, IconTrendUp, IconBolt } from './icons.jsx';
+import { IconSparkles, IconPlus, IconCalendar, IconCompass, IconClose, IconArrowRight, IconHome, IconTrendUp, IconBolt, IconSliders } from './icons.jsx';
 
 const TABS = [
-  { id: 'today', label: 'Command', Icon: IconHome },
-  { id: 'life', label: 'Map', Icon: IconCompass },
+  { id: 'today', label: 'Now', Icon: IconHome },
+  { id: 'life', label: 'Worlds', Icon: IconCompass },
   { id: 'perform', label: 'Move', Icon: IconBolt },
   { id: 'build', label: 'Build', Icon: IconTrendUp },
 ];
 
-export function CommandSpotlight({ open, onClose, onAsk, onCapture, onCalendar, onReview, onGoTab }) {
+export function CommandSpotlight({ open, onClose, onAsk, onCapture, onCalendar, onReview, onSettings, onGoTab }) {
   if (!open) return null;
   const run = (fn) => () => { onClose?.(); setTimeout(() => fn?.(), 60); };
 
@@ -20,6 +20,7 @@ export function CommandSpotlight({ open, onClose, onAsk, onCapture, onCalendar, 
     { id: 'capture', label: 'Capture a thought', Icon: IconPlus, fn: onCapture },
     { id: 'calendar', label: 'Open calendar', Icon: IconCalendar, fn: onCalendar },
     { id: 'review', label: 'Weekly review', Icon: IconCompass, fn: onReview },
+    { id: 'settings', label: 'Settings & data', Icon: IconSliders, fn: onSettings },
   ];
 
   return (

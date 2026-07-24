@@ -74,6 +74,7 @@ export function TheSelf({ facets = [], becoming = 0, level, trend = 'steady', si
         {/* the Self — your shape, morphing on a spring as facets change */}
         <motion.path
           d={blob}
+          initial={{ d: blob }}
           animate={{ d: blob }}
           transition={{ type: 'spring', stiffness: 120, damping: 20 }}
           fill="url(#selfFill)" stroke={moodColor} strokeWidth="1.6" strokeLinejoin="round" opacity="0.95"

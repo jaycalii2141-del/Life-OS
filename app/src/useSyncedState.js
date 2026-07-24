@@ -31,13 +31,21 @@ export function useSyncedState(key, initial) {
       .eq('user_id', uid)
       .eq('key', key)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (!active) return;
+        // A failed pull must never unlock pushing: the local cache could
+        // belong to a previously signed-in account on this device.
+        if (error) return;
         if (data?.value != null) {
           // Remember what we pulled so the push effect below doesn't
           // immediately echo the same value straight back up.
           lastSynced.current = JSON.stringify(data.value);
           setValue(data.value);
+        } else {
+          // A genuinely empty remote document starts from the supplied
+          // default, not whatever another account left in localStorage.
+          lastSynced.current = JSON.stringify(initial);
+          setValue(initial);
         }
         pulled.current = true;
       });
@@ -60,6 +68,9 @@ export function useSyncedState(key, initial) {
       .then(({ error }) => {
         if (!error) {
           try { window.dispatchEvent(new CustomEvent('lifeos:sync')); } catch { /* ignore */ }
+        } else if (lastSynced.current === serialized) {
+          // Keep a failed write eligible for the next state-driven retry.
+          lastSynced.current = undefined;
         }
       });
   }, [value, uid, key, configured]);

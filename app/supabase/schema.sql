@@ -21,5 +21,6 @@ alter table public.app_state enable row level security;
 drop policy if exists "own rows" on public.app_state;
 create policy "own rows" on public.app_state
   for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
