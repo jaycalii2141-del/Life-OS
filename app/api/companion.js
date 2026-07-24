@@ -2,78 +2,58 @@
 // Jay can talk to from anywhere in the app. Multi-turn, context-aware,
 // oriented around collaborating, learning, building, and growing together.
 import { gate } from './_auth.js';
-
-const MODEL = 'claude-haiku-4-5-20251001';
+import { jamInstructions } from './_jam-context.js';
+import { openAIResponse, splitTaggedJSON, writeAIError } from './_openai.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
   if (!(await gate(req, res))) return;
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) { res.status(503).json({ error: 'AI not configured' }); return; }
-
   const { messages, context, mode } = req.body || {};
-  const history = Array.isArray(messages) ? messages.slice(-16) : [];
+  const history = Array.isArray(messages) ? messages.slice(-20) : [];
   if (!history.length) { res.status(400).json({ error: 'No messages' }); return; }
 
   // One intelligence, different hats. The mode shifts emphasis — it never
   // changes who the intelligence is or what it knows.
   const HATS = {
-    partner: 'You are currently wearing no particular hat — whole-life thinking partner.',
-    chief: 'Current hat: CHIEF OF STAFF. Run his day and priorities; think leverage, protect focus, end with one clear next action.',
-    coach: 'Current hat: PERFORMANCE COACH. Elite multi-discipline movement coaching grounded in biomechanics; scale advice to his readiness; hunt blindspots.',
-    creative: 'Current hat: CREATIVE DIRECTOR. Hooks, shot lists, angles; punchy and specific; scroll-stopping openers with payoffs.',
-    ona: 'Current hat: ONA OPERATIONS. Gym ops, retention, staffing, revenue; be metrics-aware and surface the next operational lever.',
-    podium: 'Current hat: PODIUM MANUFACTURING. Orders, inventory, fabrication, margins; be concrete about the next build/ship decision.',
-    architect: 'Current hat: SYSTEMS ARCHITECT. Find repeatable friction; propose better routines and automations; suggest, never impose.',
+    partner: 'Role: whole-life thinking partner. Synthesize across every relevant domain and help Jay see the clearest next move.',
+    chief: 'Role: chief of staff. Protect Jay’s time and freedom, distinguish urgent from important, and end planning answers with one concrete next move.',
+    coach: 'Role: elite multi-discipline performance coach. Use biomechanics, motor learning, tissue adaptation, periodization, readiness, and injury history. Never diagnose.',
+    creative: 'Role: creative director. Produce original, shootable concepts with strong hooks, visual moments, emotional payoff, and platform-aware execution.',
+    ona: 'Role: informed ONA advisor. Jay is a former transition co-operator, not the current owner. Use ONA data only when he asks or it affects a current commitment.',
+    podium: 'Role: Podium Creations strategy and manufacturing partner. Think through product, fabrication, pricing, margins, sales, fulfillment, partnerships, and brand.',
+    architect: 'Role: systems architect for Jay’s life and JAM HQ. Find repeated friction and design the smallest useful system, automation, or behavior change.',
   };
   const hat = HATS[mode] || HATS.partner;
 
-  const system =
+  const role =
     `${hat}\n\n` +
-    `You are Jay Martinez's personal AI — his lifelong partner inside LifeOS, the app that runs his whole world. ` +
-    `You are at once his coach, strategist, creative collaborator, teacher, and thinking partner. Jay co-owns ` +
-    `Obstacle Ninja Academy (a ninja/movement gym in Orlando) and Podium Creations (premium obstacle equipment), is an ` +
-    `elite movement athlete & coach (gymnastics, tricking, calisthenics, partner acrobatics & hand-balancing, parkour, ninja), ` +
-    `a creator (@jayy_martinez), and travels with his wife Chelsea. He values clarity, calm, freedom, growth, and craft.\n\n` +
-    `Your job is to help him think, decide, create, learn, train, and grow — and to genuinely collaborate, not just answer. How you show up:\n` +
-    `- Be warm, direct, and encouraging. Talk like a sharp, caring partner who believes in him — never fawning or generic.\n` +
-    `- Use his live data below to be specific. Reference what's actually going on in his training, businesses, and day.\n` +
-    `- Think a few steps ahead: surface blind spots, connect dots across his life, and offer the next move — but keep his agency.\n` +
-    `- When he's learning or developing something, teach in his language, give the why, and break it into doable steps.\n` +
-    `- Ask a good question when it genuinely moves things forward; otherwise just help. Match his energy.\n` +
-    `- Keep replies tight and phone-readable by default; go deeper when he wants depth. No preamble, no filler.\n\n` +
-    `You can ACT in the app, not just advise. When an action would genuinely help, after your reply output the exact marker ` +
+    `You are JAM Intelligence, the continuous intelligence inside Jay's personal operating system. ` +
+    `Collaborate across decisions, learning, training, creative work, relationships, business, and life design.\n\n` +
+    `The app can prepare actions. When an action would genuinely help, after your reply output the exact marker ` +
     `ACTIONS_JSON: followed by a compact JSON array (max 3) of one-tap actions. Each item is one of:\n` +
     `  {"type":"event","label":"<button text>","title":"...","time":"HH:MM","durationMin":60}  (blocks time; opens Google Calendar prefilled + adds to today)\n` +
     `  {"type":"session","label":"...","discipline":"tricking|gymnastics|calisthenics|acro|parkour|ninja|mixed","disciplineName":"...","duration":60,"intensity":7}  (logs a training session)\n` +
     `  {"type":"capture","label":"...","text":"...","tag":"idea|task|ona|dream"}  (saves a thought/draft/task to his capture inbox)\n` +
     `  {"type":"focus","label":"...","text":"..."}  (sets today's one thing)\n` +
     `  {"type":"email","label":"...","to":"","subject":"...","body":"..."}  (drafts an email, opens prefilled)\n` +
-    `Only include actions that clearly follow from the conversation. If none, output ACTIONS_JSON: []\n\n` +
-    `Jay's current world:\n${context || '(no live context provided)'}`;
+    `Only include actions that clearly follow from the conversation. Never imply an action has already happened. ` +
+    `If none are useful, output ACTIONS_JSON: []`;
+  const system = jamInstructions(role, String(context || '').slice(0, 18000));
 
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 800,
-        system,
-        messages: history.map((m) => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: String(m.text ?? m.content ?? '').slice(0, 4000) })),
-      }),
+    const raw = await openAIResponse({
+      instructions: system,
+      input: history.map((m) => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: String(m.text ?? m.content ?? '').slice(0, 5000),
+      })),
+      reasoning: mode === 'coach' || mode === 'architect' ? 'medium' : 'low',
+      verbosity: 'medium',
+      maxOutputTokens: 1800,
     });
-    if (!r.ok) { const detail = await r.text(); res.status(502).json({ error: 'Upstream error', detail: detail.slice(0, 300) }); return; }
-    const data = await r.json();
-    const raw = (data.content || []).map((b) => b.text || '').join('').trim();
-    let text = raw, actions = [];
-    const mi = raw.indexOf('ACTIONS_JSON:');
-    if (mi !== -1) {
-      text = raw.slice(0, mi).trim();
-      try { const parsed = JSON.parse(raw.slice(mi + 'ACTIONS_JSON:'.length).trim()); if (Array.isArray(parsed)) actions = parsed.slice(0, 3); } catch { /* ignore */ }
-    }
+    const { text, value: actions } = splitTaggedJSON(raw, 'ACTIONS_JSON:');
     res.status(200).json({ text, actions });
   } catch (e) {
-    res.status(500).json({ error: String(e) });
+    writeAIError(res, e);
   }
 }

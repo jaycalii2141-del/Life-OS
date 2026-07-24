@@ -7,6 +7,19 @@ import './styles.css';
 
 installGlobalHaptics();
 
+// iOS Safari occasionally reports a layout viewport taller than the pixels
+// actually visible beneath its collapsing browser chrome. Keep one canonical
+// app height tied to the visual viewport so a black "phantom strip" cannot
+// appear below the full-bleed canvas.
+function syncAppViewport() {
+  const height = window.visualViewport?.height || window.innerHeight;
+  if (height > 0) document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
+}
+syncAppViewport();
+window.addEventListener('resize', syncAppViewport, { passive: true });
+window.addEventListener('orientationchange', syncAppViewport, { passive: true });
+window.visualViewport?.addEventListener('resize', syncAppViewport, { passive: true });
+
 // ── Stale-deploy recovery ──
 // When a new deploy lands while a tab is open, hashed lazy-chunk filenames
 // change and the old page 404s on dynamic import ("Failed to fetch

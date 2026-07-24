@@ -2,15 +2,12 @@
 // tree, recent sessions, and readiness. Falls back to the client's local
 // builder when no API key is set.
 import { gate } from './_auth.js';
-
-const MODEL = 'claude-haiku-4-5-20251001';
+import { jamInstructions } from './_jam-context.js';
+import { openAIResponse, writeAIError } from './_openai.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
   if (!(await gate(req, res))) return;
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) { res.status(503).json({ error: 'AI not configured' }); return; }
-
   const { context, mode } = req.body || {};
 
   if (mode === 'week') {
@@ -24,18 +21,17 @@ export default async function handler(req, res) {
       `- Mobility/prehab daily in small doses + one dedicated recovery day; at least one full rest day; note a deload every ~4th week.\n` +
       `- Address his blindspots and weave in the discipline he has been neglecting. Scale the number of training days to what he gives.\n` +
       `- Output a clear day-by-day week (Day 1…N) with each day's focus and 2–4 bullet items. Tight, phone-readable, no preamble. End with one short note on auto-regulating by readiness.\n\n` +
-      `Jay's data:\n${context || '(none provided)'}`;
+      `Use the live training data as evidence. If an injury or readiness detail is missing, do not guess it.`;
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: MODEL, max_tokens: 1100, system: weekSystem, messages: [{ role: 'user', content: 'Plan my training week.' }] }),
+      const text = await openAIResponse({
+        instructions: jamInstructions(weekSystem, String(context || '').slice(0, 18000)),
+        input: 'Plan my training week.',
+        reasoning: 'medium',
+        verbosity: 'medium',
+        maxOutputTokens: 2400,
       });
-      if (!r.ok) { const detail = await r.text(); res.status(502).json({ error: 'Upstream error', detail: detail.slice(0, 300) }); return; }
-      const data = await r.json();
-      const text = (data.content || []).map((b) => b.text || '').join('').trim();
       res.status(200).json({ text });
-    } catch (e) { res.status(500).json({ error: String(e) }); }
+    } catch (e) { writeAIError(res, e); }
     return;
   }
 
@@ -55,24 +51,18 @@ export default async function handler(req, res) {
     `- Vary stimulus vs. recent sessions; avoid loading the same tissue/discipline two hard days running.\n` +
     `- Structure: PREP / MOBILITY & PREHAB, PRIMARY SKILL WORK (name skill, cue, sets/quality target, next progression), SUPPORTING STRENGTH (the straight-arm/pull/posterior work that earns the skills), COOL-DOWN. End with one short BLINDSPOT NOTE — the single thing he keeps under-training.\n` +
     `- Be specific, expert, and motivating. Tight enough for a phone — short labeled sections, short lines, no preamble. Start directly with the session.\n\n` +
-    `Jay's training data:\n${context || '(none provided)'}`;
+    `Use the live training data as evidence. Do not diagnose injuries or invent recovery status.`;
 
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 900,
-        system,
-        messages: [{ role: 'user', content: 'Build my training session for today.' }],
-      }),
+    const text = await openAIResponse({
+      instructions: jamInstructions(system, String(context || '').slice(0, 18000)),
+      input: 'Build my training session for today.',
+      reasoning: 'medium',
+      verbosity: 'medium',
+      maxOutputTokens: 2200,
     });
-    if (!r.ok) { const detail = await r.text(); res.status(502).json({ error: 'Upstream error', detail: detail.slice(0, 300) }); return; }
-    const data = await r.json();
-    const text = (data.content || []).map((b) => b.text || '').join('').trim();
     res.status(200).json({ text });
   } catch (e) {
-    res.status(500).json({ error: String(e) });
+    writeAIError(res, e);
   }
 }

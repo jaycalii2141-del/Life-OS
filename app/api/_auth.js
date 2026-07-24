@@ -3,7 +3,7 @@
 //
 // Without this, /api/companion, /api/chief, /api/coach, /api/ai and
 // /api/decompose were fully open — anyone with the deploy URL could
-// POST to them and burn the Anthropic key as a free LLM proxy.
+// POST to them and burn the server-side AI key as a free LLM proxy.
 //
 // We verify the caller's Supabase session JWT against Supabase Auth,
 // reusing the project's existing URL + anon key (no new env vars).

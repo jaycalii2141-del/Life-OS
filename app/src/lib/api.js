@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────
 // aiFetch — POST to an /api AI endpoint with the user's Supabase
 // session token attached. The endpoints now require a valid session
-// (so the Anthropic key can't be used as an open proxy), so every AI
+// (so the server-side AI key can't be used as an open proxy), so every AI
 // call must go through here rather than a bare fetch().
 // ─────────────────────────────────────────────────────────
 import { supabase } from './supabase.js';

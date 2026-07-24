@@ -110,7 +110,7 @@ function buildLocal(skills, focusId, duration) {
   const top = blindspots.find((b) => b.sev === 'high') || blindspots.find((b) => b.sev === 'med') || blindspots[0];
   if (top) { out.push(''); out.push(`⚠ BLINDSPOT: ${top.title} — ${top.fix}`); }
   out.push('');
-  out.push('— Built from your skill tree. Add your Anthropic key for full AI coaching.');
+  out.push('— Offline plan built from your current skill tree and readiness.');
   return out.join('\n');
 }
 

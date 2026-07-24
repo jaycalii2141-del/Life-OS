@@ -318,7 +318,7 @@ export function estimateLabel(missions, doneIds) {
 
 // ─────────────────────────────────────────────────────────
 // Local intelligence — keyword-routed answers from live data,
-// used by the Companion until the Anthropic key is configured.
+// used by the Companion when the live intelligence is unavailable.
 // One mind, different hats: `mode` shifts what it reaches for first.
 // ─────────────────────────────────────────────────────────
 export function localAnswer(q, mode = 'partner') {
