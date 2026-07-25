@@ -20,6 +20,7 @@ import {
   withoutRetiredOnaText,
   withoutRetiredOnaTimeline,
 } from './retiredOna.js';
+import { gmailHighlights, recommendGmail } from './gmail.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -40,6 +41,7 @@ export function snapshot() {
     skills: readJSON('lifeos:skills:v2', {}),
     sessions: readJSON('lifeos:sessions', []),
     podium: readJSON('lifeos:podium', {}),
+    gmail: readJSON('lifeos:gmail', {}),
     content: readJSON('lifeos:content', {}),
     folders: readJSON('lifeos:folders', []),
     captures: readJSON('lifeos:captures', []),
@@ -261,7 +263,7 @@ export function generateMissions(s = snapshot()) {
   }
 
   // 3 · The highest-leverage business move.
-  const podiumRec = recommendPodium(s.podium, s.folders)[0];
+  const podiumRec = recommendGmail(s.gmail) || recommendPodium(s.podium, s.folders)[0];
   if (podiumRec) missions.push({ ...podiumRec, kind: 'build', go: 'build' });
 
   // 4 · The highest-leverage content/project move.
@@ -333,12 +335,20 @@ export function localAnswer(q, mode = 'partner') {
   };
   const podiumPulse = () => {
     const p = s.podium || {};
-    const recs = recommendPodium(p, s.folders);
+    const email = gmailHighlights(s.gmail, 3);
+    const emailRec = recommendGmail(s.gmail);
+    const recs = [
+      ...(emailRec ? [emailRec] : []),
+      ...recommendPodium(p, s.folders),
+    ];
     const metrics = `Open orders ${p.orders ?? 0} · Active builds ${p.builds ?? 0} · Revenue $${Number(p.revenue || 0).toLocaleString()}`;
+    const inbox = email.length
+      ? `\n\nInbox pulse:\n${email.map((item) => `• ${item.title} — ${item.summary}`).join('\n')}`
+      : '';
     const moves = recs.length
       ? recs.map((r) => `• ${r.title} — ${r.impact}`).join('\n')
       : '• No urgent Podium move is visible. Add an order, active build, or project next step and I’ll prioritize it.';
-    return `${metrics}\n\nRecommended moves:\n${moves}`;
+    return `${metrics}${inbox}\n\nRecommended moves:\n${moves}`;
   };
   const contentMove = () => {
     const recs = recommendContent(s.content, s.folders);
