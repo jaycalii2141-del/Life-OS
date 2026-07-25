@@ -1,9 +1,11 @@
 // Settings sheet — account, data export, and app info.
 import { useState } from 'react';
-import { IconClose, IconDownload, IconCheck, IconSliders } from './components/icons.jsx';
+import { IconClose, IconDownload, IconCheck, IconSliders, IconInbox, IconLock } from './components/icons.jsx';
 import { useAuth } from './auth/AuthProvider.jsx';
 import { Sheet } from './components/Sheet.jsx';
 import { nudgesEnabled, enableNudges, disableNudges, confirmNudge, notificationsSupported } from './lib/nudges.js';
+import { useSyncedState } from './useSyncedState.js';
+import { EMPTY_GMAIL_PULSE, gmailSyncLabel } from './lib/gmail.js';
 
 function exportData() {
   const data = {};
@@ -35,6 +37,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
   const [exported, setExported] = useState(false);
   const [cal, setCal] = useState(icalUrl || '');
   const [nudges, setNudges] = useState(nudgesEnabled());
+  const [gmail] = useSyncedState('lifeos:gmail', EMPTY_GMAIL_PULSE);
 
   const toggleNudges = async () => {
     if (nudges) { disableNudges(); setNudges(false); return; }
@@ -88,6 +91,30 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
             <span style={{ fontSize: 13, color: 'var(--muted)' }}>Running offline — data saved on this device.</span>
           </div>
         )}
+
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Podium Gmail</div>
+        <div style={{ ...rowStyle, marginBottom: 18 }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10, flexShrink: 0, marginRight: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: gmail.connected ? 'var(--cyan)' : 'var(--dim)',
+            background: gmail.connected ? 'rgba(45,212,191,0.12)' : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${gmail.connected ? 'rgba(45,212,191,0.35)' : 'var(--line)'}`,
+          }}>
+            <IconInbox size={16} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {gmail.connected ? gmail.account : 'Not connected'}
+            </div>
+            <div className="mono" style={{ fontSize: 8.5, color: gmail.connected ? 'var(--lime)' : 'var(--dim)', marginTop: 3, letterSpacing: '0.08em' }}>
+              {gmailSyncLabel(gmail).toUpperCase()}
+            </div>
+          </div>
+          <div className="mono" style={{ fontSize: 8.5, color: 'var(--muted)', flexShrink: 0 }}>
+            <IconLock size={9} style={{ verticalAlign: '-1px', marginRight: 3 }} />READ ONLY
+          </div>
+        </div>
 
         {/* Visual system */}
         <div className="eyebrow" style={{ marginBottom: 8 }}>Visual system</div>
