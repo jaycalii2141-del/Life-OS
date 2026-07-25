@@ -777,6 +777,532 @@ html, body {
   font-weight: 700;
 }
 
+/* World notebooks — one shared ideas/projects system surfaced in every realm. */
+.world-notebooks {
+  padding: 34px 16px 24px;
+  background:
+    radial-gradient(circle 320px at 18% 0%, rgba(69,183,232,0.11), transparent 72%),
+    linear-gradient(180deg, rgba(8,9,13,0.88), #08090C);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.world-notebooks__intro {
+  padding: 0 6px 16px;
+}
+
+.world-notebooks__intro h2 {
+  margin: 6px 0 0;
+  font: 400 34px/1.02 var(--font-serif);
+  letter-spacing: -0.035em;
+}
+
+.world-notebooks__intro p {
+  max-width: 330px;
+  margin: 9px 0 0;
+  color: rgba(229,232,238,0.58);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.world-notebooks__rail {
+  display: flex;
+  gap: 7px;
+  margin: 0 -16px 12px;
+  padding: 0 16px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+
+.world-notebooks__rail button {
+  appearance: none;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255,255,255,0.035);
+  font: 650 11px var(--font-body);
+  scroll-snap-align: start;
+}
+
+.world-notebooks__rail button.is-active {
+  border-color: color-mix(in srgb, var(--notebook-color) 58%, transparent);
+  color: var(--notebook-color);
+  background: color-mix(in srgb, var(--notebook-color) 13%, rgba(10,11,14,0.78));
+  box-shadow: 0 10px 26px -18px var(--notebook-color);
+}
+
+.world-workspace {
+  --workspace-color: var(--cyan);
+  position: relative;
+  overflow: hidden;
+  padding: 17px;
+  border: 1px solid color-mix(in srgb, var(--workspace-color) 26%, rgba(255,255,255,0.07));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle 260px at 100% 0%, color-mix(in srgb, var(--workspace-color) 15%, transparent), transparent 70%),
+    linear-gradient(145deg, rgba(255,255,255,0.052), rgba(255,255,255,0.024));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    0 22px 48px -34px color-mix(in srgb, var(--workspace-color) 68%, transparent);
+}
+
+.world-workspace::before {
+  content: '';
+  position: absolute;
+  width: 190px;
+  height: 160px;
+  right: -92px;
+  top: -90px;
+  border: 1px solid color-mix(in srgb, var(--workspace-color) 28%, transparent);
+  border-radius: 46% 54% 64% 36% / 58% 40% 60% 42%;
+  rotate: -12deg;
+  pointer-events: none;
+}
+
+.world-workspace__header {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.world-workspace__mark {
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--workspace-color) 42%, transparent);
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: var(--workspace-color);
+  background: color-mix(in srgb, var(--workspace-color) 11%, rgba(8,9,12,0.72));
+  font-size: 17px;
+}
+
+.world-workspace__kicker {
+  color: var(--workspace-color);
+  font: 700 9px var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.world-workspace__header h3 {
+  margin: 3px 0 0;
+  color: var(--text);
+  font: 500 21px/1.08 var(--font-serif);
+  letter-spacing: -0.025em;
+}
+
+.world-workspace__header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.world-workspace__counts {
+  min-width: 38px;
+  padding-top: 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--workspace-color);
+}
+
+.world-workspace__counts strong {
+  font: 600 22px/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.world-workspace__counts span {
+  margin-top: 3px;
+  color: var(--dim);
+  font: 600 8px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.world-workspace__tabs {
+  position: relative;
+  z-index: 1;
+  margin-top: 16px;
+  padding: 4px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(3,4,7,0.32);
+}
+
+.world-workspace__tabs button {
+  appearance: none;
+  min-height: 36px;
+  border: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--dim);
+  background: transparent;
+  font: 650 11px var(--font-body);
+}
+
+.world-workspace__tabs button span {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  color: currentColor;
+  font: 600 8px var(--font-mono);
+}
+
+.world-workspace__tabs button.is-active {
+  color: var(--workspace-color);
+  background: color-mix(in srgb, var(--workspace-color) 11%, rgba(255,255,255,0.035));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--workspace-color) 25%, transparent);
+}
+
+.world-workspace__capture {
+  position: relative;
+  z-index: 1;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 8px;
+}
+
+.world-workspace__capture input,
+.world-workspace__editor input,
+.world-workspace__editor textarea,
+.world-workspace__step input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  outline: none;
+  color: var(--text);
+  background: rgba(3,4,7,0.34);
+  font: 400 16px var(--font-body);
+}
+
+.world-workspace__capture input {
+  height: 44px;
+  padding: 0 13px;
+}
+
+.world-workspace__capture input:focus,
+.world-workspace__editor input:focus,
+.world-workspace__editor textarea:focus,
+.world-workspace__step input:focus {
+  border-color: color-mix(in srgb, var(--workspace-color) 58%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--workspace-color) 9%, transparent);
+}
+
+.world-workspace__capture button,
+.world-workspace__step-add button {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #07100F;
+  background: linear-gradient(135deg, var(--workspace-color), #6EE7D0);
+  box-shadow: 0 10px 24px -15px var(--workspace-color);
+}
+
+.world-workspace__capture button:disabled {
+  opacity: 0.34;
+  filter: saturate(0.2);
+}
+
+.world-workspace__list {
+  position: relative;
+  z-index: 1;
+  margin-top: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.world-workspace__entry {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  background: rgba(3,4,7,0.25);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.world-workspace__entry.is-open {
+  border-color: color-mix(in srgb, var(--workspace-color) 36%, transparent);
+  background: rgba(4,5,8,0.46);
+}
+
+.world-workspace__entry-top {
+  width: 100%;
+  min-height: 51px;
+  padding: 9px 11px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+}
+
+.world-workspace__entry-icon {
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: var(--workspace-color);
+  background: color-mix(in srgb, var(--workspace-color) 11%, transparent);
+}
+
+.world-workspace__entry-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.world-workspace__entry-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font: 600 13px/1.3 var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-workspace__entry-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font: 400 10.5px/1.3 var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-workspace__date {
+  flex-shrink: 0;
+  color: var(--dim);
+  font: 600 8px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.world-workspace__entry-top svg {
+  transition: transform 180ms ease;
+}
+
+.world-workspace__entry-top svg.is-rotated,
+.world-workspace__chevron svg.is-rotated {
+  transform: rotate(180deg);
+}
+
+.world-workspace__project > .world-workspace__entry-top {
+  padding-right: 8px;
+}
+
+.world-workspace__project-main {
+  appearance: none;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+}
+
+.world-workspace__status {
+  appearance: none;
+  min-height: 25px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--status-color) 46%, transparent);
+  border-radius: 999px;
+  color: var(--status-color);
+  background: color-mix(in srgb, var(--status-color) 10%, transparent);
+  font: 650 8px var(--font-body);
+  letter-spacing: 0.03em;
+}
+
+.world-workspace__chevron {
+  appearance: none;
+  width: 24px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
+  background: transparent;
+}
+
+.world-workspace__progress {
+  height: 2px;
+  margin: 0 11px 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.055);
+}
+
+.world-workspace__progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 360ms cubic-bezier(.2,.8,.2,1);
+}
+
+.world-workspace__editor {
+  padding: 0 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.world-workspace__editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.world-workspace__editor label > span,
+.world-workspace__field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--dim);
+  font: 650 9px var(--font-body);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.world-workspace__editor input {
+  min-height: 39px;
+  padding: 8px 10px;
+}
+
+.world-workspace__editor textarea {
+  min-height: 74px;
+  padding: 10px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.world-workspace__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.world-workspace__step,
+.world-workspace__step-add {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 6px;
+}
+
+.world-workspace__step-check,
+.world-workspace__step-delete,
+.world-workspace__step-add button {
+  appearance: none;
+  width: 26px;
+  height: 32px;
+  padding: 0;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+}
+
+.world-workspace__step-check {
+  border: 1px solid color-mix(in srgb, var(--workspace-color) 48%, transparent);
+  color: #07100F;
+  background: transparent;
+}
+
+.world-workspace__step-check.is-done {
+  background: var(--workspace-color);
+}
+
+.world-workspace__step input {
+  height: 34px;
+  padding: 0 9px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.world-workspace__step input.is-done {
+  color: var(--dim);
+  text-decoration: line-through;
+}
+
+.world-workspace__step-delete {
+  border: 0;
+  color: var(--dim);
+  background: transparent;
+}
+
+.world-workspace__step-add {
+  grid-template-columns: minmax(0, 1fr) 34px;
+}
+
+.world-workspace__step-add input {
+  height: 38px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.world-workspace__step-add button {
+  width: 34px;
+  height: 38px;
+}
+
+.world-workspace__delete {
+  appearance: none;
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid rgba(255,107,91,0.25);
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255,125,112,0.72);
+  background: rgba(255,107,91,0.06);
+  font: 600 9px var(--font-body);
+}
+
+.world-workspace__empty {
+  min-height: 76px;
+  padding: 16px;
+  border: 1px dashed color-mix(in srgb, var(--workspace-color) 22%, rgba(255,255,255,0.04));
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dim);
+  background: rgba(3,4,7,0.14);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.world-workspace__empty svg { color: var(--workspace-color); }
+
 /* The Lens replaces a conventional tab bar and floating action cluster. */
 .lens-nav {
   position: absolute;
