@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { SectionHead, HUDTicks, TickCounter } from '../components/atoms.jsx';
-import { IconCheck, IconPlus, IconActivity, IconTarget, IconWarn, domainIcon } from '../components/icons.jsx';
+import { IconCheck, IconPlus, IconActivity, IconTarget, IconWarn, IconInbox, IconLock, domainIcon } from '../components/icons.jsx';
 import { ContentStudio } from './ContentStudio.jsx';
 import { snapshot, recommendPodium, recommendContent } from '../lib/mission.js';
 import { useSyncedState } from '../useSyncedState.js';
@@ -17,6 +17,7 @@ import { logEvent } from '../lib/telemetry.js';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
 import { askCompanion } from '../lib/aiActions.js';
+import { EMPTY_GMAIL_PULSE, gmailHighlights, gmailSyncLabel, recommendGmail } from '../lib/gmail.js';
 
 // ─────────────────────────────────────────────────────────
 // PODIUM — the second company gets its own command hub.
@@ -52,11 +53,13 @@ function PodiumStat({ label, value, prefix, color, onChange }) {
 
 function PodiumHub() {
   const [podium, setPodium] = useSyncedState('lifeos:podium', { orders: 0, revenue: 0, builds: 0 });
+  const [gmail] = useSyncedState('lifeos:gmail', EMPTY_GMAIL_PULSE);
   const setStat = (k, v) => setPodium((p) => ({ ...p, [k]: v }));
   const s = snapshot();
   const folder = (s.folders || []).find((f) => f.domain === 'podium' || (f.name || '').toLowerCase() === 'podium');
   const projects = folder?.projects || [];
   const notes = (folder?.notes || []).slice(0, 4);
+  const inbox = gmailHighlights(gmail, 4);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -76,6 +79,57 @@ function PodiumHub() {
           <PodiumStat label="Revenue (mo)" value={podium.revenue ?? 0} prefix="$" color="var(--lime)" onChange={(v) => setStat('revenue', v)} />
           <PodiumStat label="In build" value={podium.builds ?? 0} color="var(--cyan)" onChange={(v) => setStat('builds', v)} />
         </div>
+      </div>
+
+      <div className="card" style={{
+        borderColor: gmail.connected ? 'rgba(45,212,191,0.32)' : 'var(--line)',
+        background: gmail.connected
+          ? 'radial-gradient(circle at 100% 0%, rgba(45,212,191,0.11), transparent 45%), rgba(255,255,255,0.035)'
+          : undefined,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: inbox.length ? 10 : 0 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 12, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: gmail.connected ? 'var(--cyan)' : 'var(--dim)',
+            background: gmail.connected ? 'rgba(45,212,191,0.12)' : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${gmail.connected ? 'rgba(45,212,191,0.35)' : 'var(--line)'}`,
+          }}>
+            <IconInbox size={17} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="eyebrow" style={{ color: gmail.connected ? 'var(--cyan)' : 'var(--dim)' }}>Inbox pulse</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {gmail.connected ? gmail.account : 'Podium Gmail is not connected'}
+            </div>
+          </div>
+          <div className="mono" style={{ fontSize: 8.5, color: gmail.connected ? 'var(--lime)' : 'var(--dim)', textAlign: 'right', lineHeight: 1.45 }}>
+            <IconLock size={9} style={{ verticalAlign: '-1px', marginRight: 3 }} />
+            READ ONLY<br />{gmailSyncLabel(gmail).toUpperCase()}
+          </div>
+        </div>
+
+        {inbox.length ? inbox.map((item) => (
+          <div key={item.id} style={{ padding: '10px 0', borderTop: '1px solid var(--line)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span className="mono" style={{
+                fontSize: 8.5, letterSpacing: '0.1em', flexShrink: 0,
+                color: item.priority === 'high' ? 'var(--orange)' : 'var(--muted)',
+              }}>{item.priority.toUpperCase()}</span>
+              <span style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.3, color: 'var(--text)' }}>{item.title}</span>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--muted)', lineHeight: 1.45, marginTop: 4 }}>{item.summary}</div>
+            {item.from && <div className="mono" style={{ fontSize: 8.5, color: 'var(--dim)', marginTop: 5, letterSpacing: '0.06em' }}>FROM {item.from.toUpperCase()}</div>}
+          </div>
+        )) : gmail.connected ? (
+          <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, marginTop: 8 }}>
+            Connected and quiet — no actionable Podium signals in the latest sync.
+          </div>
+        ) : (
+          <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, marginTop: 8 }}>
+            Connect the Podium inbox through ChatGPT to surface leads, orders, and operating risks here.
+          </div>
+        )}
       </div>
 
       <div className="card">
@@ -114,7 +168,12 @@ function PodiumHub() {
 
 function ActionCenter({ onAddMission, missionIds }) {
   const s = snapshot();
-  const recs = [...recommendPodium(s.podium, s.folders), ...recommendContent(s.content, s.folders)].slice(0, 4);
+  const emailRec = recommendGmail(s.gmail);
+  const recs = [
+    ...(emailRec ? [emailRec] : []),
+    ...recommendPodium(s.podium, s.folders),
+    ...recommendContent(s.content, s.folders),
+  ].slice(0, 4);
 
   if (!recs.length) {
     return (
