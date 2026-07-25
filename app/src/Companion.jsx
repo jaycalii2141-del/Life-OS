@@ -175,6 +175,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
   // Voice replies on = full hands-free loop (speak → answer → listen again).
   const [voiceOn, setVoiceOn] = useSyncedState('lifeos:voicereplies', false);
   const endRef = useRef(null);
+  const conversationRef = useRef(null);
   const listenerRef = useRef(null);
   const openRef = useRef(open);
   const voiceOnRef = useRef(voiceOn);
@@ -211,7 +212,17 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
     setMessages((list) => list.map((m, mi) => (mi === msgIdx ? { ...m, actions: (m.actions || []).map((x, ai) => (ai === actIdx ? { ...x, done: true } : x)) } : m)));
   };
 
-  useEffect(() => { if (open) setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 120); }, [open, messages, thinking]);
+  // Keep scrolling contained inside the conversation. scrollIntoView() can
+  // programmatically scroll an overflow:hidden ancestor on iOS, displacing the
+  // entire app canvas and exposing a blank strip below it after Ask closes.
+  useEffect(() => {
+    if (!open) return undefined;
+    const timer = window.setTimeout(() => {
+      const conversation = conversationRef.current;
+      conversation?.scrollTo?.({ top: conversation.scrollHeight, behavior: 'smooth' });
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [open, messages, thinking]);
 
   // Opened in voice mode (mic on the Ask bar / long-press on the orb).
   useEffect(() => {
@@ -323,6 +334,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
 
       {/* Conversation */}
       <div
+        ref={conversationRef}
         style={{ minHeight: 220, maxHeight: '50vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 6 }}
         role="log"
         aria-label="Conversation history"
