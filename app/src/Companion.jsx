@@ -22,6 +22,7 @@ import {
   withoutRetiredOnaMissions,
   withoutRetiredOnaText,
 } from './lib/retiredOna.js';
+import { gmailContext } from './lib/gmail.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -74,6 +75,8 @@ function buildGlobalContext() {
   if (s.podium && Object.keys(s.podium).length) {
     L.push(`Podium: ${s.podium.orders ?? 0} open orders, ${s.podium.builds ?? 0} active builds, $${Number(s.podium.revenue || 0).toLocaleString()} monthly revenue.`);
   }
+  const podiumInbox = gmailContext(s.gmail);
+  if (podiumInbox) L.push(podiumInbox);
   if (s.content.brands?.length) L.push(`Brands: ${s.content.brands.map((b) => `${b.name}(${b.status})`).join(', ')}.`);
   const projs = [];
   s.folders.forEach((f) => (f.projects || []).forEach((p) => { const done = (p.steps || []).filter((x) => x.done).length; projs.push(`${f.name}:${p.title} (${done}/${(p.steps || []).length})`); }));
