@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   IconArrowRight,
@@ -6,6 +7,7 @@ import {
   IconHeart,
   IconTrendUp,
 } from '../components/icons.jsx';
+import { WorldWorkspace, WORLD_NOTEBOOKS } from '../components/WorldWorkspace.jsx';
 
 const WORLDS = [
   {
@@ -50,6 +52,47 @@ const WORLDS = [
   },
 ];
 
+function WorldNotebooks() {
+  const [activeDomain, setActiveDomain] = useState('podium');
+  const active = WORLD_NOTEBOOKS.find((item) => item.domain === activeDomain) || WORLD_NOTEBOOKS[0];
+
+  return (
+    <section className="world-notebooks" aria-label="World notes and projects">
+      <header className="world-notebooks__intro">
+        <div className="living-kicker">YOUR WORK, WITH A PLACE TO LIVE</div>
+        <h2>Ideas become worlds.</h2>
+        <p>
+          Drop a thought before it disappears. Turn it into a project when it is ready,
+          then let JAM carry the next move into your day.
+        </p>
+      </header>
+
+      <div className="world-notebooks__rail" role="tablist" aria-label="Choose a world workspace">
+        {WORLD_NOTEBOOKS.map((item) => (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={active.domain === item.domain}
+            className={active.domain === item.domain ? 'is-active' : ''}
+            style={{ '--notebook-color': item.color }}
+            onClick={() => setActiveDomain(item.domain)}
+            key={item.domain}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <WorldWorkspace
+        key={active.domain}
+        {...active}
+        heading="Notes & projects"
+        description={`Ideas, plans, and active work that belong to ${active.label}.`}
+      />
+    </section>
+  );
+}
+
 export function WorldsScreen({ onGoTab }) {
   return (
     <main className="worlds-screen">
@@ -82,6 +125,8 @@ export function WorldsScreen({ onGoTab }) {
           </motion.button>
         ))}
       </section>
+
+      <WorldNotebooks />
     </main>
   );
 }
