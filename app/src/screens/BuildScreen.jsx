@@ -15,6 +15,7 @@ import { useSyncedState } from '../useSyncedState.js';
 import { celebrate } from '../lib/haptics.js';
 import { logEvent } from '../lib/telemetry.js';
 import { ObjectMenu } from '../components/ObjectMenu.jsx';
+import { WorldWorkspace } from '../components/WorldWorkspace.jsx';
 import { useLongPress } from '../lib/useLongPress.js';
 import { askCompanion } from '../lib/aiActions.js';
 import { EMPTY_GMAIL_PULSE, gmailHighlights, gmailSyncLabel, recommendGmail } from '../lib/gmail.js';
@@ -55,10 +56,6 @@ function PodiumHub() {
   const [podium, setPodium] = useSyncedState('lifeos:podium', { orders: 0, revenue: 0, builds: 0 });
   const [gmail] = useSyncedState('lifeos:gmail', EMPTY_GMAIL_PULSE);
   const setStat = (k, v) => setPodium((p) => ({ ...p, [k]: v }));
-  const s = snapshot();
-  const folder = (s.folders || []).find((f) => f.domain === 'podium' || (f.name || '').toLowerCase() === 'podium');
-  const projects = folder?.projects || [];
-  const notes = (folder?.notes || []).slice(0, 4);
   const inbox = gmailHighlights(gmail, 4);
 
   return (
@@ -132,36 +129,14 @@ function PodiumHub() {
         )}
       </div>
 
-      <div className="card">
-        <div className="eyebrow" style={{ marginBottom: 10 }}>Projects · from the Podium folder</div>
-        {projects.length ? projects.map((p) => {
-          const steps = p.steps || [];
-          const done = steps.filter((x) => x.done).length;
-          const next = steps.find((x) => !x.done);
-          return (
-            <div key={p.id} style={{ padding: '9px 0', borderTop: '1px solid var(--line)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{p.title}</span>
-                <span className="mono" style={{ fontSize: 10, color: 'var(--gold)' }}>{done}/{steps.length}</span>
-              </div>
-              {next && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>▸ {next.text}</div>}
-            </div>
-          );
-        }) : (
-          <div className="eyebrow" style={{ color: 'var(--dim)', lineHeight: 1.6 }}>
-            No Podium projects yet — open the Podium folder in Studio to start one, or route a capture here.
-          </div>
-        )}
-      </div>
-
-      {notes.length > 0 && (
-        <div className="card">
-          <div className="eyebrow" style={{ marginBottom: 8 }}>Latest notes</div>
-          {notes.map((n) => (
-            <div key={n.id} style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.45, padding: '6px 0', borderTop: '1px solid var(--line)' }}>{n.title}</div>
-          ))}
-        </div>
-      )}
+      <WorldWorkspace
+        domain="podium"
+        name="Podium"
+        color="#E9C46A"
+        emoji="🏆"
+        heading="Idea vault & projects"
+        description="Capture product ideas, client work, builds, and the next move while they are fresh."
+      />
     </div>
   );
 }
