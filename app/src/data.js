@@ -173,6 +173,7 @@ const LIFE_DOMAINS = [
   { id: 'movement', name: 'Movement',     emoji: '🤸', color: '#34D399' },
   { id: 'social',   name: '@jayy',        emoji: '🎬', color: '#FF8A4C' },
   { id: 'wife',     name: 'Wife & I',     emoji: '💛', color: '#2DD4BF' },
+  { id: 'adventure',name: 'Explore',      emoji: '🌎', color: '#7D8CFF' },
   { id: 'self',     name: 'Self',         emoji: '🧭', color: '#45B7E8' },
 ];
 
@@ -184,6 +185,7 @@ const SEED_FOLDERS = [
   { id: 4, name: '@jayy_martinez', domain: 'social',   color: '#45B7E8', emoji: '📱', pinned: false, notes: [], projects: [] },
   { id: 5, name: 'Wife & I',       domain: 'wife',     color: '#FF8A4C', emoji: '❤️', pinned: false, notes: [], projects: [] },
   { id: 6, name: 'Self',           domain: 'self',     color: '#45B7E8', emoji: '🧭', pinned: false, notes: [], projects: [] },
+  { id: 7, name: 'Explore',        domain: 'adventure',color: '#7D8CFF', emoji: '🌎', pinned: false, notes: [], projects: [] },
 ];
 
 // Name aliases used to match an already-saved folder to a domain when it
@@ -193,6 +195,7 @@ const DOMAIN_ALIASES = {
   movement: ['movement', 'training'],
   social: ['@jayy_martinez', '@jayy', 'jayy', 'social', 'content'],
   wife: ['wife & i', 'wife and i', 'wife', 'chelsea'],
+  adventure: ['explore', 'adventure', 'travel', 'trips'],
   self: ['self', 'me'],
 };
 
