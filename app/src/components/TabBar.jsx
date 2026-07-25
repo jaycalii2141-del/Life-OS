@@ -21,9 +21,20 @@ function TabBar({ active, onChange, onAsk, onCapture, onCaptureVoice }) {
     }, 500);
   };
 
-  const finishAsk = () => {
+  const finishAsk = (event) => {
     window.clearTimeout(timer.current);
+    // Context-menu/right-click is the desktop equivalent of hold-to-capture.
+    // It must not fall through to the normal Ask action on pointer-up.
+    if (event?.button !== 0) return;
     if (!longPressed.current) onAsk?.();
+  };
+
+  const captureFromContext = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.clearTimeout(timer.current);
+    longPressed.current = true;
+    onCapture?.();
   };
 
   return (
@@ -44,7 +55,7 @@ function TabBar({ active, onChange, onAsk, onCapture, onCaptureVoice }) {
             onPointerDown={ask ? startAsk : undefined}
             onPointerUp={ask ? finishAsk : undefined}
             onPointerCancel={ask ? () => window.clearTimeout(timer.current) : undefined}
-            onContextMenu={ask ? (event) => { event.preventDefault(); onCapture?.(); } : undefined}
+            onContextMenu={ask ? captureFromContext : undefined}
             whileTap={{ scale: 0.94 }}
             aria-current={selected ? 'page' : undefined}
             aria-label={ask ? 'Ask JAM intelligence. Hold for voice capture.' : tab.label}
