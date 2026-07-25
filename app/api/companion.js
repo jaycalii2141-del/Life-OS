@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     chief: 'Role: chief of staff. Protect Jay’s time and freedom, distinguish urgent from important, and end planning answers with one concrete next move.',
     coach: 'Role: elite multi-discipline performance coach. Use biomechanics, motor learning, tissue adaptation, periodization, readiness, and injury history. Never diagnose.',
     creative: 'Role: creative director. Produce original, shootable concepts with strong hooks, visual moments, emotional payoff, and platform-aware execution.',
-    ona: 'Role: informed ONA advisor. Jay is a former transition co-operator, not the current owner. Use ONA data only when he asks or it affects a current commitment.',
     podium: 'Role: Podium Creations strategy and manufacturing partner. Think through product, fabrication, pricing, margins, sales, fulfillment, partnerships, and brand.',
     architect: 'Role: systems architect for Jay’s life and JAM HQ. Find repeated friction and design the smallest useful system, automation, or behavior change.',
   };
@@ -33,7 +32,7 @@ export default async function handler(req, res) {
     `ACTIONS_JSON: followed by a compact JSON array (max 3) of one-tap actions. Each item is one of:\n` +
     `  {"type":"event","label":"<button text>","title":"...","time":"HH:MM","durationMin":60}  (blocks time; opens Google Calendar prefilled + adds to today)\n` +
     `  {"type":"session","label":"...","discipline":"tricking|gymnastics|calisthenics|acro|parkour|ninja|mixed","disciplineName":"...","duration":60,"intensity":7}  (logs a training session)\n` +
-    `  {"type":"capture","label":"...","text":"...","tag":"idea|task|ona|dream"}  (saves a thought/draft/task to his capture inbox)\n` +
+    `  {"type":"capture","label":"...","text":"...","tag":"idea|task|podium|dream"}  (saves a thought/draft/task to his capture inbox)\n` +
     `  {"type":"focus","label":"...","text":"..."}  (sets today's one thing)\n` +
     `  {"type":"email","label":"...","to":"","subject":"...","body":"..."}  (drafts an email, opens prefilled)\n` +
     `Only include actions that clearly follow from the conversation. Never imply an action has already happened. ` +

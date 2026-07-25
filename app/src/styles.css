@@ -19,8 +19,7 @@
   --glass: rgba(255, 255, 255, 0.035);
   --top-hi: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
-  --ona-red: #FF6B5B;
-  --ona-blue: #1E6F9F;
+  --danger: #FF6B5B;
   --cyan: #45B7E8;
   --violet: #2DD4BF;
   --magenta: #FF8A4C;
@@ -257,7 +256,7 @@ html, body {
 
 /* Hero mesh cards gently pulse — a slow living shimmer of color */
 @media (prefers-reduced-motion: no-preference) {
-  .mesh-readiness, .mesh-train, .mesh-content, .mesh-ona, .mesh-ai {
+  .mesh-readiness, .mesh-train, .mesh-content, .mesh-ai {
     animation: meshGlow 13s ease-in-out infinite;
   }
 }
@@ -1421,12 +1420,6 @@ html[data-vibe='calm'] .flow-live-dot { animation: none; opacity: 0.8; }
     radial-gradient(ellipse 70% 70% at 90% 100%, rgba(244, 162, 97, 0.16) 0%, transparent 55%),
     linear-gradient(140deg, #101214 0%, #16191C 100%);
 }
-.mesh-ona {
-  background:
-    radial-gradient(ellipse 70% 70% at 10% 0%, rgba(255, 107, 91, 0.20) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 70% at 100% 100%, rgba(52, 211, 153, 0.10) 0%, transparent 55%),
-    linear-gradient(140deg, #101214 0%, #16191C 100%);
-}
 .mesh-ai {
   background:
     radial-gradient(ellipse 70% 70% at 50% 0%, rgba(45, 212, 191, 0.30) 0%, transparent 55%),
@@ -1448,7 +1441,6 @@ html[data-vibe='calm'] .flow-live-dot { animation: none; opacity: 0.8; }
    ───────────────────────────────────────────────────────── */
 .brand-jaymuvs    { background: linear-gradient(145deg, #FF6B5B 0%, #8a001b 100%); }
 .brand-motionmob  { background: linear-gradient(145deg, #1E6F9F 0%, #002a8a 100%); }
-.brand-ona-elite  { background: linear-gradient(145deg, #34D399 0%, #5a8a1e 100%); color: #101214; }
 .brand-jk-acro    { background: linear-gradient(145deg, #2DD4BF 0%, #5a2680 100%); }
 .brand-acro-wooks { background: linear-gradient(145deg, #F4A261 0%, #8a4520 100%); }
 .brand-ppp        { background: linear-gradient(145deg, #F5F5F7 0%, #8a8a95 100%); color: #101214; }
@@ -1613,7 +1605,7 @@ html[data-vibe='calm'] .flow-live-dot { animation: none; opacity: 0.8; }
 }
 .pill-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
 
-.pill-red { color: var(--ona-red); border-color: rgba(255,107,91,0.35); background: rgba(255,107,91,0.08); }
+.pill-red { color: var(--danger); border-color: rgba(255,107,91,0.35); background: rgba(255,107,91,0.08); }
 .pill-cyan { color: var(--cyan); border-color: rgba(69,183,232,0.35); background: rgba(69,183,232,0.08); }
 .pill-lime { color: var(--lime); border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.08); }
 .pill-violet { color: var(--violet); border-color: rgba(45,212,191,0.35); background: rgba(45,212,191,0.08); }
@@ -1867,7 +1859,6 @@ html[data-vibe="calm"] .orb-spin-fast { animation-duration: 18s; }
 html[data-vibe="calm"] .mesh-readiness,
 html[data-vibe="calm"] .mesh-train,
 html[data-vibe="calm"] .mesh-content,
-html[data-vibe="calm"] .mesh-ona,
 html[data-vibe="calm"] .mesh-ai {
   background: linear-gradient(150deg, #0D0D15 0%, #0A0A10 100%);
 }

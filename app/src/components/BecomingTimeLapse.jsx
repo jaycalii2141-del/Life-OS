@@ -94,7 +94,7 @@ export function BecomingTimeLapse({ open, onClose, selfHistory = {}, liveFacets 
 
   const first = frames[0];
   const totalDelta = (cur.becoming ?? 0) - (first.becoming ?? 0);
-  const deltaColor = totalDelta > 0 ? 'var(--lime)' : totalDelta < 0 ? 'var(--ona-red)' : 'var(--dim)';
+  const deltaColor = totalDelta > 0 ? 'var(--lime)' : totalDelta < 0 ? 'var(--danger)' : 'var(--dim)';
   const deltaSign = totalDelta > 0 ? '▲ +' : totalDelta < 0 ? '▼ ' : '';
 
   const togglePlay = () => {

@@ -11,6 +11,10 @@ import { Sheet } from './components/Sheet.jsx';
 import { usageBySurface } from './lib/telemetry.js';
 import { googleCalendarUrl, openExternal } from './lib/actions.js';
 import { aiFetch } from './lib/api.js';
+import {
+  isRetiredOnaSurface,
+  withoutRetiredOnaCaptures,
+} from './lib/retiredOna.js';
 
 // Next weekday morning, for scheduling next-week intentions.
 function tomorrow9() {
@@ -25,7 +29,7 @@ function dayKey(d) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', ona: 'ONA', mind: 'Mind', ai: 'Agents', today: 'Today', life: 'Life', perform: 'Perform', build: 'Build', companion: 'Intelligence', mission: 'Mission' };
+const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', mind: 'Mind', ai: 'Agents', today: 'Today', life: 'Life', perform: 'Perform', build: 'Build', companion: 'Intelligence', mission: 'Mission' };
 
 // Crunch the week from local data.
 function buildWeek() {
@@ -33,7 +37,7 @@ function buildWeek() {
   const weekAgo = now.getTime() - 7 * 864e5;
   const history = readJSON('lifeos:history', {});
   const sessions = readJSON('lifeos:sessions', []);
-  const captures = readJSON('lifeos:captures', []);
+  const captures = withoutRetiredOnaCaptures(readJSON('lifeos:captures', []));
 
   // Days active + avg readiness over the last 7 calendar days.
   let active = 0, rTotal = 0, rDays = 0;
@@ -58,7 +62,9 @@ function buildWeek() {
 
   // Surface usage from telemetry.
   const usage = usageBySurface(7);
-  const usageSorted = Object.entries(usage).sort((a, b) => b[1] - a[1]);
+  const usageSorted = Object.entries(usage)
+    .filter(([surface]) => !isRetiredOnaSurface(surface))
+    .sort((a, b) => b[1] - a[1]);
 
   return { active, avgReadiness, wkSessions: wkSessions.length, minutes, discCount, byDomain, inboxLeft, usageSorted, wkCaptures: wkCaptures.length };
 }

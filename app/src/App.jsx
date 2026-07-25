@@ -44,6 +44,7 @@ import { Onboarding } from './Onboarding.jsx';
 import { SetupFlow } from './SetupFlow.jsx';
 import { BootSplash } from './BootSplash.jsx';
 import { Companion } from './Companion.jsx';
+import { withoutRetiredOnaTimeline } from './lib/retiredOna.js';
 
 // ─────────────────────────────────────────────────────────
 // Auth gate — decides login vs app. When Supabase isn't
@@ -173,7 +174,9 @@ function MainApp() {
       logSession({ id: Date.now(), discipline: a.discipline || 'mixed', disciplineName: a.disciplineName || a.discipline || 'Mixed', duration: a.duration || 60, intensity: a.intensity || 7, date: new Date().toISOString() });
     } else if (a.type === 'capture') {
       const now = Date.now();
-      addCapture({ id: now, ts: now, text: a.text || a.label || '', tag: a.tag || 'idea', color: '#45B7E8', status: 'inbox', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+      const allowedTags = new Set(['idea', 'task', 'podium', 'dream']);
+      const tag = allowedTags.has(a.tag) ? a.tag : 'idea';
+      addCapture({ id: now, ts: now, text: a.text || a.label || '', tag, color: tag === 'podium' ? '#E9C46A' : '#45B7E8', status: 'inbox', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
     } else if (a.type === 'focus') {
       setMissionState((s) => ({ ...s, oneThing: a.text || a.label || '' }));
     }
@@ -476,7 +479,7 @@ function latestPriorTimeline(todayK) {
       }
     }
   }
-  return timeline;
+  return timeline ? withoutRetiredOnaTimeline(timeline) : null;
 }
 
 function freshDailyDefault(todayK) {

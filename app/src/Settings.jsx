@@ -80,7 +80,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
               ...rowStyle, marginBottom: 18, justifyContent: 'center',
               border: '1px solid rgba(255,107,91,0.4)', background: 'rgba(255,107,91,0.08)',
             }}>
-              <span className="mono" style={{ fontSize: 12, color: 'var(--ona-red)', letterSpacing: '0.14em', fontWeight: 700 }}>SIGN OUT</span>
+              <span className="mono" style={{ fontSize: 12, color: 'var(--danger)', letterSpacing: '0.14em', fontWeight: 700 }}>SIGN OUT</span>
             </div>
           </>
         ) : (
@@ -149,7 +149,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
               <IconCheck size={14} stroke={2.4} /> {icalUrl ? 'Update' : 'Connect'}
             </div>
             {icalUrl && (
-              <div className="pressable" onClick={() => { onSetIcal(''); setCal(''); }} style={{ width: 44, borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)' }}>
+              <div className="pressable" onClick={() => { onSetIcal(''); setCal(''); }} style={{ width: 44, borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--danger)' }}>
                 <IconClose size={15} />
               </div>
             )}
@@ -163,7 +163,7 @@ export function Settings({ open, onClose, icalUrl, onSetIcal, vibe = 'calm', onS
         <div className="eyebrow" style={{ marginBottom: 8 }}>Make it yours</div>
         <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'stretch', gap: 11, marginBottom: 18 }}>
           <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>
-            Your <span style={{ color: 'var(--text)' }}>Becoming</span> score and the AI are only as true as your data. Run setup to replace the starter numbers with your real ONA, Podium, and content.
+            Your <span style={{ color: 'var(--text)' }}>Becoming</span> score and the AI are only as true as your data. Run setup to replace the starter numbers with your real Podium and content data.
           </div>
           <div className="pressable" onClick={() => { onClose?.(); onOpenSetup?.(); }} style={{
             height: 46, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

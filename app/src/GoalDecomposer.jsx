@@ -37,8 +37,8 @@ function lightContext(domain) {
     if (active.length) lines.push(`Currently training: ${active.slice(0, 6).join(', ')}.`);
   }
   if (domain === 'business') {
-    const ona = readJSON('lifeos:ona', {});
-    if (ona.stats) lines.push(`ONA: ${ona.stats.members} members, $${ona.stats.mrr} MRR.`);
+    const podium = readJSON('lifeos:podium', {});
+    lines.push(`Podium: ${podium.orders ?? 0} open orders, ${podium.builds ?? 0} active builds, $${Number(podium.revenue || 0).toLocaleString()} monthly revenue.`);
   }
   return lines.join(' ');
 }

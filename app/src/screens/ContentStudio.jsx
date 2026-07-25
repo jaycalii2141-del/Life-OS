@@ -3,6 +3,10 @@ import { HUDTicks, TickCounter, Pill, SectionHead, ProgressBar, EmptyState } fro
 import { IconChevronRight, IconCopy, IconCheck, IconPlus, IconClose } from '../components/icons.jsx';
 import { BRANDS, PIPELINE_STAGES, HOOKS, SEED_FOLDERS } from '../data.js';
 import { useSyncedState } from '../useSyncedState.js';
+import {
+  withoutRetiredOnaContent,
+  withoutRetiredOnaFolders,
+} from '../lib/retiredOna.js';
 
 // ─────────────────────────────────────────────────────────
 // SCREEN 3 — Content Studio
@@ -21,7 +25,7 @@ const statusColors = {
 
 // Brand tile (2-column grid) — tap to select for editing
 function BrandTile({ brand, selected, onSelect }) {
-  const isLight = brand.id === 'ppp' || brand.id === 'ona';
+  const isLight = brand.id === 'ppp';
   const fg = isLight ? '#0A0B0D' : '#fff';
   const sub = isLight ? 'rgba(6,6,10,0.6)' : 'rgba(255,255,255,0.7)';
   const s = statusColors[brand.status] || statusColors['Steady'];
@@ -235,7 +239,7 @@ function ContentItemRow({ item, brands, onUpdate, onDelete }) {
               })}
             </div>
           </div>
-          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE</div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--danger)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE</div>
         </div>
       )}
     </div>
@@ -374,7 +378,7 @@ function HookBank({ hooks, onAdd, onUpdate, onDelete }) {
                   onKeyDown={(e) => e.key === 'Enter' && setEditingId(null)} autoFocus style={{ ...hkInp, flex: 1 }} />
                 <div className="pressable" onClick={() => onDelete(hook.id)} style={{
                   width: 40, borderRadius: 10, background: 'rgba(255,107,91,0.12)', border: '1px solid rgba(255,107,91,0.4)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ona-red)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--danger)',
                 }}><IconClose size={15} /></div>
                 <div className="pressable" onClick={() => setEditingId(null)} style={{
                   width: 40, borderRadius: 10, background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.4)',
@@ -500,7 +504,7 @@ function StepRow({ step, onToggle, onText, onDelete, onUp, onDown, canUp, canDow
         style={{ ...ctInp, flex: 1, padding: '7px 9px', fontSize: 13, textDecoration: step.done ? 'line-through' : 'none', opacity: step.done ? 0.6 : 1 }} />
       <div className="pressable" onClick={onUp} style={{ ...miniBtn, opacity: canUp ? 1 : 0.3 }}>↑</div>
       <div className="pressable" onClick={onDown} style={{ ...miniBtn, opacity: canDown ? 1 : 0.3 }}>↓</div>
-      <div className="pressable" onClick={onDelete} style={{ ...miniBtn, color: 'var(--ona-red)' }}><IconClose size={13} /></div>
+      <div className="pressable" onClick={onDelete} style={{ ...miniBtn, color: 'var(--danger)' }}><IconClose size={13} /></div>
     </div>
   );
 }
@@ -512,7 +516,7 @@ function dueInfo(due) {
   if (isNaN(d)) return null;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const days = Math.round((d - today) / 864e5);
-  if (days < 0) return { label: `OVERDUE ${-days}D`, color: 'var(--ona-red)' };
+  if (days < 0) return { label: `OVERDUE ${-days}D`, color: 'var(--danger)' };
   if (days === 0) return { label: 'DUE TODAY', color: 'var(--gold)' };
   if (days <= 3) return { label: `DUE IN ${days}D`, color: 'var(--gold)' };
   return { label: `DUE ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}`, color: 'var(--dim)' };
@@ -607,7 +611,7 @@ function ProjectCard({ project, brands, onUpdate, onDelete, onStepsChange }) {
             </>
           )}
 
-          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE PROJECT</div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--danger)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE PROJECT</div>
         </div>
       )}
     </div>
@@ -672,7 +676,7 @@ function NoteCard({ note, onUpdate, onDelete }) {
           <input autoFocus value={note.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Title" style={ctInp} />
           <textarea value={note.body} onChange={(e) => onUpdate({ body: e.target.value })} placeholder="Write it down…" rows={5}
             style={{ ...ctInp, resize: 'vertical', lineHeight: 1.5 }} />
-          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE NOTE</div>
+          <div className="pressable" onClick={onDelete} style={{ alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 10, background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.4)', color: 'var(--danger)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.1em', fontWeight: 700 }}>DELETE NOTE</div>
         </div>
       )}
     </div>
@@ -773,7 +777,7 @@ function FolderSheet({ folder, onUpdate, onDelete, onClose }) {
 
         {/* Delete folder */}
         <div className="pressable" onClick={() => { if (window.confirm(`Delete the "${folder.name}" folder and everything in it?`)) onDelete(); }}
-          style={{ marginTop: 16, textAlign: 'center', padding: '10px', borderRadius: 12, background: 'rgba(255,107,91,0.08)', border: '1px solid rgba(255,107,91,0.3)', color: 'var(--ona-red)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', fontWeight: 700 }}>
+          style={{ marginTop: 16, textAlign: 'center', padding: '10px', borderRadius: 12, background: 'rgba(255,107,91,0.08)', border: '1px solid rgba(255,107,91,0.3)', color: 'var(--danger)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', fontWeight: 700 }}>
           DELETE FOLDER
         </div>
         <div style={{ height: 8 }} />
@@ -838,10 +842,12 @@ function FoldersSection({ folders, onAdd, onOpen }) {
 // Content Studio screen
 // ─────────────────────────────────────────────────────────
 function ContentStudio({ embedded = false }) {
-  const [content, setContent] = useSyncedState('lifeos:content', {
+  const [storedContent, setContent] = useSyncedState('lifeos:content', {
     hooks: HOOKS.map((text, i) => ({ id: i + 1, text })),
   });
-  const [folders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
+  const [storedFolders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
+  const content = withoutRetiredOnaContent(storedContent);
+  const folders = withoutRetiredOnaFolders(storedFolders);
   const [openFolderId, setOpenFolderId] = useState(null);
 
   const addFolder = (f) => setFolders((fs) => [...fs, f]);

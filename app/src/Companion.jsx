@@ -18,6 +18,10 @@ import { generateMissions, localAnswer, snapshot } from './lib/mission.js';
 import { identityDigest } from './lib/identity.js';
 import { useSyncedState } from './useSyncedState.js';
 import { todayKey } from './usePersistentState.js';
+import {
+  withoutRetiredOnaMissions,
+  withoutRetiredOnaText,
+} from './lib/retiredOna.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -29,7 +33,6 @@ const MODES = [
   { id: 'chief',     name: 'Chief',     color: '#45B7E8', hint: 'runs your day & priorities' },
   { id: 'coach',     name: 'Coach',     color: '#34D399', hint: 'training & recovery' },
   { id: 'creative',  name: 'Creative',  color: '#FF8A4C', hint: 'content & brands' },
-  { id: 'ona',       name: 'ONA',       color: '#FF6B5B', hint: 'gym operations' },
   { id: 'podium',    name: 'Podium',    color: '#E9C46A', hint: 'equipment & builds' },
   { id: 'architect', name: 'Architect', color: '#F4A261', hint: 'improves your systems' },
 ];
@@ -39,7 +42,6 @@ const STARTERS = {
   chief: ['Plan my day around my mission', "What's the highest-leverage hour today?"],
   coach: ['Am I recovered enough to push?', 'Coach me on my closest breakthrough'],
   creative: ['Write me 3 hooks for JayMuvs', "What content move matters most this week?"],
-  ona: ['Run the ONA pulse', 'How do I revive the stale leads?'],
   podium: ["What's next for Podium?"],
   architect: ['Where am I losing time?', 'What should LifeOS do better?'],
 };
@@ -55,7 +57,8 @@ function buildGlobalContext() {
 
   // Today's mission (the campaign the whole app revolves around).
   const missionDoc = readJSON(`lifeos:mission:${todayKey()}`, null);
-  const missions = missionDoc?.items?.length ? missionDoc.items : generateMissions(s);
+  const savedMissions = withoutRetiredOnaMissions(missionDoc?.items || []);
+  const missions = savedMissions.length ? savedMissions : generateMissions(s);
   const doneIds = missionDoc?.doneIds || [];
   if (missions.length) L.push(`Today's mission: ${missions.map((m) => `${doneIds.includes(m.id) ? '[done] ' : ''}${m.title}`).join('; ')}.`);
 
@@ -67,9 +70,10 @@ function buildGlobalContext() {
   const bs = analyzeBlindspots(s.skills, s.sessions, s.readiness, DISCIPLINES).filter((b) => b.sev !== 'low');
   if (bs.length) L.push(`Training blindspots: ${bs.map((b) => b.title).join('; ')}.`);
 
-  // Businesses
-  if (s.ona.stats) L.push(`ONA: members ${s.ona.stats.members}, MRR $${s.ona.stats.mrr}, NPS ${s.ona.stats.nps}.`);
-  if (s.ona.initiatives?.length) L.push(`ONA initiatives: ${s.ona.initiatives.map((i) => `${i.priority} ${i.title} ${i.pct}%`).join('; ')}.`);
+  // Business + creative work
+  if (s.podium && Object.keys(s.podium).length) {
+    L.push(`Podium: ${s.podium.orders ?? 0} open orders, ${s.podium.builds ?? 0} active builds, $${Number(s.podium.revenue || 0).toLocaleString()} monthly revenue.`);
+  }
   if (s.content.brands?.length) L.push(`Brands: ${s.content.brands.map((b) => `${b.name}(${b.status})`).join(', ')}.`);
   const projs = [];
   s.folders.forEach((f) => (f.projects || []).forEach((p) => { const done = (p.steps || []).filter((x) => x.done).length; projs.push(`${f.name}:${p.title} (${done}/${(p.steps || []).length})`); }));
@@ -79,7 +83,7 @@ function buildGlobalContext() {
   if (inbox) L.push(`${inbox} thoughts waiting in the capture inbox.`);
 
   // Long-term memory — what the companion has learned about Jay over time.
-  const mem = readJSON('lifeos:companion:memory', '');
+  const mem = withoutRetiredOnaText(readJSON('lifeos:companion:memory', ''));
   if (mem) L.unshift(`LONG-TERM MEMORY (what you've learned about Jay over time, carry it forward): ${mem}`);
 
   // Structured identity model — deterministic, always current. Sits at the top.
@@ -235,12 +239,14 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
   // exchanges). Runs only when the AI is live; a graceful no-op otherwise.
   const updateMemory = async (history) => {
     try {
-      const instr = `[INTERNAL] Update your long-term memory of Jay. Prior memory: """${memory || 'none yet'}""". From our recent conversation, write an updated, concise long-term memory — durable facts about who he is, his goals, preferences, recurring patterns, and what's worked or not. Keep it under 180 words as short plain lines. Merge with prior memory; drop nothing important. Output ONLY the memory text, no preamble.`;
+      const priorMemory = withoutRetiredOnaText(memory) || 'none yet';
+      const instr = `[INTERNAL] Update your long-term memory of Jay. Prior memory: """${priorMemory}""". From our recent conversation, write an updated, concise long-term memory — durable facts about who he is, his goals, preferences, recurring patterns, and what's worked or not. Keep it under 180 words as short plain lines. Merge with prior memory; drop nothing important. Output ONLY the memory text, no preamble.`;
       const r = await aiFetch('/api/companion', { messages: [...history.slice(-14), { role: 'user', text: instr }], context: '', mode: 'partner' });
       if (!r.ok) return;
       const data = await r.json();
       const m = (data.text || '').trim();
-      if (m && m.length > 20) setMemory(m.slice(0, 1600));
+      const clean = withoutRetiredOnaText(m);
+      if (clean && clean.length > 20) setMemory(clean.slice(0, 1600));
     } catch { /* no key → keep existing memory */ }
   };
 
@@ -414,7 +420,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send()}
             placeholder={listening ? 'Listening… just talk' : `Talk to your AI · ${activeMode.hint}…`}
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: listening ? 'var(--ona-red)' : 'var(--text)', fontSize: 15, fontFamily: 'var(--font-body)' }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: listening ? 'var(--danger)' : 'var(--text)', fontSize: 15, fontFamily: 'var(--font-body)' }}
           />
         </div>
         {voiceSupported() && (
@@ -423,7 +429,7 @@ export function Companion({ open, onClose, onAction, startVoice = false }) {
             background: listening ? 'rgba(255,107,91,0.18)' : 'rgba(255,255,255,0.05)',
             border: `1px solid ${listening ? 'rgba(255,107,91,0.6)' : 'var(--line-strong)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: listening ? 'var(--ona-red)' : 'var(--text)', transition: 'all 200ms',
+            color: listening ? 'var(--danger)' : 'var(--text)', transition: 'all 200ms',
           }}>
             <IconMic size={20} className={listening ? 'blink' : ''} />
           </div>

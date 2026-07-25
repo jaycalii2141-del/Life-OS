@@ -118,7 +118,7 @@ export function CalendarSheet({ open, onClose, icalUrl }) {
         )}
 
         {loading && <div className="eyebrow" style={{ color: 'var(--dim)', padding: '8px 0' }}>Loading your calendar…</div>}
-        {error && <div className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', padding: '8px 0' }}>{error}</div>}
+        {error && <div className="mono" style={{ fontSize: 11, color: 'var(--danger)', padding: '8px 0' }}>{error}</div>}
         {icalUrl && !loading && !error && dates.length === 0 && (
           <div className="eyebrow" style={{ color: 'var(--dim)', padding: '8px 0' }}>No events in the next two weeks.</div>
         )}

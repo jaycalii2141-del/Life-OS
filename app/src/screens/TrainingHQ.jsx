@@ -260,7 +260,7 @@ function ProgressionHero({ skills, readiness, onCoach }) {
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div className="eyebrow">Readiness</div>
-          <div className="display" style={{ fontSize: 'var(--text-2xl)', color: readiness >= 75 ? 'var(--lime)' : readiness >= 55 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness ?? '—'}</div>
+          <div className="display" style={{ fontSize: 'var(--text-2xl)', color: readiness >= 75 ? 'var(--lime)' : readiness >= 55 ? 'var(--gold)' : 'var(--danger)' }}>{readiness ?? '—'}</div>
         </div>
       </div>
       <div style={{ marginTop: 12 }}>
@@ -605,7 +605,7 @@ function SkillNode({ skill, color, onChange, disciplineId, track = {}, onCycleTr
                             <TrackBtn status={track[tk]} onClick={() => onCycleTrack?.(tk)} />
                           </div>
                           <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4, marginTop: 1 }}>{x.cue}</div>
-                          {x.fault && <div style={{ fontSize: 10, color: 'var(--ona-red)', lineHeight: 1.35, marginTop: 2 }}>⚠ {x.fault}</div>}
+                          {x.fault && <div style={{ fontSize: 10, color: 'var(--danger)', lineHeight: 1.35, marginTop: 2 }}>⚠ {x.fault}</div>}
                           {x.gate && <div style={{ fontSize: 10, color, lineHeight: 1.35, marginTop: 2, letterSpacing: '0.02em' }}>✓ ready when: {x.gate}</div>}
                         </div>
                       </div>
@@ -913,7 +913,7 @@ function LogSessionSheet({ open, onClose, onLog }) {
             {/* Intensity */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span className="eyebrow">Intensity</span>
-              <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', fontWeight: 700 }}>
+              <span className="mono" style={{ fontSize: 11, color: 'var(--danger)', fontWeight: 700 }}>
                 {intensity}/10
               </span>
             </div>

@@ -32,6 +32,10 @@ import { askCompanion, decomposeText } from '../lib/aiActions.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { TIMELINE } from '../data.js';
 import { FlowDeck } from '../components/FlowDeck.jsx';
+import {
+  withoutRetiredOnaQuests,
+  withoutRetiredOnaTimeline,
+} from '../lib/retiredOna.js';
 
 function realDateLabel() {
   const d = new Date();
@@ -97,11 +101,11 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         )}
         <div className="row" style={{ justifyContent: 'center', gap: 'var(--space-3)', marginTop: 'var(--space-3)', flexWrap: 'wrap' }}>
           {readiness != null && (
-            <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)', letterSpacing: '0.02em' }}>Ready {readiness}</span>
+            <span className="mono" style={{ fontSize: 10, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--danger)', letterSpacing: '0.02em' }}>Ready {readiness}</span>
           )}
           {streak > 0 && <span className="mono" style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconFlame size={11} color="var(--gold)" /> {streak} DAY</span>}
           {becoming && becoming.delta !== 0 && (
-            <span className="mono" style={{ fontSize: 10, letterSpacing: '0.08em', color: becoming.trend === 'rising' ? 'var(--lime)' : becoming.trend === 'dipping' ? 'var(--ona-red)' : 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: 10, letterSpacing: '0.08em', color: becoming.trend === 'rising' ? 'var(--lime)' : becoming.trend === 'dipping' ? 'var(--danger)' : 'var(--muted)' }}>
               {becoming.delta > 0 ? '▲+' : '▼'}{Math.abs(becoming.delta)} · 7D
             </span>
           )}
@@ -182,7 +186,7 @@ function MissionCard({ missions, doneIds, onToggle, onRegenerate, readiness, str
         ) : (
           <div className="pressable" onClick={() => setEditingFocus(true)} style={{
             marginTop: 12, padding: '11px 12px', borderRadius: 12, textAlign: 'center',
-            border: '1px dashed rgba(255,107,91,0.45)', color: 'var(--ona-red)',
+            border: '1px dashed rgba(255,107,91,0.45)', color: 'var(--danger)',
             fontFamily: 'var(--font-body)', fontSize: 13, letterSpacing: '0.01em', fontWeight: 600,
           }}>Set your one thing</div>
         )
@@ -444,7 +448,7 @@ function AskBar({ onOpen }) {
       <span style={{ flex: 1, fontSize: 13.5, color: 'var(--muted)' }}>Ask your AI anything…</span>
       <div className="pressable" onClick={(e) => { e.stopPropagation(); onOpen(true); }} style={{
         width: 34, height: 34, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.35)', color: 'var(--ona-red)',
+        background: 'rgba(255,107,91,0.1)', border: '1px solid rgba(255,107,91,0.35)', color: 'var(--danger)',
       }}>
         <IconMic size={17} />
       </div>
@@ -463,7 +467,7 @@ function StateCard({ state, onMeter, readiness, trend, onOpenSettings, momentum 
       <div className="pressable" onClick={() => setOpen((o) => !o)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span className="eyebrow">State</span>
-          <span className="display" style={{ fontSize: 20, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--ona-red)' }}>{readiness}</span>
+          <span className="display" style={{ fontSize: 20, color: readiness >= 75 ? 'var(--lime)' : readiness >= 50 ? 'var(--gold)' : 'var(--danger)' }}>{readiness}</span>
           <span className="mono" style={{ fontSize: 9, color: 'var(--dim)', letterSpacing: '0.1em' }}>
             {trend == null ? 'Baseline' : `${trend >= 0 ? '▲+' : '▼'}${trend} vs 7d`}
           </span>
@@ -517,7 +521,7 @@ function StateCard({ state, onMeter, readiness, trend, onOpenSettings, momentum 
 // ─────────────────────────────────────────────────────────
 const TL_CATEGORIES = [
   { kind: 'Body', color: '#45B7E8' }, { kind: 'Create', color: '#FF8A4C' },
-  { kind: 'Train', color: '#F4A261' }, { kind: 'ONA', color: '#34D399' },
+  { kind: 'Train', color: '#F4A261' }, { kind: 'Build', color: '#34D399' },
   { kind: 'Acro', color: '#2DD4BF' }, { kind: 'Focus', color: '#FF6B5B' },
 ];
 
@@ -623,7 +627,8 @@ export function TodayScreen({
   const readiness = Math.round(((state.energy + state.focus + state.body + state.mood) / 40) * 100);
 
   // Quest system — the long campaigns behind the daily mission.
-  const [quests, setQuests] = useSyncedState('lifeos:quests', SEED_QUESTS);
+  const [storedQuests, setQuests] = useSyncedState('lifeos:quests', SEED_QUESTS);
+  const quests = useMemo(() => withoutRetiredOnaQuests(storedQuests), [storedQuests]);
   const toggleMilestone = (qid, mid) => setQuests((list) => list.map((q) => (
     q.id !== qid ? q : {
       ...q,
@@ -691,9 +696,15 @@ export function TodayScreen({
     return () => { active = false; };
   }, [icalUrl]);
 
-  const events = state.timeline ?? TIMELINE;
-  const addEvent = (ev) => setState((s) => ({ ...s, timeline: [...(s.timeline ?? TIMELINE), ev].sort((a, b) => a.time.localeCompare(b.time)) }));
-  const deleteEvent = (idx) => setState((s) => ({ ...s, timeline: (s.timeline ?? TIMELINE).filter((_, i) => i !== idx) }));
+  const events = withoutRetiredOnaTimeline(state.timeline ?? TIMELINE);
+  const addEvent = (ev) => setState((s) => ({
+    ...s,
+    timeline: [...withoutRetiredOnaTimeline(s.timeline ?? TIMELINE), ev].sort((a, b) => a.time.localeCompare(b.time)),
+  }));
+  const deleteEvent = (idx) => setState((s) => ({
+    ...s,
+    timeline: withoutRetiredOnaTimeline(s.timeline ?? TIMELINE).filter((_, i) => i !== idx),
+  }));
 
   const goMission = (m) => {
     if (m.kind === 'focus') return; // the One Thing lives here

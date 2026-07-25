@@ -12,11 +12,16 @@ import { usageBySurface } from './lib/telemetry.js';
 import { useSyncedState } from './useSyncedState.js';
 import { aiFetch } from './lib/api.js';
 import { Sheet } from './components/Sheet.jsx';
+import {
+  isRetiredOnaSurface,
+  withoutRetiredOnaCaptures,
+  withoutRetiredOnaFolders,
+} from './lib/retiredOna.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
 }
-const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', ona: 'ONA', mind: 'Mind', ai: 'Agents', capture: 'Capture', today: 'Today', life: 'Life', perform: 'Perform', build: 'Build', companion: 'Intelligence', mission: 'Mission' };
+const SURFACE_NAMES = { home: 'Home', train: 'Train', create: 'Create', mind: 'Mind', ai: 'Agents', capture: 'Capture', today: 'Today', life: 'Life', perform: 'Perform', build: 'Build', companion: 'Intelligence', mission: 'Mission' };
 
 // Crunch the month from local data + telemetry.
 function buildMonth() {
@@ -24,8 +29,8 @@ function buildMonth() {
   const monthAgo = now - 30 * 864e5;
   const history = readJSON('lifeos:history', {});
   const sessions = readJSON('lifeos:sessions', []);
-  const captures = readJSON('lifeos:captures', []);
-  const folders = readJSON('lifeos:folders', []);
+  const captures = withoutRetiredOnaCaptures(readJSON('lifeos:captures', []));
+  const folders = withoutRetiredOnaFolders(readJSON('lifeos:folders', []));
   const focus = readJSON('lifeos:weeklyfocus', {});
 
   // Active days + readiness over ~30 days.
@@ -49,7 +54,9 @@ function buildMonth() {
   const staleFolders = folders.filter((f) => (f.notes || []).length === 0 && (f.projects || []).length === 0);
 
   const usage = usageBySurface(30);
-  const usageSorted = Object.entries(usage).filter(([k]) => k !== 'capture').sort((a, b) => b[1] - a[1]);
+  const usageSorted = Object.entries(usage)
+    .filter(([surface]) => surface !== 'capture' && !isRetiredOnaSurface(surface))
+    .sort((a, b) => b[1] - a[1]);
 
   return { active, avgReadiness, mSessions: mSessions.length, minutes, trained, inbox, triaged, byDomain, staleFolders, usage, usageSorted, hasFocus: !!focus.text };
 }

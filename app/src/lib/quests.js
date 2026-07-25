@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────
 import { snapshot } from './mission.js';
 import { DISCIPLINES } from '../data.js';
+import { withoutRetiredOnaQuests } from './retiredOna.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -44,17 +45,6 @@ export const SEED_QUESTS = [
       { id: 2, text: 'Land a clean cork', done: false },
       { id: 3, text: 'Full front lever, 5s hold', done: false },
       { id: 4, text: 'Standing hand-to-hand with Chelsea', done: false },
-    ],
-  },
-  {
-    id: 'scale-ona', domain: 'business', icon: '🥷',
-    title: 'Scale ONA past 250 members',
-    why: 'The gym becomes an engine, not a job.',
-    milestones: [
-      { id: 1, text: 'Launch Adult Ninja League', done: false },
-      { id: 2, text: 'Reactivate 50 old leads', done: false },
-      { id: 3, text: 'Hit 200 active members', done: false },
-      { id: 4, text: 'Hit $25k MRR', done: false },
     ],
   },
   {
@@ -102,7 +92,7 @@ export function nextMilestone(q) {
 // Each returns { score, signal } where signal is the one-line "why".
 // ─────────────────────────────────────────────────────────
 export function domainScores(s = snapshot()) {
-  const quests = readJSON('lifeos:quests', SEED_QUESTS);
+  const quests = withoutRetiredOnaQuests(readJSON('lifeos:quests', SEED_QUESTS));
   const history = readJSON('lifeos:history', {});
   const adventure = readJSON('lifeos:adventure', []);
   const learning = readJSON('lifeos:learning', []);
@@ -119,11 +109,24 @@ export function domainScores(s = snapshot()) {
     .map(([, v]) => v.readiness).filter((v) => typeof v === 'number');
   const health = rVals.length ? Math.round(rVals.reduce((x, y) => x + y, 0) / rVals.length) : (s.readiness ?? 50);
 
-  // Business — average progress of ONA initiatives + business quests.
-  const inits = (s.ona.initiatives || []).map((i) => i.pct || 0);
+  // Business — progress across Podium projects + business campaigns.
+  const podiumFolder = (s.folders || []).find((f) =>
+    f?.domain === 'podium' || String(f?.name || '').trim().toLowerCase() === 'podium'
+  );
+  const podiumProjects = (podiumFolder?.projects || []).map((project) => {
+    const steps = project.steps || [];
+    if (!steps.length) return 0;
+    return Math.round((steps.filter((step) => step.done).length / steps.length) * 100);
+  });
   const bizQuests = quests.filter((q) => q.domain === 'business').map(questProgress);
-  const bizParts = [...inits, ...bizQuests];
+  const bizParts = [...podiumProjects, ...bizQuests];
   const business = bizParts.length ? Math.round(bizParts.reduce((x, y) => x + y, 0) / bizParts.length) : 40;
+  const podium = s.podium || {};
+  const businessSignal = (podium.orders || podium.builds)
+    ? `${podium.orders || 0} orders · ${podium.builds || 0} builds`
+    : podiumProjects.length
+      ? `${podiumProjects.length} Podium project${podiumProjects.length === 1 ? '' : 's'} active`
+      : `${bizQuests.length} business campaign${bizQuests.length === 1 ? '' : 's'}`;
 
   // Relationships — recency of attention to the Wife & I domain.
   const wifeFolder = (s.folders || []).find((f) => f.domain === 'wife');
@@ -163,7 +166,7 @@ export function domainScores(s = snapshot()) {
 
   return {
     athlete:       { score: athlete,                    signal: `${total} skills mapped` },
-    business:      { score: business,                   signal: `${(s.ona.initiatives || []).length} initiatives live` },
+    business:      { score: business,                   signal: businessSignal },
     relationships: { score: Math.round(relationships),  signal: wifeNotes ? `${wifeNotes} shared notes` : 'plan something together' },
     health:        { score: health,                     signal: `readiness ${s.readiness ?? '—'} today` },
     creativity:    { score: creativity,                 signal: `${brands.length} brands active` },
@@ -199,7 +202,7 @@ export function recentWins(s = snapshot(), limit = 4) {
   if (goodDays) wins.push({ icon: '🎯', text: `${goodDays} strong mission day${goodDays > 1 ? 's' : ''}` });
 
   // Quest milestones knocked out (any time — most recent few).
-  const quests = readJSON('lifeos:quests', SEED_QUESTS);
+  const quests = withoutRetiredOnaQuests(readJSON('lifeos:quests', SEED_QUESTS));
   quests.forEach((q) => (q.milestones || []).forEach((m) => {
     if (m.done && m.doneAt && m.doneAt > weekAgo) wins.push({ icon: q.icon, text: m.text });
   }));

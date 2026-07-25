@@ -75,15 +75,9 @@ const CATALOG = [
   },
   {
     id: 'builder', name: 'The Builder', accent: '#FF6B5B',
-    statement: 'You shipped a business initiative — a builder, not a dreamer.',
-    hint: 'Complete an ONA initiative.',
-    check: (c) => ({ done: c.shippedInits >= 1, progress: c.shippedInits >= 1 ? 100 : (c.openInits ? 50 : 0) }),
-  },
-  {
-    id: 'scaling', name: 'The Operator', accent: '#34D399',
-    statement: 'ONA crossed 250 members — you scaled it.',
-    hint: 'Grow ONA past 250 members.',
-    check: (c) => ({ done: c.onaMembers >= 250, progress: (c.onaMembers / 250) * 100 }),
+    statement: 'You shipped a Podium project — a builder, not a dreamer.',
+    hint: 'Complete every step in a Podium project.',
+    check: (c) => ({ done: c.shippedProjects >= 1, progress: c.shippedProjects >= 1 ? 100 : (c.openProjects ? 50 : 0) }),
   },
   {
     id: 'creator', name: 'The Creator', accent: '#FF8A4C',
@@ -133,7 +127,10 @@ function buildContext(opts = {}) {
     if ((sk.pct || 0) > bestSkillPct) bestSkillPct = sk.pct || 0;
   }));
 
-  const inits = s.ona?.initiatives || [];
+  const podiumFolder = (s.folders || []).find((f) =>
+    f?.domain === 'podium' || String(f?.name || '').trim().toLowerCase() === 'podium'
+  );
+  const podiumProjects = podiumFolder?.projects || [];
   const content = s.content || {};
   const posted = (content.items || []).filter((i) => (i.stage || i.status) === 'posted').length
     + (content.brands || []).reduce((n, b) => n + (b.posted || 0), 0);
@@ -146,9 +143,14 @@ function buildContext(opts = {}) {
     mastered,
     bestSkillPct,
     masteredDisciplines: masteredDiscSet.size,
-    shippedInits: inits.filter((i) => i.status === 'done').length,
-    openInits: inits.length,
-    onaMembers: s.ona?.stats?.members ?? s.onaLive?.members ?? 0,
+    shippedProjects: podiumProjects.filter((project) => {
+      const steps = project.steps || [];
+      return steps.length > 0 && steps.every((step) => step.done);
+    }).length,
+    openProjects: podiumProjects.filter((project) => {
+      const steps = project.steps || [];
+      return !steps.length || steps.some((step) => !step.done);
+    }).length,
     posted,
     journal: (s.journal || []).length,
     triaged: (s.captures || []).filter((c) => c.status === 'triaged').length,

@@ -26,6 +26,10 @@ import { BecomingTimeLapse } from '../components/BecomingTimeLapse.jsx';
 import { evaluateMilestones } from '../lib/milestones.js';
 import { crossDomainInsight } from '../lib/crossDomain.js';
 import { EmptyState } from '../components/ui.jsx';
+import {
+  withoutRetiredOnaCaptures,
+  withoutRetiredOnaFolders,
+} from '../lib/retiredOna.js';
 
 function folderForDomain(folders, domain) {
   let f = folders.find((x) => x.domain === domain);
@@ -34,7 +38,7 @@ function folderForDomain(folders, domain) {
   return folders.find((x) => aliases.includes((x.name || '').trim().toLowerCase()));
 }
 
-const TAG_COLORS = { idea: '#45B7E8', ona: '#FF6B5B', dream: '#2DD4BF', task: '#34D399' };
+const TAG_COLORS = { idea: '#45B7E8', podium: '#E9C46A', dream: '#2DD4BF', task: '#34D399' };
 
 function fmtDay(ts) {
   if (!ts) return '';
@@ -180,7 +184,7 @@ function DomainSheet({ domainId, onClose, ctx }) {
   if (domainId === 'health') {
     const verdict = readiness >= 75 ? ['Green light', 'Fully charged — push intensity or attempt new skills today.', 'var(--lime)']
       : readiness >= 55 ? ['Steady', 'Train with intent, cap intensity ~80%, protect sleep tonight.', 'var(--gold)']
-      : ['Recover', 'Mobility, food, an early night. Recovery is the workout today.', 'var(--ona-red)'];
+      : ['Recover', 'Mobility, food, an early night. Recovery is the workout today.', 'var(--danger)'];
     body = (
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -188,7 +192,7 @@ function DomainSheet({ domainId, onClose, ctx }) {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: verdict[2] }}>{verdict[0]}</div>
             <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.5, marginTop: 2 }}>{verdict[1]}</div>
-            {trend != null && <div className="mono" style={{ fontSize: 9, color: trend >= 0 ? 'var(--lime)' : 'var(--ona-red)', marginTop: 4 }}>{trend >= 0 ? '▲ +' : '▼ '}{trend} vs 7-day avg</div>}
+            {trend != null && <div className="mono" style={{ fontSize: 9, color: trend >= 0 ? 'var(--lime)' : 'var(--danger)', marginTop: 4 }}>{trend >= 0 ? '▲ +' : '▼ '}{trend} vs 7-day avg</div>}
           </div>
         </div>
         <div className="eyebrow" style={{ marginTop: 14, lineHeight: 1.6 }}>Check in daily on Command — energy, focus, body, mood. The mission engine plans around it.</div>
@@ -235,15 +239,20 @@ function DomainSheet({ domainId, onClose, ctx }) {
     );
   } else if (domainId === 'business') {
     const s = snapshot();
-    const st = s.ona.stats || {};
+    const podium = s.podium || {};
+    const podiumFolder = folderForDomain(s.folders || [], 'podium');
+    const activeProjects = (podiumFolder?.projects || []).filter((project) => {
+      const steps = project.steps || [];
+      return !steps.length || steps.some((step) => !step.done);
+    }).length;
     body = (
       <div>
         <div style={{ display: 'flex', gap: 16 }}>
-          <div><div className="eyebrow">ONA Members</div><div className="display" style={{ fontSize: 26 }}>{st.members ?? '—'}</div></div>
-          <div><div className="eyebrow">MRR</div><div className="display" style={{ fontSize: 26, color: 'var(--lime)' }}>${(st.mrr ?? 0).toLocaleString()}</div></div>
-          <div><div className="eyebrow">Initiatives</div><div className="display" style={{ fontSize: 26, color: 'var(--gold)' }}>{(s.ona.initiatives || []).length}</div></div>
+          <div><div className="eyebrow">Open orders</div><div className="display" style={{ fontSize: 26 }}>{podium.orders ?? 0}</div></div>
+          <div><div className="eyebrow">Active builds</div><div className="display" style={{ fontSize: 26, color: 'var(--cyan)' }}>{podium.builds ?? 0}</div></div>
+          <div><div className="eyebrow">Projects</div><div className="display" style={{ fontSize: 26, color: 'var(--gold)' }}>{activeProjects}</div></div>
         </div>
-        <GoBtn tab="build" label="Open Build · ONA + Podium" />
+        <GoBtn tab="build" label="Open Build · Podium" />
       </div>
     );
   } else if (domainId === 'creativity') {
@@ -297,7 +306,9 @@ function DomainSheet({ domainId, onClose, ctx }) {
 export function LifeMapScreen({ captures, setCaptures, readiness, trend, history, becoming, onOpenReview, onOpenUpgrade, onGoTab }) {
   const [view, setView] = useState('inbox'); // inbox | journal
   const [journal, setJournal] = useSyncedState('lifeos:journal', []);
-  const [folders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
+  const [storedFolders, setFolders] = useSyncedState('lifeos:folders', SEED_FOLDERS);
+  const folders = withoutRetiredOnaFolders(storedFolders);
+  const visibleCaptures = withoutRetiredOnaCaptures(captures);
   const [learning, setLearning] = useSyncedState('lifeos:learning', []);
   const [adventure, setAdventure] = useSyncedState('lifeos:adventure', []);
   const [draft, setDraft] = useState('');
@@ -335,11 +346,11 @@ export function LifeMapScreen({ captures, setCaptures, readiness, trend, history
   // Cross-domain pattern — one strategic observation across domains over time.
   const crossInsight = useMemo(() => { try { return crossDomainInsight(selfHistory); } catch { return null; } }, [selfHistory]);
 
-  const inbox = (captures || []).filter((c) => (c.status || 'inbox') === 'inbox');
-  const triaged = (captures || []).filter((c) => c.status === 'triaged');
+  const inbox = visibleCaptures.filter((c) => (c.status || 'inbox') === 'inbox');
+  const triaged = visibleCaptures.filter((c) => c.status === 'triaged');
 
   const route = (id, domain) => {
-    const cap = (captures || []).find((c) => c.id === id);
+    const cap = visibleCaptures.find((c) => c.id === id);
     if (cap) {
       setFolders((list) => {
         const target = folderForDomain(list, domain);

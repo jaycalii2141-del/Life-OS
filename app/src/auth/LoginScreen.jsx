@@ -96,7 +96,7 @@ export default function LoginScreen() {
             />
 
             {error && (
-              <div className="mono" style={{ fontSize: 11, color: 'var(--ona-red)', marginTop: 10, lineHeight: 1.4 }}>
+              <div className="mono" style={{ fontSize: 11, color: 'var(--danger)', marginTop: 10, lineHeight: 1.4 }}>
                 {error}
               </div>
             )}

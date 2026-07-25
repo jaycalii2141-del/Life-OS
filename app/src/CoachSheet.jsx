@@ -123,7 +123,7 @@ export function CoachSheet({ open, onClose, skills, onLog }) {
   const [bsOpen, setBsOpen] = useState(true);
 
   const blindspots = analyzeBlindspots(skills, readJSON('lifeos:sessions', []), readiness()?.score ?? null, DISCIPLINES);
-  const sevColor = (s) => (s === 'high' ? 'var(--ona-red)' : s === 'med' ? 'var(--gold)' : 'var(--cyan)');
+  const sevColor = (s) => (s === 'high' ? 'var(--danger)' : s === 'med' ? 'var(--gold)' : 'var(--cyan)');
 
   const generate = async () => {
     setLoading(true); setPlan('');

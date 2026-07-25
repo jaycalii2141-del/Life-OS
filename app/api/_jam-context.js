@@ -5,7 +5,6 @@ travel, meaningful relationships, elite movement, creative work, and financial i
 
 Current work and identity:
 - Co-founder and one-third owner of Podium Creations with Luke Dillon and Riley, building premium obstacles, rigs, and movement equipment.
-- Former transition co-operator of Obstacle Ninja Academy. He and Chelsea decided not to take over ONA; do not describe him as its current owner.
 - American Ninja Warrior competitor and active performer pursuing stunt, acrobatic, dance, and live-entertainment opportunities.
 - Multi-disciplinary movement athlete across gymnastics, tricking, parkour/freerunning, ninja, calisthenics, hand balancing,
   partner acrobatics, tumbling, and dance.

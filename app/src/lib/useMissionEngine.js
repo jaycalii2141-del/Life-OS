@@ -13,6 +13,7 @@ import { useEffect, useRef } from 'react';
 import { useSyncedState } from '../useSyncedState.js';
 import { generateMissions } from './mission.js';
 import { logEvent } from './telemetry.js';
+import { withoutRetiredOnaMissions } from './retiredOna.js';
 
 export function useMissionEngine(today, missionState, setMissionState) {
   // Generated once per day from every data source; regenerable; Build's
@@ -30,7 +31,8 @@ export function useMissionEngine(today, missionState, setMissionState) {
   // Defensive dedupe by id on read — heals any persisted doc that picked up
   // a duplicate (the old lockstep guard raced its own updater; docs persist,
   // so a duplicate written once would otherwise live forever).
-  const missions = (missionDoc.items || []).filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i);
+  const missions = withoutRetiredOnaMissions(missionDoc.items || [])
+    .filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) === i);
   const doneIds = missionDoc.doneIds || [];
 
   // Keep the One Thing and the mission list in lockstep. All checks live

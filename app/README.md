@@ -1,8 +1,8 @@
 # Life OS — Web App
 
-Jay Martinez's personal Life OS, built as a Vite + React web app. Five screens —
-Mission Control, Training HQ, Content Studio, ONA HQ, and an AI command sheet —
-rendered inside an iPhone frame, matching the original design system exactly.
+Jay Martinez's personal Life OS, built as a Vite + React web app. The experience
+connects Now, Worlds, Movement, Podium, Creator Studio, Life Map, and JAM
+Intelligence inside a fluid mobile-first interface.
 
 ## Run locally
 
@@ -29,9 +29,9 @@ app/
     main.jsx        # entry point
     App.jsx         # shell: iPhone frame, tab state, FAB → Quick Capture
     styles.css      # design tokens + all styling
-    data.js         # seed data (brands, skills, coaches, timeline, etc.)
+    data.js         # seed data (brands, skills, timeline, etc.)
     components/      # icons, atoms, IOSDevice, TabBar, QuickCapture
-    screens/         # MissionControl, TrainingHQ, ContentStudio, ONAHQ, AIScreen
+    screens/         # LivingNow, Worlds, TrainingHQ, Build, ContentStudio, LifeMap
 ```
 
 ## Deploy
@@ -77,6 +77,6 @@ to the `app_state` table. Data model is one JSON row per `(user, key)`.
 
 ## Notes
 
-Seed/reference data (brands, coaches, radar, momentum) still lives in `src/data.js`.
+Seed/reference data (brands, skills, radar, momentum) still lives in `src/data.js`.
 Your editable, synced state is: daily logs (meters, One Thing, timeline), captures,
 training sessions, and skill progress.

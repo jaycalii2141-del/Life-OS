@@ -10,7 +10,7 @@ import { voiceSupported, createListener } from '../lib/voice.js';
 
 const CAPTURE_TAGS = [
   { id: 'idea',  label: 'IDEA',  color: '#45B7E8' },
-  { id: 'ona',   label: 'ONA',   color: '#FF6B5B' },
+  { id: 'podium', label: 'PODIUM', color: '#E9C46A' },
   { id: 'dream', label: 'DREAM', color: '#2DD4BF' },
   { id: 'task',  label: 'TASK',  color: '#34D399' },
 ];
@@ -165,7 +165,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: recording ? 'var(--ona-red)' : 'var(--text)',
+                  color: recording ? 'var(--danger)' : 'var(--text)',
                   boxShadow: recording ? '0 0 24px -6px rgba(255,107,91,0.6)' : 'none',
                   transition: 'all 200ms',
                 }}
@@ -186,10 +186,10 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
               }}>
                 <span style={{
                   width: 6, height: 6, borderRadius: 999,
-                  background: 'var(--ona-red)',
-                  boxShadow: '0 0 8px var(--ona-red)',
+                  background: 'var(--danger)',
+                  boxShadow: '0 0 8px var(--danger)',
                 }} className="blink" />
-                <span className="mono" style={{ fontSize: 11, color: 'var(--ona-red)' }}>
+                <span className="mono" style={{ fontSize: 11, color: 'var(--danger)' }}>
                   LISTENING · JUST TALK
                 </span>
                 <div style={{ flex: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -197,7 +197,7 @@ function QuickCapture({ open, onClose, onSave, voiceMode = false }) {
                     <div key={i} style={{
                       flex: 1,
                       height: 4 + Math.abs(Math.sin(i * 0.7)) * 14,
-                      background: 'var(--ona-red)',
+                      background: 'var(--danger)',
                       borderRadius: 1,
                       opacity: 0.8,
                     }} className={i % 3 === 0 ? 'shimmer-cell' : ''} />

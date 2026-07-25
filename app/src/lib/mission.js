@@ -2,7 +2,7 @@
 // LifeOS V2 — Mission Engine
 // The brain that decides what deserves Jay's attention today.
 //
-// Every data source in the app (readiness, skills, sessions, ONA,
+// Every data source in the app (readiness, skills, sessions, Podium,
 // content, projects, captures, calendar, cadence) feeds ONE ranked
 // list of missions. The Home screen renders it; the Companion
 // references it; Build's Action Center appends to it.
@@ -15,6 +15,11 @@
 // ─────────────────────────────────────────────────────────
 import { todayKey } from '../usePersistentState.js';
 import { DISCIPLINES } from '../data.js';
+import {
+  withoutRetiredOnaSnapshot,
+  withoutRetiredOnaText,
+  withoutRetiredOnaTimeline,
+} from './retiredOna.js';
 
 function readJSON(key, fb) {
   try { const r = localStorage.getItem(key); return r != null ? JSON.parse(r) : fb; } catch { return fb; }
@@ -22,22 +27,25 @@ function readJSON(key, fb) {
 
 // One read of everything the engine cares about.
 export function snapshot() {
-  const daily = readJSON(`lifeos:daily:${todayKey()}`, {});
-  return {
+  const dailyRaw = readJSON(`lifeos:daily:${todayKey()}`, {});
+  const daily = {
+    ...dailyRaw,
+    timeline: withoutRetiredOnaTimeline(dailyRaw.timeline),
+  };
+  return withoutRetiredOnaSnapshot({
     daily,
     readiness: daily.energy != null
       ? Math.round(((daily.energy + daily.focus + daily.body + daily.mood) / 40) * 100)
       : null,
     skills: readJSON('lifeos:skills:v2', {}),
     sessions: readJSON('lifeos:sessions', []),
-    ona: readJSON('lifeos:ona', {}),
-    onaLive: readJSON('lifeos:ona:live', null),
+    podium: readJSON('lifeos:podium', {}),
     content: readJSON('lifeos:content', {}),
     folders: readJSON('lifeos:folders', []),
     captures: readJSON('lifeos:captures', []),
-    weeklyFocus: readJSON('lifeos:weeklyfocus', {}).text,
+    weeklyFocus: withoutRetiredOnaText(readJSON('lifeos:weeklyfocus', {}).text),
     journal: readJSON('lifeos:journal', []),
-  };
+  });
 }
 
 // ─────────────────────────────────────────────────────────
@@ -98,69 +106,51 @@ export function upcomingUnlocks(skills, limit = 3) {
 // Action recommendations — metrics → moves.
 // Every dashboard number must answer "so what should I do?"
 // ─────────────────────────────────────────────────────────
-export function recommendOna(ona, live) {
+export function recommendPodium(podium = {}, folders = []) {
   const recs = [];
-  const stats = ona.stats || {};
-  const sales = ona.sales || [];
-  const inits = ona.initiatives || [];
-  const avgValue = stats.members ? Math.round((stats.mrr || 0) / stats.members) : 120;
+  const orders = Math.max(0, Number(podium.orders) || 0);
+  const builds = Math.max(0, Number(podium.builds) || 0);
+  const folder = (folders || []).find((f) =>
+    f?.domain === 'podium' || String(f?.name || '').trim().toLowerCase() === 'podium'
+  );
+  const projects = (folder?.projects || []).filter((project) => {
+    const steps = project.steps || [];
+    return !steps.length || steps.some((step) => !step.done);
+  });
 
-  // Stale people — prefer the real CRM (named people) over rough counts.
-  const people = ona.pipelinePeople || {};
-  const personStale = (p) => {
-    const ref = p.lastContact || p.lastVisit || p.addedOn;
-    if (!ref) return false;
-    const d = new Date(`${ref}T12:00:00`);
-    return !isNaN(d) && (Date.now() - d.getTime()) / 864e5 > 7;
-  };
-  const stalePeople = ['leads', 'trials', 'closing'].flatMap((st) => (people[st] || []).filter(personStale));
-  const stale = stalePeople.length || sales.reduce((s, x) => s + (x.stale || 0), 0);
-  if (stale > 0) {
-    const first = stalePeople[0];
+  if (builds > 0) {
     recs.push({
-      id: 'ona-stale', domain: 'ona', icon: '📞',
-      title: first
-        ? `Call ${first.name}${stale > 1 ? ` + ${stale - 1} more going cold` : ''}`
-        : `Call ${stale} stale lead${stale > 1 ? 's' : ''}`,
-      why: first
-        ? `No contact in over a week${first.phone ? ` — their number is one tap away in the funnel` : ''}. Warm leads close at 2× the rate.`
-        : 'Leads sitting >1wk close at half the rate. A 10-min call run revives them.',
-      impact: `≈ +$${Math.round(stale * avgValue * 0.25).toLocaleString()}/mo if 1 in 4 converts`,
-      est: 25,
-    });
-  }
-  const trials = sales.find((s) => s.id === 'trials');
-  if (trials?.count > 0) {
-    recs.push({
-      id: 'ona-trials', domain: 'ona', icon: '🤝',
-      title: `Check in on ${trials.count} trial member${trials.count > 1 ? 's' : ''}`,
-      why: 'A personal touch during trial week is the single biggest conversion lever.',
-      impact: `≈ +$${Math.round(trials.count * avgValue * 0.3).toLocaleString()}/mo at +30% close`,
-      est: 20,
-    });
-  }
-  const churn = live?.churn_month;
-  if (churn > 0) {
-    recs.push({
-      id: 'ona-churn', domain: 'ona', icon: '🛟',
-      title: `Win-back: ${churn} cancelled this month`,
-      why: 'A "we miss you" message inside 2 weeks recovers 10–15% of cancellations.',
-      impact: `≈ +$${Math.round(churn * avgValue * 0.12).toLocaleString()}/mo recovered`,
-      est: 15,
-    });
-  }
-  const urgent = inits
-    .filter((i) => i.priority === 'P0' && i.pct < 100)
-    .sort((a, b) => a.pct - b.pct)[0];
-  if (urgent) {
-    recs.push({
-      id: 'ona-p0', domain: 'ona', icon: '🥷',
-      title: `Push "${urgent.title}" past ${urgent.pct}%`,
-      why: `Your top P0${urgent.due ? `, due ${urgent.due}` : ''}. One focused block moves it.`,
-      impact: 'Unblocks the biggest rock at ONA',
+      id: 'podium-builds', domain: 'podium', icon: '🛠️',
+      title: `Move ${builds} active Podium build${builds === 1 ? '' : 's'} toward ship`,
+      why: 'Work in progress is the closest business value to becoming delivered revenue.',
+      impact: 'Converts fabrication time into shipped work',
       est: 60,
     });
   }
+
+  const queued = Math.max(0, orders - builds);
+  if (queued > 0) {
+    recs.push({
+      id: 'podium-queue', domain: 'podium', icon: '📐',
+      title: `Turn ${queued} queued Podium order${queued === 1 ? '' : 's'} into build plans`,
+      why: 'A clear materials list, owner, and next fabrication step keeps orders from waiting silently.',
+      impact: 'Moves paid demand into production',
+      est: 45,
+    });
+  }
+
+  const project = projects.find((p) => (p.steps || []).some((step) => !step.done)) || projects[0];
+  const next = (project?.steps || []).find((step) => !step.done);
+  if (project && next) {
+    recs.push({
+      id: `podium-project-${project.id}`, domain: 'podium', icon: '🏆',
+      title: `${project.title}: ${next.text}`,
+      why: 'This is the next unfinished step in your active Podium project.',
+      impact: 'Moves the highest-priority build forward',
+      est: 45,
+    });
+  }
+
   return recs;
 }
 
@@ -271,8 +261,8 @@ export function generateMissions(s = snapshot()) {
   }
 
   // 3 · The highest-leverage business move.
-  const onaRec = recommendOna(s.ona, s.onaLive)[0];
-  if (onaRec) missions.push({ ...onaRec, kind: 'build', go: 'build' });
+  const podiumRec = recommendPodium(s.podium, s.folders)[0];
+  if (podiumRec) missions.push({ ...podiumRec, kind: 'build', go: 'build' });
 
   // 4 · The highest-leverage content/project move.
   const contentRec = recommendContent(s.content, s.folders)[0];
@@ -341,11 +331,14 @@ export function localAnswer(q, mode = 'partner') {
       : 'Run down — mobility, food, sleep. Active recovery only.';
     return `Body ${d.body}/10 · Energy ${d.energy}/10\n\n${verdict}`;
   };
-  const onaPulse = () => {
-    const st = s.ona.stats || {};
-    const recs = recommendOna(s.ona, s.onaLive);
-    const moves = recs.length ? recs.map((r) => `• ${r.title} — ${r.impact}`).join('\n') : '• Pipeline is clean. Pick the next P0 and push it.';
-    return `Members ${st.members ?? '—'} · MRR $${(st.mrr ?? 0).toLocaleString()} · NPS ${st.nps ?? '—'}\n\nRecommended moves:\n${moves}`;
+  const podiumPulse = () => {
+    const p = s.podium || {};
+    const recs = recommendPodium(p, s.folders);
+    const metrics = `Open orders ${p.orders ?? 0} · Active builds ${p.builds ?? 0} · Revenue $${Number(p.revenue || 0).toLocaleString()}`;
+    const moves = recs.length
+      ? recs.map((r) => `• ${r.title} — ${r.impact}`).join('\n')
+      : '• No urgent Podium move is visible. Add an order, active build, or project next step and I’ll prioritize it.';
+    return `${metrics}\n\nRecommended moves:\n${moves}`;
   };
   const contentMove = () => {
     const recs = recommendContent(s.content, s.folders);
@@ -371,13 +364,12 @@ export function localAnswer(q, mode = 'partner') {
 
   // Mode-first routing, then keywords, then the day plan.
   if (mode === 'coach') return /plan|day|mission/.test(t) ? planDay() : /recover|rest|sore|tired|ready/.test(t) ? recovery() : training();
-  if (mode === 'ona') return onaPulse();
   if (mode === 'creative') return contentMove();
-  if (mode === 'podium') return 'Podium isn\'t wired to live order data yet — capture orders and builds into the Podium folder and I\'ll track them. This week: pick the one product that moves revenue and protect a build block for it.';
+  if (mode === 'podium') return podiumPulse();
   if (mode === 'architect') return systems();
   if (/plan|day|today|mission|focus/.test(t)) return planDay();
   if (/recover|ready|readiness|rest|sore|tired/.test(t)) return recovery();
-  if (/ona|member|mrr|gym|lead|trial/.test(t)) return onaPulse();
+  if (/podium|order|build|fabricat|product|revenue/.test(t)) return podiumPulse();
   if (/content|hook|post|film|shoot|brand|edit/.test(t)) return contentMove();
   if (/skill|train|trick|cork|twist|lever|planche/.test(t)) return training();
   if (/system|friction|neglect|improve/.test(t)) return systems();

@@ -11,7 +11,7 @@ const key = (n) => {
 };
 
 const SNAP = (over = {}) => ({
-  skills: {}, sessions: [], ona: {}, onaLive: null, content: {},
+  skills: {}, sessions: [], podium: {}, content: {},
   journal: [], captures: [], folders: [], daily: {}, readiness: 50,
   ...over,
 });
@@ -33,7 +33,7 @@ describe('evaluateMilestones', () => {
   it('nothing unlocks on truly empty evidence', () => {
     const list = evalWith();
     expect(list.some((m) => m.done)).toBe(false);
-    expect(list).toHaveLength(13);
+    expect(list).toHaveLength(12);
   });
 
   it('The Consistent needs a 7-day streak ending today', () => {
@@ -69,9 +69,11 @@ describe('evaluateMilestones', () => {
     expect(byId(evalWith(three), 'polymath').done).toBe(true);
   });
 
-  it('The Operator reads ONA scale', () => {
-    expect(byId(evalWith({ ona: { stats: { members: 250 } } }), 'scaling').done).toBe(true);
-    expect(byId(evalWith({ ona: { stats: { members: 125 } } }), 'scaling').progress).toBe(50);
+  it('The Builder reads completed Podium projects', () => {
+    const done = { folders: [{ domain: 'podium', projects: [{ steps: [{ done: true }, { done: true }] }] }] };
+    expect(byId(evalWith(done), 'builder').done).toBe(true);
+    const open = { folders: [{ domain: 'podium', projects: [{ steps: [{ done: true }, { done: false }] }] }] };
+    expect(byId(evalWith(open), 'builder').progress).toBe(50);
   });
 
   it('The Reflective / The Intentional / The Centered / The Ascending', () => {

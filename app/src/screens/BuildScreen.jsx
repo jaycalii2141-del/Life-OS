@@ -4,14 +4,13 @@
 // V1 showed numbers. V2 opens with the ACTION CENTER: every metric
 // is converted into a recommended move with a WHY and an estimated
 // impact — and one tap sends it into today's mission. The full
-// ONA and Studio workspaces live underneath, one segment away.
+// Podium and Studio workspaces live underneath, one segment away.
 // ─────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { SectionHead, HUDTicks, TickCounter } from '../components/atoms.jsx';
 import { IconCheck, IconPlus, IconActivity, IconTarget, IconWarn, domainIcon } from '../components/icons.jsx';
-import { ONAHQ } from './ONAHQ.jsx';
 import { ContentStudio } from './ContentStudio.jsx';
-import { snapshot, recommendOna, recommendContent } from '../lib/mission.js';
+import { snapshot, recommendPodium, recommendContent } from '../lib/mission.js';
 import { useSyncedState } from '../useSyncedState.js';
 import { celebrate } from '../lib/haptics.js';
 import { logEvent } from '../lib/telemetry.js';
@@ -115,7 +114,7 @@ function PodiumHub() {
 
 function ActionCenter({ onAddMission, missionIds }) {
   const s = snapshot();
-  const recs = [...recommendOna(s.ona, s.onaLive), ...recommendContent(s.content, s.folders)].slice(0, 4);
+  const recs = [...recommendPodium(s.podium, s.folders), ...recommendContent(s.content, s.folders)].slice(0, 4);
 
   if (!recs.length) {
     return (
@@ -166,8 +165,8 @@ function ActionCenter({ onAddMission, missionIds }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Workbench — every active project across every folder (ONA, Podium,
-// Studio, personal), in one place, sorted by urgency, each with its
+// Workbench — every active project across every folder (Podium, Studio,
+// and personal), in one place, sorted by urgency, each with its
 // surfaced next action. The single "what's on my plate" view.
 // ─────────────────────────────────────────────────────────
 function dueStatus(due) {
@@ -266,13 +265,12 @@ function Workbench() {
 }
 
 const SEGMENTS = [
-  { id: 'ona', label: 'ONA', color: '#FF6B5B' },
   { id: 'podium', label: 'Podium', color: '#E9C46A' },
   { id: 'studio', label: 'Studio', color: '#FF8A4C' },
 ];
 
 export function BuildScreen({ onAddMission, missionIds = [] }) {
-  const [seg, setSeg] = useState('ona');
+  const [seg, setSeg] = useState('podium');
 
   return (
     <div className="screen-content" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -297,7 +295,7 @@ export function BuildScreen({ onAddMission, missionIds = [] }) {
 
       <Workbench />
 
-      {seg === 'ona' ? <ONAHQ embedded /> : seg === 'podium' ? <PodiumHub /> : <ContentStudio embedded />}
+      {seg === 'podium' ? <PodiumHub /> : <ContentStudio embedded />}
     </div>
   );
 }

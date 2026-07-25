@@ -3,7 +3,7 @@
 //
 // A short guided flow to replace the starter seed numbers with Jay's real
 // life, so the Becoming Index and the AI reason about reality. It writes
-// the simple, high-signal metrics (ONA, Podium, content cadence) by
+// the simple, high-signal metrics (Podium and content cadence) by
 // PATCHING existing state — never clobbering the detailed skill tree or
 // campaigns (those are edited in Move / Command). Reversible: every value
 // is just normal app state, and the flow can be re-run anytime.
@@ -11,8 +11,9 @@
 import { useState, useEffect } from 'react';
 import { useSyncedState } from './useSyncedState.js';
 import { IconClose, IconCheck, IconArrowRight, IconChevronRight } from './components/icons.jsx';
-import { ONA_STATS, INITIATIVES, SALES_STAGES, COACHES, BRANDS, HOOKS } from './data.js';
+import { BRANDS, HOOKS } from './data.js';
 import { todayKey } from './usePersistentState.js';
+import { withoutRetiredOnaBrands } from './lib/retiredOna.js';
 
 const numField = {
   width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--line-strong)',
@@ -40,7 +41,6 @@ function Field({ label, hint, prefix, value, onChange, placeholder }) {
 const num = (v, fb = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : fb; };
 
 export function SetupFlow({ open, onClose }) {
-  const [ona, setOna] = useSyncedState('lifeos:ona', { stats: ONA_STATS, initiatives: INITIATIVES, sales: SALES_STAGES, coaches: COACHES });
   const [podium, setPodium] = useSyncedState('lifeos:podium', { orders: 0, revenue: 0, builds: 0 });
   const [content, setContent] = useSyncedState('lifeos:content', { hooks: HOOKS.map((text, i) => ({ id: i + 1, text })) });
   const [, setSetupDone] = useSyncedState('lifeos:setup-complete', null);
@@ -52,11 +52,9 @@ export function SetupFlow({ open, onClose }) {
   useEffect(() => {
     if (!open) return;
     setStep(0);
-    const baseBrands = (content.brands && content.brands.length ? content.brands : BRANDS);
+    const savedBrands = withoutRetiredOnaBrands(content.brands || []);
+    const baseBrands = savedBrands.length ? savedBrands : BRANDS;
     setForm({
-      members: String(ona.stats?.members ?? ''),
-      mrr: String(ona.stats?.mrr ?? ''),
-      nps: String(ona.stats?.nps ?? ''),
       revenue: String(podium.revenue ?? ''),
       orders: String(podium.orders ?? ''),
       builds: String(podium.builds ?? ''),
@@ -68,14 +66,14 @@ export function SetupFlow({ open, onClose }) {
   if (!open || !form) return null;
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
 
-  const STEPS = ['Intro', 'Business', 'Podium', 'Content', 'Done'];
+  const STEPS = ['Intro', 'Podium', 'Content', 'Done'];
   const last = STEPS.length - 1;
 
   const finish = () => {
-    setOna((o) => ({ ...o, stats: { ...(o.stats || {}), members: num(form.members, o.stats?.members ?? 0), mrr: num(form.mrr, o.stats?.mrr ?? 0), nps: num(form.nps, o.stats?.nps ?? 0) } }));
     setPodium((p) => ({ ...p, revenue: num(form.revenue, p.revenue), orders: num(form.orders, p.orders), builds: num(form.builds, p.builds) }));
     setContent((c) => {
-      const prev = c.brands && c.brands.length ? c.brands : BRANDS;
+      const savedBrands = withoutRetiredOnaBrands(c.brands || []);
+      const prev = savedBrands.length ? savedBrands : BRANDS;
       const brands = form.brands.map((fb) => {
         const base = prev.find((b) => b.id === fb.id) || BRANDS.find((b) => b.id === fb.id) || { id: fb.id, name: fb.name, color: fb.color, weeklyGoal: '5 posts', posted: 0 };
         return { ...base, name: fb.name, status: fb.active ? (base.status && base.status !== 'Paused' ? base.status : 'On Track') : 'Paused', pct: Math.round(fb.pct) };
@@ -109,22 +107,12 @@ export function SetupFlow({ open, onClose }) {
               Your <span style={{ color: 'var(--cyan)' }}>Becoming</span> score and the AI are only as true as your numbers. A couple of minutes here replaces the starter data with your real life.
             </div>
             <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, marginTop: 16 }}>
-              We'll set your ONA business, Podium, and content cadence. Skills and goals stay where you fine-tune them (Move &amp; Command). Nothing is locked in until the last step — and you can re-run this anytime from Settings.
+              We'll set your Podium business and content cadence. Skills and goals stay where you fine-tune them (Move &amp; Command). Nothing is locked in until the last step — and you can re-run this anytime from Settings.
             </div>
           </div>
         )}
 
         {step === 1 && (
-          <div>
-            <div className="eyebrow" style={{ color: 'var(--cyan)' }}>Business · ONA</div>
-            <div className="display" style={{ fontSize: 24, marginTop: 2, marginBottom: 16 }}>OBSTACLE NINJA ACADEMY</div>
-            <Field label="Active members" hint="CURRENT PAYING MEMBERS" value={form.members} onChange={(v) => set({ members: v })} placeholder="248" />
-            <Field label="Monthly recurring revenue" prefix="$" hint="MRR FROM MEMBERSHIPS" value={form.mrr} onChange={(v) => set({ mrr: v })} placeholder="38450" />
-            <Field label="NPS" hint="MEMBER NET PROMOTER SCORE (-100 TO 100)" value={form.nps} onChange={(v) => set({ nps: v })} placeholder="72" />
-          </div>
-        )}
-
-        {step === 2 && (
           <div>
             <div className="eyebrow" style={{ color: 'var(--gold)' }}>Business · Podium Creations</div>
             <div className="display" style={{ fontSize: 24, marginTop: 2, marginBottom: 16 }}>PODIUM</div>
@@ -134,7 +122,7 @@ export function SetupFlow({ open, onClose }) {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <div>
             <div className="eyebrow" style={{ color: 'var(--magenta)' }}>Creativity · Content</div>
             <div className="display" style={{ fontSize: 24, marginTop: 2, marginBottom: 6 }}>YOUR BRANDS</div>
@@ -164,11 +152,11 @@ export function SetupFlow({ open, onClose }) {
           </div>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <div>
             <div className="display" style={{ fontSize: 30, lineHeight: 1.05, marginTop: 8, color: 'var(--lime)' }}>YOU'RE SET</div>
             <div style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6, marginTop: 14 }}>
-              Your Becoming will now reason about your real ONA, Podium, and content. It re-computes the moment you save.
+              Your Becoming will now reason about your real Podium and content data. It re-computes the moment you save.
             </div>
             <div className="hud glass" style={{ borderRadius: 14, padding: 14, marginTop: 18 }}>
               <div className="eyebrow" style={{ color: 'var(--cyan)', marginBottom: 8 }}>Still to fine-tune (when you're ready)</div>

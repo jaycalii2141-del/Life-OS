@@ -6,7 +6,7 @@ const HIGHLIGHTS = [
   { Icon: IconTarget, color: '#45B7E8', title: 'Command', body: 'The cockpit. Your daily mission, alignment score, missions, and wins — what matters today.' },
   { Icon: IconBrain, color: '#E9C46A', title: 'Map', body: 'A living map of 8 life domains — health, relationships, learning, adventure — each scored from real activity.' },
   { Icon: IconBolt, color: '#34D399', title: 'Move', body: 'The Movement OS: identity meters, the movement pyramid, and mastery roadmaps toward world-class.' },
-  { Icon: IconTrendUp, color: '#FF6B5B', title: 'Build', body: 'ONA, Podium, and the Creator Studio — with an Action Center that turns metrics into moves.' },
+  { Icon: IconTrendUp, color: '#FF6B5B', title: 'Build', body: 'Podium and the Creator Studio — with an Action Center that turns metrics into moves.' },
   { Icon: IconSparkles, color: '#2DD4BF', title: 'Intelligence', body: 'One AI partner, many hats — open it anywhere with the orb, talk to it hands-free.' },
 ];
 
