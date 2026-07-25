@@ -7,18 +7,25 @@ import './styles.css';
 
 installGlobalHaptics();
 
-// iOS Safari occasionally reports a layout viewport taller than the pixels
-// actually visible beneath its collapsing browser chrome. Keep one canonical
-// app height tied to the visual viewport so a black "phantom strip" cannot
-// appear below the full-bleed canvas.
+// Keep one canonical shell height. IMPORTANT: use the layout viewport
+// (`innerHeight`), not `visualViewport.height`. iOS temporarily shrinks the
+// visual viewport for the keyboard; persisting that value made the whole app
+// stay keyboard-height after Ask closed, exposing a large strip underneath.
 function syncAppViewport() {
-  const height = window.visualViewport?.height || window.innerHeight;
+  const height = window.innerHeight || document.documentElement.clientHeight;
   if (height > 0) document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
 }
 syncAppViewport();
 window.addEventListener('resize', syncAppViewport, { passive: true });
 window.addEventListener('orientationchange', syncAppViewport, { passive: true });
 window.visualViewport?.addEventListener('resize', syncAppViewport, { passive: true });
+window.addEventListener('pageshow', syncAppViewport, { passive: true });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) syncAppViewport();
+});
+// Safari can finish restoring its viewport after focus has already left the
+// input. Refresh once the keyboard-close animation has settled.
+document.addEventListener('focusout', () => window.setTimeout(syncAppViewport, 320));
 
 // ── Stale-deploy recovery ──
 // When a new deploy lands while a tab is open, hashed lazy-chunk filenames
