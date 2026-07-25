@@ -90,6 +90,9 @@ html, body {
   inset: 0;
   background: var(--bg-0);
   overflow: hidden;
+  /* Unlike overflow:hidden, clip never becomes a programmatic scroll
+     container when a sheet focuses an input or scrolls its own content. */
+  overflow: clip;
   isolation: isolate;
 }
 
