@@ -3,16 +3,17 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import { AuthProvider } from './auth/AuthProvider.jsx';
 import { installGlobalHaptics } from './lib/haptics.js';
+import { appViewportHeight } from './lib/viewport.js';
 import './styles.css';
 
 installGlobalHaptics();
 
-// Keep one canonical shell height. IMPORTANT: use the layout viewport
-// (`innerHeight`), not `visualViewport.height`. iOS temporarily shrinks the
-// visual viewport for the keyboard; persisting that value made the whole app
-// stay keyboard-height after Ask closed, exposing a large strip underneath.
+// Keep one canonical shell height. In an installed iOS PWA the reported
+// viewport can remain keyboard-height even after the keyboard is gone. The
+// physical screen is the stable source of truth there because JAM HQ runs
+// full-screen; regular browser tabs still use their layout viewport.
 function syncAppViewport() {
-  const height = window.innerHeight || document.documentElement.clientHeight;
+  const height = appViewportHeight();
   if (height > 0) document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
 }
 syncAppViewport();

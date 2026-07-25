@@ -866,10 +866,17 @@ html[data-vibe='calm'] .self-stage::before { animation-duration: 48s; }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Full-screen (real phone / installed PWA): clear the real notch + home bar */
-.ios-fullbleed .screen-scroll {
+/* Full-screen (real phone / installed PWA): ordinary screens need shell
+   safe-area padding. Immersive Now/Worlds own their safe areas already; adding
+   this padding to them shortens their painted canvas and creates a false
+   "bottom space" beneath the experience. */
+.ios-fullbleed .screen-scroll:not(.screen-scroll--immersive) {
   padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 124px);
+}
+
+.ios-fullbleed .screen-scroll--immersive {
+  padding: 0;
 }
 
 @keyframes screenIn {
