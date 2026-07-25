@@ -79,8 +79,18 @@ function buildGlobalContext() {
   if (podiumInbox) L.push(podiumInbox);
   if (s.content.brands?.length) L.push(`Brands: ${s.content.brands.map((b) => `${b.name}(${b.status})`).join(', ')}.`);
   const projs = [];
-  s.folders.forEach((f) => (f.projects || []).forEach((p) => { const done = (p.steps || []).filter((x) => x.done).length; projs.push(`${f.name}:${p.title} (${done}/${(p.steps || []).length})`); }));
+  s.folders.forEach((f) => (f.projects || []).forEach((p) => {
+    const done = (p.steps || []).filter((x) => x.done).length;
+    const status = p.status ? `, ${p.status}` : '';
+    projs.push(`${f.name}:${p.title} (${done}/${(p.steps || []).length}${status})`);
+  }));
   if (projs.length) L.push(`Active projects: ${projs.slice(0, 8).join('; ')}.`);
+  const ideas = [];
+  s.folders.forEach((f) => (f.notes || []).forEach((note) => {
+    const title = withoutRetiredOnaText(String(note.title || '').replace(/\s+/g, ' ').trim()).slice(0, 140);
+    if (title) ideas.push(`${f.name}:${title}`);
+  }));
+  if (ideas.length) L.push(`Current notes and ideas: ${ideas.slice(0, 12).join('; ')}.`);
 
   const inbox = s.captures.filter((c) => (c.status || 'inbox') === 'inbox').length;
   if (inbox) L.push(`${inbox} thoughts waiting in the capture inbox.`);
